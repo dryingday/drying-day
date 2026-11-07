@@ -1,0 +1,28 @@
+# Gradle and Kotlin
+.gradle/
+.kotlin/
+build/
+local.properties
+
+# IDEs
+.idea/
+*.iml
+.fleet/
+.vscode/
+
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+captures/
+
+# iOS
+iosApp/**/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+
+# Claude Code: local-only settings stay out of the repo
+.claude/settings.local.json
+
+.DS_Store
