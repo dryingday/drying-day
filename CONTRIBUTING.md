@@ -31,17 +31,19 @@ builds a debug APK. `./gradlew spotlessApply` fixes formatting. The iOS targets 
 
 ## Changing dependencies
 
-Every artifact the build downloads is pinned by SHA-256 in
-[gradle/verification-metadata.xml](gradle/verification-metadata.xml). After adding or upgrading a
-dependency or plugin, regenerate it and look over the diff:
+Every artifact Gradle resolves (libraries, plugins, lint and formatting tools) is pinned by
+SHA-256 in [gradle/verification-metadata.xml](gradle/verification-metadata.xml). Downloads outside
+Gradle's dependency resolution aren't: the Android SDK manager, and Kotlin/Native's toolchain
+bundles. After adding or upgrading a dependency or plugin, regenerate the file on a Mac (it also
+compiles the iOS targets) and look over the diff:
 
 ```
 python3 scripts/update-verification-metadata.py
 git diff gradle/verification-metadata.xml
 ```
 
-The script also records the Linux, macOS and Windows builds of platform-specific tools, so CI and
-F-Droid's build server keep working.
+The script also hashes the builds other machines need: AAPT2 for Linux, macOS and Windows, so CI
+and F-Droid's build server keep working, and Kotlin/Native for both Mac architectures.
 
 ## Pull requests
 
