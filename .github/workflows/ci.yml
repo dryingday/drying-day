@@ -18,7 +18,8 @@ concurrency:
 jobs:
   build:
     name: Check and assemble
-    runs-on: ubuntu-latest
+    # Pinned: the build uses the Android SDK on the runner image, so a silent image change could break it.
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     steps:
       # Actions are pinned to full commit SHAs; the comment is the release they came from.
