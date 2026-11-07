@@ -103,10 +103,10 @@ Indoor plan, for `PARTLY_DRY` (after bring-in) and `DONT_BOTHER`:
 | `AIRER_SPACED` | Always |
 | `OPEN_WINDOW` | Mean outdoor relative humidity < 70 % over the indoor time |
 | `DEHUMIDIFIER_OR_CLOSED_ROOM` | The same mean ≥ 70 % |
-
-The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usable time (from `now` today) for `DONT_BOTHER`; when that's empty, the next six hours of the forecast.
 | `NOT_ON_RADIATOR` (near is fine) | Always |
 | `TURN_HEAVY_ITEMS` | `HEAVY` load |
+
+The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usable time (from `now` today) for `DONT_BOTHER`; when that's empty, the next six hours of the forecast.
 
 ### Reference set
 
@@ -117,7 +117,7 @@ The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usabl
 - **Blind labels.** A fresh subagent, given only each case's hourly data in local time, sunrise and sunset, and the verdict definitions (not the engine, the rules or the thresholds), labels each case for both loads: verdict, hang-out and bring-in to the hour, and a one-line reason. Labelling can happen before the engine exists.
 - **Disagreements.** The engine runs on every case. Each disagreement goes in `docs/reference-set.md` with both answers, and the maintainer decides: the label was wrong, or the rule was. A rule change is its own high-tier PR.
 - `ReferenceSetTest` asserts every agreed case on its first day (the "today" entry): the same verdict, and hang-out and bring-in within an hour of the label. The two days after only need to be non-null.
-- Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places"; CLAUDE.md's "No real places anywhere in the repository" is meant as no homes or personal places, and should say so before PR 5 (a separate PR, as CLAUDE.md is protected).
+- Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places"; CLAUDE.md says "No real places anywhere in the repository". This spec proposes reading that as no homes or personal places, which is the maintainer's decision; if agreed, CLAUDE.md is reworded in its own PR (it's protected) before PR 5.
 
 ## Out of scope
 
