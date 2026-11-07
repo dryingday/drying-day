@@ -1,0 +1,337 @@
+{
+ "cases": [
+  {
+   "id": "greenwich-2025-06-19-0800",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-06-19",
+   "now": "08:00",
+   "note": "Hot, clear summer day"
+  },
+  {
+   "id": "greenwich-2025-06-19-1300",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-06-19",
+   "now": "13:00",
+   "note": "The same day, asked at midday"
+  },
+  {
+   "id": "greenwich-2025-05-25-0800",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-05-25",
+   "now": "08:00",
+   "note": "Showery spring day"
+  },
+  {
+   "id": "greenwich-2025-04-13-0800",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-04-13",
+   "now": "08:00",
+   "note": "Cool, showery spring day"
+  },
+  {
+   "id": "greenwich-2025-11-15-0800",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-11-15",
+   "now": "08:00",
+   "note": "Dry but very humid autumn day"
+  },
+  {
+   "id": "greenwich-2025-01-10-0800",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-01-10",
+   "now": "08:00",
+   "note": "Cold, damp winter day"
+  },
+  {
+   "id": "greenwich-2025-03-30-0800",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-03-30",
+   "now": "08:00",
+   "note": "Clocks go forward; mild and dry"
+  },
+  {
+   "id": "greenwich-2025-10-26-0800",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-10-26",
+   "now": "08:00",
+   "note": "Clocks go back; rain"
+  },
+  {
+   "id": "greenwich-2025-04-05-1600",
+   "landmark": "Royal Observatory, Greenwich",
+   "latitude": 51.48,
+   "longitude": 0.0,
+   "date": "2025-04-05",
+   "now": "16:00",
+   "note": "Mild, dry spring day, asked late in the afternoon"
+  },
+  {
+   "id": "edinburgh-2025-03-30-0800",
+   "landmark": "Edinburgh Castle",
+   "latitude": 55.95,
+   "longitude": -3.2,
+   "date": "2025-03-30",
+   "now": "08:00",
+   "note": "Windy, dry spring day"
+  },
+  {
+   "id": "edinburgh-2025-06-08-0800",
+   "landmark": "Edinburgh Castle",
+   "latitude": 55.95,
+   "longitude": -3.2,
+   "date": "2025-06-08",
+   "now": "08:00",
+   "note": "Showery early summer"
+  },
+  {
+   "id": "edinburgh-2025-08-21-0800",
+   "landmark": "Edinburgh Castle",
+   "latitude": 55.95,
+   "longitude": -3.2,
+   "date": "2025-08-21",
+   "now": "08:00",
+   "note": "Grey, mild, dry"
+  },
+  {
+   "id": "dublin-2025-08-18-0800",
+   "landmark": "Trinity College Dublin",
+   "latitude": 53.34,
+   "longitude": -6.25,
+   "date": "2025-08-18",
+   "now": "08:00",
+   "note": "Humid, grey summer day"
+  },
+  {
+   "id": "dublin-2025-04-02-0800",
+   "landmark": "Trinity College Dublin",
+   "latitude": 53.34,
+   "longitude": -6.25,
+   "date": "2025-04-02",
+   "now": "08:00",
+   "note": "Breezy, dry spring day"
+  },
+  {
+   "id": "amsterdam-2025-09-21-0800",
+   "landmark": "Rijksmuseum, Amsterdam",
+   "latitude": 52.36,
+   "longitude": 4.89,
+   "date": "2025-09-21",
+   "now": "08:00",
+   "note": "Windy autumn day with a chance of rain"
+  },
+  {
+   "id": "amsterdam-2025-05-19-0800",
+   "landmark": "Rijksmuseum, Amsterdam",
+   "latitude": 52.36,
+   "longitude": 4.89,
+   "date": "2025-05-19",
+   "now": "08:00",
+   "note": "Clear spring day"
+  },
+  {
+   "id": "berlin-2025-07-02-0800",
+   "landmark": "Brandenburg Gate, Berlin",
+   "latitude": 52.52,
+   "longitude": 13.38,
+   "date": "2025-07-02",
+   "now": "08:00",
+   "note": "Very hot, dry summer day"
+  },
+  {
+   "id": "berlin-2025-12-25-0800",
+   "landmark": "Brandenburg Gate, Berlin",
+   "latitude": 52.52,
+   "longitude": 13.38,
+   "date": "2025-12-25",
+   "now": "08:00",
+   "note": "Cold, clear winter day"
+  },
+  {
+   "id": "berlin-2025-01-18-0800",
+   "landmark": "Brandenburg Gate, Berlin",
+   "latitude": 52.52,
+   "longitude": 13.38,
+   "date": "2025-01-18",
+   "now": "08:00",
+   "note": "Winter day near saturation; fog likely"
+  },
+  {
+   "id": "madrid-2025-07-17-0800",
+   "landmark": "Puerta del Sol, Madrid",
+   "latitude": 40.42,
+   "longitude": -3.7,
+   "date": "2025-07-17",
+   "now": "08:00",
+   "note": "Hot, very dry summer day"
+  },
+  {
+   "id": "madrid-2025-01-04-0800",
+   "landmark": "Puerta del Sol, Madrid",
+   "latitude": 40.42,
+   "longitude": -3.7,
+   "date": "2025-01-04",
+   "now": "08:00",
+   "note": "Still, humid winter day; fog likely"
+  },
+  {
+   "id": "madrid-2025-02-16-0800",
+   "landmark": "Puerta del Sol, Madrid",
+   "latitude": 40.42,
+   "longitude": -3.7,
+   "date": "2025-02-16",
+   "now": "08:00",
+   "note": "Mild, sunny winter day"
+  },
+  {
+   "id": "rome-2025-07-09-0800",
+   "landmark": "Colosseum, Rome",
+   "latitude": 41.89,
+   "longitude": 12.49,
+   "date": "2025-07-09",
+   "now": "08:00",
+   "note": "Clear Mediterranean summer day"
+  },
+  {
+   "id": "rome-2025-10-25-0800",
+   "landmark": "Colosseum, Rome",
+   "latitude": 41.89,
+   "longitude": 12.49,
+   "date": "2025-10-25",
+   "now": "08:00",
+   "note": "Heavy autumn rain"
+  },
+  {
+   "id": "oslo-2025-12-21-0800",
+   "landmark": "Oslo Opera House",
+   "latitude": 59.91,
+   "longitude": 10.75,
+   "date": "2025-12-21",
+   "now": "08:00",
+   "note": "Shortest day, dry"
+  },
+  {
+   "id": "oslo-2025-06-21-0800",
+   "landmark": "Oslo Opera House",
+   "latitude": 59.91,
+   "longitude": 10.75,
+   "date": "2025-06-21",
+   "now": "08:00",
+   "note": "Longest day, clear"
+  },
+  {
+   "id": "tromso-2025-07-18-0800",
+   "landmark": "Arctic Cathedral, Tromsø",
+   "latitude": 69.65,
+   "longitude": 18.99,
+   "date": "2025-07-18",
+   "now": "08:00",
+   "note": "Midnight sun, warm and dry"
+  },
+  {
+   "id": "tromso-2025-01-07-0800",
+   "landmark": "Arctic Cathedral, Tromsø",
+   "latitude": 69.65,
+   "longitude": 18.99,
+   "date": "2025-01-07",
+   "now": "08:00",
+   "note": "Polar night"
+  },
+  {
+   "id": "sydney-2025-12-24-0800",
+   "landmark": "Sydney Opera House",
+   "latitude": -33.86,
+   "longitude": 151.22,
+   "date": "2025-12-24",
+   "now": "08:00",
+   "note": "Clear, breezy summer day"
+  },
+  {
+   "id": "sydney-2025-06-26-0800",
+   "landmark": "Sydney Opera House",
+   "latitude": -33.86,
+   "longitude": 151.22,
+   "date": "2025-06-26",
+   "now": "08:00",
+   "note": "Breezy, dry winter day"
+  },
+  {
+   "id": "sydney-2025-10-05-0800",
+   "landmark": "Sydney Opera House",
+   "latitude": -33.86,
+   "longitude": 151.22,
+   "date": "2025-10-05",
+   "now": "08:00",
+   "note": "Clocks go forward; warm and dry"
+  },
+  {
+   "id": "wellington-2025-10-16-0800",
+   "landmark": "Te Papa, Wellington",
+   "latitude": -41.29,
+   "longitude": 174.78,
+   "date": "2025-10-16",
+   "now": "08:00",
+   "note": "Gale-force wind, dry"
+  },
+  {
+   "id": "wellington-2025-12-28-0800",
+   "landmark": "Te Papa, Wellington",
+   "latitude": -41.29,
+   "longitude": 174.78,
+   "date": "2025-12-28",
+   "now": "08:00",
+   "note": "Showery summer day"
+  },
+  {
+   "id": "wellington-2025-04-06-0800",
+   "landmark": "Te Papa, Wellington",
+   "latitude": -41.29,
+   "longitude": 174.78,
+   "date": "2025-04-06",
+   "now": "08:00",
+   "note": "Clocks go back; rain"
+  },
+  {
+   "id": "seattle-2025-11-17-0800",
+   "landmark": "Space Needle, Seattle",
+   "latitude": 47.62,
+   "longitude": -122.35,
+   "date": "2025-11-17",
+   "now": "08:00",
+   "note": "Grey, drizzly late autumn"
+  },
+  {
+   "id": "seattle-2025-07-01-1200",
+   "landmark": "Space Needle, Seattle",
+   "latitude": 47.62,
+   "longitude": -122.35,
+   "date": "2025-07-01",
+   "now": "12:00",
+   "note": "Clear summer day, asked at noon"
+  },
+  {
+   "id": "seattle-2025-03-09-0800",
+   "landmark": "Space Needle, Seattle",
+   "latitude": 47.62,
+   "longitude": -122.35,
+   "date": "2025-03-09",
+   "now": "08:00",
+   "note": "Clocks go forward; wet and windy"
+  }
+ ]
+}
