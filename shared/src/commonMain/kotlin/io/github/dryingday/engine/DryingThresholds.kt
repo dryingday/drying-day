@@ -13,6 +13,12 @@ internal object DryingThresholds {
     const val DAMP_RELATIVE_HUMIDITY_PERCENT = 95.0
     const val FOG_VISIBILITY_M = 1000.0
 
+    // Rule 2: the Magnus formula for saturation vapour pressure, e_s(T) = A × exp(B × T / (T + C)) kPa.
+    // Physics rather than a judgement, but every VPD band edge depends on them.
+    const val MAGNUS_KPA = 0.6108
+    const val MAGNUS_B = 17.27
+    const val MAGNUS_C_CELSIUS = 237.3
+
     // Rule 2: points for the vapour pressure deficit (kPa); below the first band, none.
     val VPD_POINTS = listOf(
         Band(from = 0.2, value = 0.5),

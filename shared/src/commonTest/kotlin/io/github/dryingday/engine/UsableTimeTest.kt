@@ -28,7 +28,7 @@ class UsableTimeTest {
         shortwaveRadiationWm2 = 400.0,
     )
 
-    // 14 June 2025 at Greenwich: sunrise 04:42 BST, sunset 21:21 BST.
+    // A mid-latitude June day in London's zone: sunrise 04:42 BST, sunset 21:21 BST.
     private val june = DailyLight(LocalDate(2025, 6, 14), at("2025-06-14T03:42:00Z"), at("2025-06-14T20:21:00Z"))
     private val juneDaylight = june.daylight(london)
     private val earlyMorning = at("2025-06-14T00:00:00Z")
@@ -69,7 +69,7 @@ class UsableTimeTest {
 
     @Test
     fun polarDayRunsMidnightToMidnight() {
-        // As Open-Meteo gives it at 69.65 N on 18 May 2025.
+        // Open-Meteo's shape for polar day: sunrise and sunset at local midnight.
         val day = DailyLight(LocalDate(2025, 5, 18), at("2025-05-17T22:00:00Z"), at("2025-05-18T22:00:00Z"))
         assertEquals(24.hours, day.daylight(oslo).length)
     }
@@ -79,6 +79,12 @@ class UsableTimeTest {
         // The first day of the midnight sun: the sun sets at 00:17 on the next date.
         val day = DailyLight(LocalDate(2025, 5, 17), at("2025-05-16T23:14:22Z"), at("2025-05-17T22:17:37Z"))
         assertEquals(Interval(day.sunrise, at("2025-05-17T22:00:00Z")), day.daylight(oslo))
+    }
+
+    @Test
+    fun aSunriseAfterTheDateGivesAnEmptyDaylightInsideIt() {
+        val day = DailyLight(LocalDate(2025, 5, 17), at("2025-05-17T22:30:00Z"), at("2025-05-17T23:00:00Z"))
+        assertEquals(Interval(at("2025-05-17T22:00:00Z"), at("2025-05-17T22:00:00Z")), day.daylight(oslo))
     }
 
     @Test

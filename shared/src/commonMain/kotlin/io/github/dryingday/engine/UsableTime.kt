@@ -16,7 +16,7 @@ import kotlin.time.Instant
 internal fun DailyLight.daylight(zone: TimeZone): Interval {
     val dayStart = date.atStartOfDayIn(zone)
     val dayEnd = date.plus(1, DateTimeUnit.DAY).atStartOfDayIn(zone)
-    val from = maxOf(sunrise, dayStart)
+    val from = minOf(maxOf(sunrise, dayStart), dayEnd)
     val to = minOf(sunset, dayEnd)
     return Interval(from, maxOf(from, to))
 }

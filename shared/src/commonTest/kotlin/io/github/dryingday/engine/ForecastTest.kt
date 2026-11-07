@@ -79,6 +79,14 @@ class ForecastTest {
     }
 
     @Test
+    fun temperatureIsWithinWhatTheEarthGets() {
+        hour(temperatureC = -90.0)
+        hour(temperatureC = 60.0)
+        assertFailsWith<IllegalArgumentException> { hour(temperatureC = -90.1) }
+        assertFailsWith<IllegalArgumentException> { hour(temperatureC = 60.1) }
+    }
+
+    @Test
     fun rejectsSunsetBeforeSunrise() {
         assertFailsWith<IllegalArgumentException> {
             DailyLight(day.date, sunrise = day.sunset, sunset = day.sunrise)

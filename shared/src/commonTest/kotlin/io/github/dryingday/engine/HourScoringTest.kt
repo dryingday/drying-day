@@ -4,6 +4,8 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 /** Rule 2 of docs/bolts/02-drying-rules.md, each boundary tested on both sides. */
@@ -52,13 +54,13 @@ class HourScoringTest {
     @Test
     fun dampFromNinetyFivePercentHumidity() {
         assertEquals(HourKind.DRYING, hour(relativeHumidityPercent = 94.9).kind())
-        assertEquals(HourKind.DAMP, hour(relativeHumidityPercent = 95.0).kind())
+        assertEquals(HourKind.DEW, hour(relativeHumidityPercent = 95.0).kind())
     }
 
     @Test
     fun dampBelowAKilometreVisibility() {
         assertEquals(HourKind.DRYING, hour(visibilityM = 1000.0).kind())
-        assertEquals(HourKind.DAMP, hour(visibilityM = 999.0).kind())
+        assertEquals(HourKind.FOG, hour(visibilityM = 999.0).kind())
     }
 
     @Test
@@ -67,8 +69,21 @@ class HourScoringTest {
     }
 
     @Test
-    fun rainOutranksFog() {
+    fun rainOutranksFogAndFogOutranksDew() {
         assertEquals(HourKind.WET, hour(visibilityM = 500.0, precipitationMm = 1.0).kind())
+        assertEquals(HourKind.FOG, hour(relativeHumidityPercent = 99.0, visibilityM = 500.0).kind())
+    }
+
+    @Test
+    fun dewAndFogAreBothDamp() {
+        assertEquals(listOf(HourKind.DEW, HourKind.FOG), HourKind.entries.filter { it.isDamp })
+    }
+
+    @Test
+    fun everyTableIsInAscendingOrder() {
+        for (table in listOf(DryingThresholds.VPD_POINTS, DryingThresholds.WIND_FACTOR, DryingThresholds.SUN_BONUS)) {
+            assertTrue(table.zipWithNext().all { (a, b) -> a.from < b.from }, "out of order: $table")
+        }
     }
 
     @Test
@@ -118,6 +133,7 @@ class HourScoringTest {
     @Test
     fun noSunBonusInSaturatedAir() {
         assertEquals(0.0, sunBonus(900.0, vpdPoints = 0.0))
+        assertEquals(0.5, sunBonus(900.0, vpdPoints = 0.5))
     }
 
     @Test
@@ -128,6 +144,13 @@ class HourScoringTest {
         assertClose(1.3, hour(14.0, 65.0, 20.0, shortwaveRadiationWm2 = 250.0).pointsPerHour())
         // Its cold damp day earns nothing, sun or not.
         assertClose(0.0, hour(6.0, 85.0, 15.0, shortwaveRadiationWm2 = 400.0).pointsPerHour())
+    }
+
+    @Test
+    fun aPartialHourEarnsProRata() {
+        val sunny = hour(24.0, 40.0, 20.0, shortwaveRadiationWm2 = 800.0)
+        assertClose(3.1 / 4, sunny.points(15.minutes))
+        assertClose(0.0, sunny.points(Duration.ZERO))
     }
 
     @Test
