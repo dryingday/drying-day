@@ -17,6 +17,7 @@ tests share it.
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -98,8 +99,58 @@ _RISKY = [
     (r"mergePullRequest|enablePullRequestAutoMerge|addPullRequestReview|submitPullRequestReview"
      r"|approvePullRequest|(?:create|update|delete)RepositoryRuleset", "a GraphQL merge, review or ruleset change"),
     (r"\bgh\b.*\balias\b", "a gh alias"),
-    (r"\bgit\s+push\b.*(?:\s|:)(?:refs/heads/)?main\b", "a push to main"),
 ]
+
+
+def simple_commands(command):
+    """Split a shell line into simple commands at unquoted ; & | ( ) and newlines, keeping
+    redirects like 2>&1 and &> intact and joining backslash-newline continuations."""
+    command = command.replace("\\\n", " ")
+    parts, current, quote, i = [], "", None, 0
+    while i < len(command):
+        c = command[i]
+        if quote:
+            if c == "\\" and quote == '"' and i + 1 < len(command):
+                current, i = current + command[i:i + 2], i + 2
+                continue
+            if c == quote:
+                quote = None
+            current += c
+        elif c in "'\"":
+            quote, current = c, current + c
+        elif c == "\\" and i + 1 < len(command):
+            current, i = current + command[i:i + 2], i + 2
+            continue
+        elif c == "&" and (current.endswith(">") or command[i + 1:i + 2] == ">"):
+            current += c  # part of a redirect
+        elif c in ";&|()\n":
+            parts.append(current)
+            current = ""
+        else:
+            current += c
+        i += 1
+    parts.append(current)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def pushes_to_main(simple_command):
+    """True for a git push that names main as a destination, or pushes every branch."""
+    try:
+        words = shlex.split(simple_command, comments=True)
+    except ValueError:
+        words = simple_command.split()
+    gits = [i for i, w in enumerate(words) if w == "git" or w.endswith("/git")]
+    if not gits or "push" not in words[gits[0] + 1:]:
+        return False
+    args = words[words.index("push", gits[0] + 1) + 1:]
+    for arg in args:
+        if arg in ("--all", "--mirror"):
+            return True
+        if not arg.startswith("-"):
+            destination = arg.lstrip("+").rsplit(":", 1)[-1]
+            if destination in ("main", "refs/heads/main"):
+                return True
+    return False
 
 
 def classify(command):
@@ -107,6 +158,8 @@ def classify(command):
     or None for anything that can't merge, approve or change a ruleset."""
     if _WRAPPER.match(command):
         return "wrapper"
+    if any(pushes_to_main(c) for c in simple_commands(command)):
+        return "this looks like a push to main"
     # Match on what the shell would see: quotes and backslashes only split or escape words.
     command = re.sub(r"[\"'\\]", "", command)
     if re.search(r"maintainer\.py\b.*\b(?:merge|approve|apply-ruleset)\b", command):
