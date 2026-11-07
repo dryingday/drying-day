@@ -27,9 +27,9 @@ Follow "How work is done" in [docs/PLAN.md](docs/PLAN.md) and the policy. In pra
 - The `tier-reviewer` subagent sets the tier; apply the `risk:*` label (one only).
 - Fill in `.github/pull_request_template.md`, with evidence from the current commit.
 - Watch the PR. Act on comments, reply, and resolve the threads: the ruleset won't merge with
-  open ones. When the maintainer approves the current commit, merge it. For a `risk:low` PR,
-  the policy's conditions for merging without them apply (CI green, every round clean, rounds
-  re-run after any push) before you approve and merge it.
+  open ones. When the maintainer approves the current commit, merge it. Approve and merge a
+  `risk:low` PR yourself only when it meets every condition the policy's Tiers table and
+  "Approvals cover one commit" section set; `maintainer.py` checks some of them, not all.
 
 ## GitHub accounts
 
