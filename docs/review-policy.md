@@ -23,8 +23,8 @@ The article has three tiers: low (no human), medium (one person) and high (two p
 Owned by the maintainer in `.github/CODEOWNERS`, so GitHub requires the maintainer account's approval whatever the tier says. The agent can also use that account (see Enforcement), so for the agent this rule is enforced by the merge hook, not by GitHub.
 
 - `.github/**`: CI workflows, PR templates, CODEOWNERS, the `main` ruleset
-- `settings.gradle.kts`, `**/build.gradle.kts`, `gradle.properties`, `gradle/**`, `gradlew`, `gradlew.bat`, `scripts/**`: dependencies, plugins, the wrapper and dependency verification (supply chain and F-Droid compliance)
-- `config/**`, `.editorconfig`, `lint.xml`, lint and detekt baselines: lint and formatting rules
+- Gradle scripts in either language (`*.gradle.kts`, `*.gradle`), `buildSrc/**`, `build-logic/**`, `gradle.properties` files, `gradle/**`, `gradlew`, `gradlew.bat`, `scripts/**`: dependencies, plugins, the wrapper and dependency verification (supply chain and F-Droid compliance)
+- `config/**`, `.editorconfig` files, `lint.xml`, lint and detekt baselines: lint and formatting rules
 - `**/AndroidManifest.xml`: permissions
 - `.claude/**`, `CLAUDE.md`, `REVIEW.md`, `docs/review-policy.md`: the guardrails themselves
 - `LICENSE`, signing and release configuration (keystores, `keystore.properties`), `fastlane/**` changelogs, version bumps

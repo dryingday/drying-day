@@ -6,16 +6,20 @@
 
 # Dependencies, plugins, the wrapper and dependency verification.
 # Signing and version changes live in *.gradle.kts for now.
+# Groovy scripts and included builds too: Gradle prefers build.gradle over build.gradle.kts.
 *.gradle.kts             @frangipanes
+*.gradle                 @frangipanes
+/buildSrc/               @frangipanes
+/build-logic/            @frangipanes
 /gradlew                 @frangipanes
 /gradlew.bat             @frangipanes
-/gradle.properties       @frangipanes
+gradle.properties        @frangipanes
 /gradle/                 @frangipanes
 /scripts/                @frangipanes
 
 # Lint and formatting rules, including module lint configs and baselines
 /config/                 @frangipanes
-/.editorconfig           @frangipanes
+.editorconfig            @frangipanes
 lint.xml                 @frangipanes
 *baseline*.xml           @frangipanes
 
