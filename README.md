@@ -10,6 +10,17 @@ Status: early development. See [docs/PLAN.md](docs/PLAN.md).
 
 Weather data by [Open-Meteo](https://open-meteo.com/) (CC BY 4.0).
 
+## Building
+
+With JDK 21 and the Android SDK:
+
+```
+./gradlew check assembleDebug
+```
+
+The APK is in `androidApp/build/outputs/apk/debug/`. [CONTRIBUTING.md](CONTRIBUTING.md) has the
+details and the rules for changes.
+
 ## Licence
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
