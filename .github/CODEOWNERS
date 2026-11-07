@@ -1,0 +1,40 @@
+# Protected paths (docs/review-policy.md). GitHub requires the maintainer's approval
+# for any PR that touches them, whatever its risk tier.
+
+# CI, PR templates, rulesets and this file
+/.github/                @frangipanes
+
+# Dependencies, plugins, the wrapper and dependency verification.
+# Signing and version changes live in *.gradle.kts for now.
+# Groovy scripts and included builds too: Gradle prefers build.gradle over build.gradle.kts.
+*.gradle.kts             @frangipanes
+*.gradle                 @frangipanes
+/buildSrc/               @frangipanes
+/build-logic/            @frangipanes
+/gradlew                 @frangipanes
+/gradlew.bat             @frangipanes
+gradle.properties        @frangipanes
+/gradle/                 @frangipanes
+/scripts/                @frangipanes
+
+# Lint and formatting rules, including module lint configs and baselines
+/config/                 @frangipanes
+.editorconfig            @frangipanes
+lint.xml                 @frangipanes
+*baseline*.xml           @frangipanes
+
+# Permissions
+AndroidManifest.xml      @frangipanes
+
+# The guardrails themselves
+/.claude/                @frangipanes
+/CLAUDE.md               @frangipanes
+/REVIEW.md               @frangipanes
+/docs/review-policy.md   @frangipanes
+
+# Licence, signing, release and store changelogs
+/LICENSE                 @frangipanes
+*.jks                    @frangipanes
+*.keystore               @frangipanes
+keystore.properties      @frangipanes
+/fastlane/**/changelogs/ @frangipanes
