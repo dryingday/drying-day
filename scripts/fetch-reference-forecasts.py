@@ -10,8 +10,12 @@ case as an engine Forecast, since common tests can't read files.
 The mapping onto the engine's hours follows the spec: the hour from `start` takes the preceding-hour values
 (precipitation, its probability, gusts, radiation) stamped `start + 1 h`, and the mean of the
 instantaneous values (temperature, humidity, wind speed, visibility) at `start` and `start + 1 h`. An hour
-missing a required value is dropped, as bolt 3's mapping must do. Relative humidity is clamped to 100 %:
-models report a little over it in saturated air.
+missing a required value is dropped, as bolt 3's mapping must do. Each relative humidity value is clamped
+to 100 % before averaging: models report a little over it in saturated air.
+
+Open-Meteo gives every time in one fixed UTC offset per response, whatever the season. Ordinary days are
+dated by their sunrise in the real IANA zone. Polar day and night come back as "midnight" at that fixed
+offset, so they are rebuilt from the real local midnight.
 
 Run from the repository root:
     python3 scripts/fetch-reference-forecasts.py            # fetch, then generate
@@ -55,6 +59,7 @@ ENGINE_FIELDS = [
     "precipitationProbabilityPercent", "precipitationMm", "windGustKmh", "shortwaveRadiationWm2",
 ]
 HOUR_S = 3600
+DAY_S = 86400
 MAX_HUMIDITY_PERCENT = 100.0
 
 
@@ -66,7 +71,7 @@ def fetch(case):
         "start_date": (day - timedelta(days=1)).isoformat(),
         "end_date": (day + timedelta(days=3)).isoformat(),
         "hourly": ",".join([*INSTANT, *PRECEDING]),
-        "daily": "sunrise,sunset",
+        "daily": "sunrise,sunset,daylight_duration",
         "timezone": "auto",
         "timeformat": "unixtime",
     })
@@ -94,9 +99,9 @@ def engine_hours(data):
         hour = {"start": times[i]}
         for source, field in INSTANT.items():
             a, b = hourly[source][i], hourly[source][i + 1]
+            if field == "relativeHumidityPercent":
+                a, b = (None if v is None else min(v, MAX_HUMIDITY_PERCENT) for v in (a, b))
             hour[field] = None if a is None or b is None else (a + b) / 2
-        if hour["relativeHumidityPercent"] is not None:
-            hour["relativeHumidityPercent"] = min(hour["relativeHumidityPercent"], MAX_HUMIDITY_PERCENT)
         for source, field in PRECEDING.items():
             hour[field] = hourly[source][i + 1]
         if all(hour[f] is not None for f in ENGINE_FIELDS if f not in NULLABLE):
@@ -105,13 +110,27 @@ def engine_hours(data):
 
 
 def engine_days(data, zone):
+    daily = data["daily"]
+    offset = timedelta(seconds=data["utc_offset_seconds"])
     days = {}
-    for sunrise, sunset in zip(data["daily"]["sunrise"], data["daily"]["sunset"]):
-        if sunrise is None or sunset is None:
-            continue
-        local = datetime.fromtimestamp(sunrise, zone).date()
-        days.setdefault(local, {"date": local, "sunrise": sunrise, "sunset": sunset})
+    for start, sunrise, sunset, daylight in zip(
+            daily["time"], daily["sunrise"], daily["sunset"], daily["daylight_duration"]):
+        if None in (start, sunrise, sunset, daylight):
+            raise ValueError(f"a day with missing sun times: {start}")
+        if daylight == 0 or daylight >= DAY_S:
+            local = (datetime.fromtimestamp(start, timezone.utc) + offset).date()
+            midnight = local_midnight(local, zone)
+            sunrise, sunset = midnight, (local_midnight(local + timedelta(days=1), zone) if daylight else midnight)
+        else:
+            local = datetime.fromtimestamp(sunrise, zone).date()
+        if local in days:
+            raise ValueError(f"two days on {local}")
+        days[local] = {"date": local, "sunrise": sunrise, "sunset": sunset}
     return [days[d] for d in sorted(days)]
+
+
+def local_midnight(day, zone):
+    return int(datetime.combine(day, time(), zone).timestamp())
 
 
 def now_epoch(day, clock, zone):
@@ -132,7 +151,7 @@ def kotlin_doubles(values):
 
 
 def kotlin_name(case_id):
-    return re.sub(r"[^a-z0-9]", "", case_id.replace("-", "", 3).replace("-", "at", 1))
+    return "case_" + re.sub(r"[^A-Za-z0-9]", "_", case_id)
 
 
 def kotlin_string(text):
@@ -191,14 +210,20 @@ def main():
     parser.add_argument("--offline", action="store_true", help="generate from the saved responses only")
     args = parser.parse_args()
     cases = json.loads(CASES.read_text())["cases"]
-    responses = {}
-    for case in cases:
-        path = TESTDATA / f"{case['id']}.json"
-        if not args.offline:
+    paths = {case["id"]: TESTDATA / f"{case['id']}.json" for case in cases}
+    if args.offline:
+        responses = {i: json.loads(path.read_text()) for i, path in paths.items()}
+    else:
+        responses = {}
+        for case in cases:
             print(f"fetching {case['id']}", file=sys.stderr)
-            path.write_text(json.dumps(fetch(case), separators=(",", ":")) + "\n")
-        responses[case["id"]] = json.loads(path.read_text())
-    KOTLIN.write_text(kotlin_file(cases, responses))
+            responses[case["id"]] = fetch(case)
+    # Generate before writing anything, so a failed fetch or a bad response leaves the files as they were.
+    kotlin = kotlin_file(cases, responses)
+    if not args.offline:
+        for i, data in responses.items():
+            paths[i].write_text(json.dumps(data, separators=(",", ":")) + "\n")
+    KOTLIN.write_text(kotlin)
     print(f"wrote {KOTLIN} with {len(cases)} cases", file=sys.stderr)
 
 

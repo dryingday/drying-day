@@ -54,11 +54,11 @@ class EngineHoursTest(unittest.TestCase):
         self.assertEqual(12.5, hour["windSpeedKmh"])
         self.assertEqual(15000.0, hour["visibilityM"])
 
-    def test_supersaturated_humidity_is_clamped_to_100(self):
+    def test_supersaturated_humidity_is_clamped_to_100_before_averaging(self):
         # Open-Meteo gave 102 % in saturated air (Greenwich, 10 January 2025).
-        data = response([T13, T13 + H], relative_humidity_2m=[102, 100])
+        data = response([T13, T13 + H], relative_humidity_2m=[102, 90])
         (hour,) = ref.engine_hours(data)
-        self.assertEqual(100.0, hour["relativeHumidityPercent"])
+        self.assertEqual(95.0, hour["relativeHumidityPercent"])
 
     def test_a_missing_nullable_value_is_kept_as_null(self):
         data = response([T13, T13 + H], visibility=[None, 20000.0], precipitation_probability=[0, None])
@@ -77,13 +77,44 @@ class EngineHoursTest(unittest.TestCase):
         self.assertEqual([T13 + 2 * H], [h["start"] for h in ref.engine_hours(data)])
 
 
+OSLO = ZoneInfo("Europe/Oslo")
+
+
+def daily(offset_s, *days):
+    """Open-Meteo's daily block: (time, sunrise, sunset, daylight seconds) per day."""
+    time, sunrise, sunset, daylight = (list(column) for column in zip(*days))
+    return {"utc_offset_seconds": offset_s,
+            "daily": {"time": time, "sunrise": sunrise, "sunset": sunset, "daylight_duration": daylight}}
+
+
 class DaysAndTimesTest(unittest.TestCase):
-    def test_each_day_is_dated_by_its_sunrise_in_the_real_zone(self):
-        # Open-Meteo's polar day at its fixed offset: midnight GMT+1, which is 01:00 in Oslo in summer.
-        data = {"daily": {"sunrise": [1747522800], "sunset": [1747609200]}}
-        (day,) = ref.engine_days(data, ZoneInfo("Europe/Oslo"))
+    def test_an_ordinary_day_is_dated_by_its_sunrise_in_the_real_zone(self):
+        # 14 June 2025 in London. Open-Meteo's day starts at midnight UTC, its fixed offset.
+        data = daily(0, (1749859200, 1749872548, 1749932303, 59746.4))
+        (day,) = ref.engine_days(data, ZoneInfo("Europe/London"))
+        self.assertEqual((date(2025, 6, 14), 1749872548, 1749932303), (day["date"], day["sunrise"], day["sunset"]))
+
+    def test_polar_day_runs_from_real_local_midnight_to_midnight(self):
+        # Open-Meteo fetched at GMT+1 gives 18 May as 00:00 GMT+1 to 00:00 GMT+1, which is 01:00 in Oslo.
+        data = daily(3600, (1747522800, 1747522800, 1747609200, 86400.0))
+        (day,) = ref.engine_days(data, OSLO)
         self.assertEqual(date(2025, 5, 18), day["date"])
-        self.assertEqual((1747522800, 1747609200), (day["sunrise"], day["sunset"]))
+        # Midnight CEST is 22:00 UTC.
+        self.assertEqual((1747519200, 1747605600), (day["sunrise"], day["sunset"]))
+
+    def test_polar_night_is_an_empty_day_at_real_local_midnight(self):
+        # 28 November 2025, and a day Open-Meteo gives seven minutes of sun but zero daylight.
+        data = daily(3600, (1764284400, 1764284400, 1764284400, 0.0), (1764370800, 1764406072, 1764406516, 0.0))
+        first, second = ref.engine_days(data, OSLO)
+        self.assertEqual((date(2025, 11, 28), 1764284400, 1764284400), (first["date"], first["sunrise"], first["sunset"]))
+        self.assertEqual((date(2025, 11, 29), 1764370800, 1764370800), (second["date"], second["sunrise"], second["sunset"]))
+
+    def test_a_missing_sunrise_or_a_repeated_date_is_an_error(self):
+        with self.assertRaises(ValueError):
+            ref.engine_days(daily(0, (1749859200, None, 1749932303, 59746.4)), ZoneInfo("Europe/London"))
+        same = (1749859200, 1749872548, 1749932303, 59746.4)
+        with self.assertRaises(ValueError):
+            ref.engine_days(daily(0, same, same), ZoneInfo("Europe/London"))
 
     def test_now_is_local_clock_time_on_the_case_date(self):
         # 08:00 on the day the clocks go forward in London is 07:00 UTC.
@@ -102,8 +133,9 @@ class KotlinTest(unittest.TestCase):
     def test_nullable_values_are_written_as_nan_and_numbers_exactly(self):
         self.assertEqual("doubleArrayOf(1.5, Double.NaN, 20.0)", ref.kotlin_doubles([1.5, None, 20]))
 
-    def test_the_case_function_name_is_a_valid_identifier(self):
-        self.assertEqual("greenwich20250619at0800", ref.kotlin_name("greenwich-2025-06-19-0800"))
+    def test_the_case_function_name_is_a_valid_identifier_for_any_id(self):
+        self.assertEqual("case_greenwich_2025_06_19_0800", ref.kotlin_name("greenwich-2025-06-19-0800"))
+        self.assertEqual("case_new_york_2025_01_01_0800", ref.kotlin_name("new-york-2025-01-01-0800"))
 
     def test_finite_floats_only(self):
         with self.assertRaises(ValueError):

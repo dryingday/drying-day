@@ -21,6 +21,9 @@ internal class ReferenceCase(
     override fun toString() = id
 }
 
+/** The reference set, built once for every test that uses it. */
+internal val allReferenceCases: List<ReferenceCase> by lazy { referenceCases() }
+
 /**
  * Builds a [Forecast] from the generated columns: one entry per hour, starting at [starts] (epoch seconds).
  * In the nullable columns, [visibilityM] and [precipitationProbabilityPercent], NaN stands for null.

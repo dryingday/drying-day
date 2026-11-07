@@ -10,46 +10,46 @@ import kotlin.time.Instant
 
 /** Every reference case, in the order of cases.json. One function each, to keep methods small. */
 internal fun referenceCases(): List<ReferenceCase> = listOf(
-    greenwich20250619at0800(),
-    greenwich20250619at1300(),
-    greenwich20250525at0800(),
-    greenwich20250413at0800(),
-    greenwich20251115at0800(),
-    greenwich20250110at0800(),
-    greenwich20250330at0800(),
-    greenwich20251026at0800(),
-    greenwich20250405at1600(),
-    edinburgh20250330at0800(),
-    edinburgh20250608at0800(),
-    edinburgh20250821at0800(),
-    dublin20250818at0800(),
-    dublin20250402at0800(),
-    amsterdam20250921at0800(),
-    amsterdam20250519at0800(),
-    berlin20250702at0800(),
-    berlin20251225at0800(),
-    berlin20250118at0800(),
-    madrid20250717at0800(),
-    madrid20250104at0800(),
-    madrid20250216at0800(),
-    rome20250709at0800(),
-    rome20251025at0800(),
-    oslo20251221at0800(),
-    oslo20250621at0800(),
-    tromso20250718at0800(),
-    tromso20250107at0800(),
-    sydney20251224at0800(),
-    sydney20250626at0800(),
-    sydney20251005at0800(),
-    wellington20251016at0800(),
-    wellington20251228at0800(),
-    wellington20250406at0800(),
-    seattle20251117at0800(),
-    seattle20250701at1200(),
-    seattle20250309at0800(),
+    case_greenwich_2025_06_19_0800(),
+    case_greenwich_2025_06_19_1300(),
+    case_greenwich_2025_05_25_0800(),
+    case_greenwich_2025_04_13_0800(),
+    case_greenwich_2025_11_15_0800(),
+    case_greenwich_2025_01_10_0800(),
+    case_greenwich_2025_03_30_0800(),
+    case_greenwich_2025_10_26_0800(),
+    case_greenwich_2025_04_05_1600(),
+    case_edinburgh_2025_03_30_0800(),
+    case_edinburgh_2025_06_08_0800(),
+    case_edinburgh_2025_08_21_0800(),
+    case_dublin_2025_08_18_0800(),
+    case_dublin_2025_04_02_0800(),
+    case_amsterdam_2025_09_21_0800(),
+    case_amsterdam_2025_05_19_0800(),
+    case_berlin_2025_07_02_0800(),
+    case_berlin_2025_12_25_0800(),
+    case_berlin_2025_01_18_0800(),
+    case_madrid_2025_07_17_0800(),
+    case_madrid_2025_01_04_0800(),
+    case_madrid_2025_02_16_0800(),
+    case_rome_2025_07_09_0800(),
+    case_rome_2025_10_25_0800(),
+    case_oslo_2025_12_21_0800(),
+    case_oslo_2025_06_21_0800(),
+    case_tromso_2025_07_18_0800(),
+    case_tromso_2025_01_07_0800(),
+    case_sydney_2025_12_24_0800(),
+    case_sydney_2025_06_26_0800(),
+    case_sydney_2025_10_05_0800(),
+    case_wellington_2025_10_16_0800(),
+    case_wellington_2025_12_28_0800(),
+    case_wellington_2025_04_06_0800(),
+    case_seattle_2025_11_17_0800(),
+    case_seattle_2025_07_01_1200(),
+    case_seattle_2025_03_09_0800(),
 )
 
-private fun greenwich20250619at0800() = ReferenceCase(
+private fun case_greenwich_2025_06_19_0800() = ReferenceCase(
     id = "greenwich-2025-06-19-0800",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 6, 19),
@@ -75,7 +75,7 @@ private fun greenwich20250619at0800() = ReferenceCase(
     ),
 )
 
-private fun greenwich20250619at1300() = ReferenceCase(
+private fun case_greenwich_2025_06_19_1300() = ReferenceCase(
     id = "greenwich-2025-06-19-1300",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 6, 19),
@@ -101,7 +101,7 @@ private fun greenwich20250619at1300() = ReferenceCase(
     ),
 )
 
-private fun greenwich20250525at0800() = ReferenceCase(
+private fun case_greenwich_2025_05_25_0800() = ReferenceCase(
     id = "greenwich-2025-05-25-0800",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 5, 25),
@@ -127,7 +127,7 @@ private fun greenwich20250525at0800() = ReferenceCase(
     ),
 )
 
-private fun greenwich20250413at0800() = ReferenceCase(
+private fun case_greenwich_2025_04_13_0800() = ReferenceCase(
     id = "greenwich-2025-04-13-0800",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 4, 13),
@@ -153,7 +153,7 @@ private fun greenwich20250413at0800() = ReferenceCase(
     ),
 )
 
-private fun greenwich20251115at0800() = ReferenceCase(
+private fun case_greenwich_2025_11_15_0800() = ReferenceCase(
     id = "greenwich-2025-11-15-0800",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 11, 15),
@@ -179,7 +179,7 @@ private fun greenwich20251115at0800() = ReferenceCase(
     ),
 )
 
-private fun greenwich20250110at0800() = ReferenceCase(
+private fun case_greenwich_2025_01_10_0800() = ReferenceCase(
     id = "greenwich-2025-01-10-0800",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 1, 10),
@@ -188,7 +188,7 @@ private fun greenwich20250110at0800() = ReferenceCase(
         zone = "Europe/London",
         starts = longArrayOf(1736380800, 1736384400, 1736388000, 1736391600, 1736395200, 1736398800, 1736402400, 1736406000, 1736409600, 1736413200, 1736416800, 1736420400, 1736424000, 1736427600, 1736431200, 1736434800, 1736438400, 1736442000, 1736445600, 1736449200, 1736452800, 1736456400, 1736460000, 1736463600, 1736467200, 1736470800, 1736474400, 1736478000, 1736481600, 1736485200, 1736488800, 1736492400, 1736496000, 1736499600, 1736503200, 1736506800, 1736510400, 1736514000, 1736517600, 1736521200, 1736524800, 1736528400, 1736532000, 1736535600, 1736539200, 1736542800, 1736546400, 1736550000, 1736553600, 1736557200, 1736560800, 1736564400, 1736568000, 1736571600, 1736575200, 1736578800, 1736582400, 1736586000, 1736589600, 1736593200, 1736596800, 1736600400, 1736604000, 1736607600, 1736611200, 1736614800, 1736618400, 1736622000, 1736625600, 1736629200, 1736632800, 1736636400, 1736640000, 1736643600, 1736647200, 1736650800, 1736654400, 1736658000, 1736661600, 1736665200, 1736668800, 1736672400, 1736676000, 1736679600, 1736683200, 1736686800, 1736690400, 1736694000, 1736697600, 1736701200, 1736704800, 1736708400, 1736712000, 1736715600, 1736719200, 1736722800, 1736726400, 1736730000, 1736733600, 1736737200, 1736740800, 1736744400, 1736748000, 1736751600, 1736755200, 1736758800, 1736762400, 1736766000, 1736769600, 1736773200, 1736776800, 1736780400, 1736784000, 1736787600, 1736791200, 1736794800, 1736798400, 1736802000, 1736805600),
         temperatureC = doubleArrayOf(1.85, 1.9, 1.45, 1.15, 1.55, 2.05, 2.2, 1.9, 1.6, 1.8, 2.6, 3.4000000000000004, 4.0, 4.55, 4.65, 4.2, 3.45, 2.6, 1.9500000000000002, 1.5499999999999998, 1.2, 0.85, 0.35, -0.2, -0.55, -0.8, -1.05, -1.45, -1.9500000000000002, -2.25, -2.25, -2.2, -2.1500000000000004, -2.1500000000000004, -1.75, -0.55, 0.7, 1.25, 1.0, 0.6499999999999999, 0.15, -0.65, -1.0, -1.1, -1.25, -1.5, -1.85, -2.15, -2.3499999999999996, -2.55, -2.6500000000000004, -2.75, -3.15, -3.5, -3.6500000000000004, -3.6500000000000004, -3.1500000000000004, -1.9500000000000002, -0.65, 0.7999999999999999, 2.4, 3.7, 4.5, 4.0, 2.7, 1.75, 1.15, 0.6, 0.6, 0.75, 0.35, 0.0, -0.45, -0.9500000000000001, -1.55, -1.9, -2.2, -2.5, -2.5999999999999996, -3.0, -3.2, -2.2, -0.5, 0.7999999999999999, 2.0999999999999996, 3.15, 3.5, 3.7, 4.05, 3.95, 3.55, 3.65, 3.8, 3.75, 3.8499999999999996, 3.8499999999999996, 3.7, 3.8499999999999996, 4.199999999999999, 4.35, 4.550000000000001, 4.800000000000001, 4.9, 5.1, 5.25, 5.45, 5.85, 6.1, 6.35, 6.55, 6.4, 5.95, 5.4, 4.9, 4.4, 3.9, 3.6, 3.5, 3.25),
-        relativeHumidityPercent = doubleArrayOf(92.5, 91.0, 96.0, 100.0, 96.5, 91.5, 90.0, 89.5, 87.0, 82.5, 77.0, 69.5, 58.5, 51.5, 53.5, 59.0, 67.0, 74.0, 78.5, 82.5, 84.5, 86.5, 89.5, 91.5, 93.0, 94.5, 95.0, 95.5, 97.0, 97.5, 96.5, 94.5, 93.0, 94.5, 95.0, 90.0, 82.5, 77.5, 77.0, 79.0, 84.0, 89.0, 88.5, 88.0, 88.5, 89.0, 91.0, 92.5, 92.5, 93.5, 93.0, 91.0, 91.5, 92.5, 94.0, 95.5, 95.0, 90.0, 84.5, 80.5, 76.0, 72.0, 70.0, 75.0, 83.0, 86.5, 88.5, 91.5, 91.0, 89.0, 89.5, 89.0, 89.0, 90.0, 92.5, 95.5, 99.0, 100.0, 99.0, 99.5, 98.5, 95.5, 92.5, 89.0, 83.0, 75.5, 71.5, 71.0, 71.0, 75.0, 81.0, 79.0, 76.0, 76.0, 74.0, 73.0, 72.0, 70.5, 69.5, 69.5, 70.5, 71.0, 71.0, 71.0, 70.0, 69.0, 68.5, 68.5, 68.0, 66.5, 66.5, 68.0, 71.5, 75.0, 77.5, 79.5, 80.5, 81.5, 83.5),
+        relativeHumidityPercent = doubleArrayOf(92.5, 91.0, 96.0, 100.0, 96.5, 91.5, 90.0, 89.5, 87.0, 82.5, 77.0, 69.5, 58.5, 51.5, 53.5, 59.0, 67.0, 74.0, 78.5, 82.5, 84.5, 86.5, 89.5, 91.5, 93.0, 94.5, 95.0, 95.5, 97.0, 97.5, 96.5, 94.5, 93.0, 94.5, 95.0, 90.0, 82.5, 77.5, 77.0, 79.0, 84.0, 89.0, 88.5, 88.0, 88.5, 89.0, 91.0, 92.5, 92.5, 93.5, 93.0, 91.0, 91.5, 92.5, 94.0, 95.5, 95.0, 90.0, 84.5, 80.5, 76.0, 72.0, 70.0, 75.0, 83.0, 86.5, 88.5, 91.5, 91.0, 89.0, 89.5, 89.0, 89.0, 90.0, 92.5, 95.5, 98.0, 99.5, 99.0, 99.5, 98.5, 95.5, 92.5, 89.0, 83.0, 75.5, 71.5, 71.0, 71.0, 75.0, 81.0, 79.0, 76.0, 76.0, 74.0, 73.0, 72.0, 70.5, 69.5, 69.5, 70.5, 71.0, 71.0, 71.0, 70.0, 69.0, 68.5, 68.5, 68.0, 66.5, 66.5, 68.0, 71.5, 75.0, 77.5, 79.5, 80.5, 81.5, 83.5),
         windSpeedKmh = doubleArrayOf(8.85, 8.1, 9.7, 11.5, 12.75, 10.95, 9.35, 8.85, 7.95, 8.3, 10.100000000000001, 12.8, 13.85, 14.4, 14.8, 14.600000000000001, 12.4, 10.25, 10.649999999999999, 11.35, 10.95, 9.5, 7.699999999999999, 7.550000000000001, 7.4, 5.95, 5.050000000000001, 3.95, 1.9500000000000002, 1.0499999999999998, 1.8, 2.9000000000000004, 2.5, 2.15, 2.15, 3.05, 4.85, 6.1, 7.0, 6.1, 3.6, 1.4500000000000002, 2.1500000000000004, 2.7, 2.35, 1.8, 1.1, 1.25, 2.3, 3.05, 2.9, 2.9, 2.55, 1.6500000000000001, 1.25, 2.7, 4.0, 4.15, 3.95, 3.4000000000000004, 4.1, 5.75, 4.7, 2.9, 1.65, 1.45, 1.95, 1.25, 2.1500000000000004, 2.7, 1.6500000000000001, 3.05, 3.2, 2.3, 2.3, 2.7, 2.7, 1.6, 2.7, 2.5, 1.8, 2.7, 3.95, 3.8, 3.5999999999999996, 3.75, 2.1500000000000004, 2.0, 3.05, 2.7, 2.55, 4.85, 5.9, 6.3, 8.1, 8.6, 8.6, 8.45, 7.95, 7.6, 9.0, 10.25, 10.1, 10.1, 10.1, 11.899999999999999, 14.25, 14.4, 13.85, 14.05, 14.2, 14.0, 11.85, 9.7, 9.899999999999999, 10.25, 9.7, 9.35, 9.149999999999999),
         visibilityM = doubleArrayOf(7410.0, 8580.0, 4480.0, 60.0, 2690.0, 7020.0, 9180.0, 10100.0, 10550.0, 10360.0, 10970.0, 13270.0, 16760.0, 18350.0, 18730.0, 20050.0, 17570.0, 15340.0, 15530.0, 14940.0, 14920.0, 14590.0, 14620.0, 15290.0, 15520.0, 14340.0, 11590.0, 8310.0, 5780.0, 4260.0, 3590.0, 3570.0, 3690.0, 3390.0, 3130.0, 4000.0, 4750.0, 6460.0, 9710.0, 11410.0, 10410.0, 8650.0, 7500.0, 6300.0, 5510.0, 4980.0, 4720.0, 4800.0, 4940.0, 4590.0, 3280.0, 2810.0, 3110.0, 3060.0, 2770.0, 2350.0, 2130.0, 2170.0, 2440.0, 2790.0, 2900.0, 3020.0, 3300.0, 3200.0, 2870.0, 2840.0, 2920.0, 2850.0, 3080.0, 3090.0, 2490.0, 2180.0, 2170.0, 2210.0, 2090.0, 1970.0, 1070.0, 770.0, 1470.0, 1470.0, 1830.0, 3070.0, 3210.0, 2570.0, 3250.0, 4400.0, 5100.0, 5580.0, 7130.0, 10360.0, 11030.0, 14440.0, 20190.0, 20780.0, 22940.0, 28250.0, 31230.0, 28320.0, 24450.0, 23230.0, 22930.0, 22590.0, 21150.0, 18840.0, 17060.0, 18880.0, 21550.0, 22800.0, 24080.0, 25070.0, 25270.0, 25470.0, 22970.0, 19200.0, 18780.0, 19080.0, 19050.0, 19270.0, 18370.0),
         precipitationProbabilityPercent = doubleArrayOf(16.0, 14.0, 18.0, 31.0, 49.0, 57.0, 47.0, 28.0, 12.0, 5.0, 1.0, 0.0, 3.0, 9.0, 12.0, 9.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
@@ -205,7 +205,7 @@ private fun greenwich20250110at0800() = ReferenceCase(
     ),
 )
 
-private fun greenwich20250330at0800() = ReferenceCase(
+private fun case_greenwich_2025_03_30_0800() = ReferenceCase(
     id = "greenwich-2025-03-30-0800",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 3, 30),
@@ -231,7 +231,7 @@ private fun greenwich20250330at0800() = ReferenceCase(
     ),
 )
 
-private fun greenwich20251026at0800() = ReferenceCase(
+private fun case_greenwich_2025_10_26_0800() = ReferenceCase(
     id = "greenwich-2025-10-26-0800",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 10, 26),
@@ -257,7 +257,7 @@ private fun greenwich20251026at0800() = ReferenceCase(
     ),
 )
 
-private fun greenwich20250405at1600() = ReferenceCase(
+private fun case_greenwich_2025_04_05_1600() = ReferenceCase(
     id = "greenwich-2025-04-05-1600",
     landmark = "Royal Observatory, Greenwich",
     date = LocalDate(2025, 4, 5),
@@ -283,7 +283,7 @@ private fun greenwich20250405at1600() = ReferenceCase(
     ),
 )
 
-private fun edinburgh20250330at0800() = ReferenceCase(
+private fun case_edinburgh_2025_03_30_0800() = ReferenceCase(
     id = "edinburgh-2025-03-30-0800",
     landmark = "Edinburgh Castle",
     date = LocalDate(2025, 3, 30),
@@ -309,7 +309,7 @@ private fun edinburgh20250330at0800() = ReferenceCase(
     ),
 )
 
-private fun edinburgh20250608at0800() = ReferenceCase(
+private fun case_edinburgh_2025_06_08_0800() = ReferenceCase(
     id = "edinburgh-2025-06-08-0800",
     landmark = "Edinburgh Castle",
     date = LocalDate(2025, 6, 8),
@@ -335,7 +335,7 @@ private fun edinburgh20250608at0800() = ReferenceCase(
     ),
 )
 
-private fun edinburgh20250821at0800() = ReferenceCase(
+private fun case_edinburgh_2025_08_21_0800() = ReferenceCase(
     id = "edinburgh-2025-08-21-0800",
     landmark = "Edinburgh Castle",
     date = LocalDate(2025, 8, 21),
@@ -361,7 +361,7 @@ private fun edinburgh20250821at0800() = ReferenceCase(
     ),
 )
 
-private fun dublin20250818at0800() = ReferenceCase(
+private fun case_dublin_2025_08_18_0800() = ReferenceCase(
     id = "dublin-2025-08-18-0800",
     landmark = "Trinity College Dublin",
     date = LocalDate(2025, 8, 18),
@@ -387,7 +387,7 @@ private fun dublin20250818at0800() = ReferenceCase(
     ),
 )
 
-private fun dublin20250402at0800() = ReferenceCase(
+private fun case_dublin_2025_04_02_0800() = ReferenceCase(
     id = "dublin-2025-04-02-0800",
     landmark = "Trinity College Dublin",
     date = LocalDate(2025, 4, 2),
@@ -413,7 +413,7 @@ private fun dublin20250402at0800() = ReferenceCase(
     ),
 )
 
-private fun amsterdam20250921at0800() = ReferenceCase(
+private fun case_amsterdam_2025_09_21_0800() = ReferenceCase(
     id = "amsterdam-2025-09-21-0800",
     landmark = "Rijksmuseum, Amsterdam",
     date = LocalDate(2025, 9, 21),
@@ -439,7 +439,7 @@ private fun amsterdam20250921at0800() = ReferenceCase(
     ),
 )
 
-private fun amsterdam20250519at0800() = ReferenceCase(
+private fun case_amsterdam_2025_05_19_0800() = ReferenceCase(
     id = "amsterdam-2025-05-19-0800",
     landmark = "Rijksmuseum, Amsterdam",
     date = LocalDate(2025, 5, 19),
@@ -465,7 +465,7 @@ private fun amsterdam20250519at0800() = ReferenceCase(
     ),
 )
 
-private fun berlin20250702at0800() = ReferenceCase(
+private fun case_berlin_2025_07_02_0800() = ReferenceCase(
     id = "berlin-2025-07-02-0800",
     landmark = "Brandenburg Gate, Berlin",
     date = LocalDate(2025, 7, 2),
@@ -491,7 +491,7 @@ private fun berlin20250702at0800() = ReferenceCase(
     ),
 )
 
-private fun berlin20251225at0800() = ReferenceCase(
+private fun case_berlin_2025_12_25_0800() = ReferenceCase(
     id = "berlin-2025-12-25-0800",
     landmark = "Brandenburg Gate, Berlin",
     date = LocalDate(2025, 12, 25),
@@ -517,7 +517,7 @@ private fun berlin20251225at0800() = ReferenceCase(
     ),
 )
 
-private fun berlin20250118at0800() = ReferenceCase(
+private fun case_berlin_2025_01_18_0800() = ReferenceCase(
     id = "berlin-2025-01-18-0800",
     landmark = "Brandenburg Gate, Berlin",
     date = LocalDate(2025, 1, 18),
@@ -543,7 +543,7 @@ private fun berlin20250118at0800() = ReferenceCase(
     ),
 )
 
-private fun madrid20250717at0800() = ReferenceCase(
+private fun case_madrid_2025_07_17_0800() = ReferenceCase(
     id = "madrid-2025-07-17-0800",
     landmark = "Puerta del Sol, Madrid",
     date = LocalDate(2025, 7, 17),
@@ -569,7 +569,7 @@ private fun madrid20250717at0800() = ReferenceCase(
     ),
 )
 
-private fun madrid20250104at0800() = ReferenceCase(
+private fun case_madrid_2025_01_04_0800() = ReferenceCase(
     id = "madrid-2025-01-04-0800",
     landmark = "Puerta del Sol, Madrid",
     date = LocalDate(2025, 1, 4),
@@ -595,7 +595,7 @@ private fun madrid20250104at0800() = ReferenceCase(
     ),
 )
 
-private fun madrid20250216at0800() = ReferenceCase(
+private fun case_madrid_2025_02_16_0800() = ReferenceCase(
     id = "madrid-2025-02-16-0800",
     landmark = "Puerta del Sol, Madrid",
     date = LocalDate(2025, 2, 16),
@@ -621,7 +621,7 @@ private fun madrid20250216at0800() = ReferenceCase(
     ),
 )
 
-private fun rome20250709at0800() = ReferenceCase(
+private fun case_rome_2025_07_09_0800() = ReferenceCase(
     id = "rome-2025-07-09-0800",
     landmark = "Colosseum, Rome",
     date = LocalDate(2025, 7, 9),
@@ -647,7 +647,7 @@ private fun rome20250709at0800() = ReferenceCase(
     ),
 )
 
-private fun rome20251025at0800() = ReferenceCase(
+private fun case_rome_2025_10_25_0800() = ReferenceCase(
     id = "rome-2025-10-25-0800",
     landmark = "Colosseum, Rome",
     date = LocalDate(2025, 10, 25),
@@ -673,7 +673,7 @@ private fun rome20251025at0800() = ReferenceCase(
     ),
 )
 
-private fun oslo20251221at0800() = ReferenceCase(
+private fun case_oslo_2025_12_21_0800() = ReferenceCase(
     id = "oslo-2025-12-21-0800",
     landmark = "Oslo Opera House",
     date = LocalDate(2025, 12, 21),
@@ -699,7 +699,7 @@ private fun oslo20251221at0800() = ReferenceCase(
     ),
 )
 
-private fun oslo20250621at0800() = ReferenceCase(
+private fun case_oslo_2025_06_21_0800() = ReferenceCase(
     id = "oslo-2025-06-21-0800",
     landmark = "Oslo Opera House",
     date = LocalDate(2025, 6, 21),
@@ -725,7 +725,7 @@ private fun oslo20250621at0800() = ReferenceCase(
     ),
 )
 
-private fun tromso20250718at0800() = ReferenceCase(
+private fun case_tromso_2025_07_18_0800() = ReferenceCase(
     id = "tromso-2025-07-18-0800",
     landmark = "Arctic Cathedral, Tromsø",
     date = LocalDate(2025, 7, 18),
@@ -742,16 +742,16 @@ private fun tromso20250718at0800() = ReferenceCase(
         windGustKmh = doubleArrayOf(7.9, 10.1, 9.0, 12.2, 14.8, 20.2, 20.5, 20.5, 19.4, 18.0, 21.2, 23.0, 24.1, 23.8, 19.1, 17.3, 16.6, 15.8, 16.2, 16.2, 14.0, 15.1, 17.6, 19.8, 19.8, 19.8, 17.3, 15.8, 17.3, 21.2, 24.8, 25.6, 26.6, 27.0, 27.0, 28.4, 31.0, 31.0, 23.0, 25.6, 21.6, 18.4, 14.8, 15.8, 11.2, 10.4, 6.1, 5.0, 5.4, 5.0, 7.2, 10.4, 11.5, 11.9, 14.0, 14.0, 11.9, 13.3, 14.0, 15.8, 14.0, 14.4, 13.7, 15.8, 15.5, 13.3, 13.7, 11.2, 7.9, 6.5, 4.3, 3.2, 4.3, 5.8, 6.1, 7.9, 4.7, 4.0, 7.9, 7.9, 8.3, 13.0, 14.4, 14.0, 10.8, 10.8, 18.0, 20.5, 20.9, 20.5, 14.4, 14.8, 7.2, 2.9, 2.9, 4.7, 4.3, 4.0, 4.3, 4.0, 4.7, 7.6, 12.2, 14.4, 15.8, 16.6, 18.0, 17.6, 18.4, 19.8, 19.4, 18.4, 19.4, 18.0, 17.3, 14.0, 10.1, 7.6, 6.5),
         shortwaveRadiationWm2 = doubleArrayOf(10.0, 24.0, 56.0, 107.0, 170.0, 251.0, 341.0, 431.0, 509.0, 575.0, 624.0, 655.0, 651.0, 619.0, 571.0, 500.0, 419.0, 331.0, 237.0, 155.0, 90.0, 44.0, 17.0, 7.0, 9.0, 24.0, 58.0, 108.0, 173.0, 254.0, 355.0, 454.0, 529.0, 593.0, 634.0, 660.0, 654.0, 624.0, 568.0, 491.0, 407.0, 326.0, 238.0, 155.0, 89.0, 42.0, 16.0, 5.0, 7.0, 22.0, 54.0, 106.0, 176.0, 257.0, 344.0, 431.0, 505.0, 573.0, 618.0, 641.0, 639.0, 615.0, 563.0, 469.0, 401.0, 313.0, 214.0, 139.0, 74.0, 39.0, 13.0, 4.0, 5.0, 18.0, 44.0, 71.0, 151.0, 208.0, 291.0, 369.0, 417.0, 424.0, 534.0, 638.0, 630.0, 603.0, 563.0, 492.0, 394.0, 282.0, 151.0, 119.0, 64.0, 30.0, 12.0, 2.0, 4.0, 18.0, 46.0, 96.0, 162.0, 250.0, 318.0, 338.0, 383.0, 444.0, 509.0, 428.0, 421.0, 506.0, 526.0, 466.0, 396.0, 311.0, 224.0, 142.0, 77.0, 32.0, 10.0),
         days = listOf(
-            referenceDay(2025, 7, 17, 1752706800, 1752793200),
-            referenceDay(2025, 7, 18, 1752793200, 1752879600),
-            referenceDay(2025, 7, 19, 1752879600, 1752966000),
-            referenceDay(2025, 7, 20, 1752966000, 1753052400),
-            referenceDay(2025, 7, 21, 1753052400, 1753138800),
+            referenceDay(2025, 7, 17, 1752703200, 1752789600),
+            referenceDay(2025, 7, 18, 1752789600, 1752876000),
+            referenceDay(2025, 7, 19, 1752876000, 1752962400),
+            referenceDay(2025, 7, 20, 1752962400, 1753048800),
+            referenceDay(2025, 7, 21, 1753048800, 1753135200),
         ),
     ),
 )
 
-private fun tromso20250107at0800() = ReferenceCase(
+private fun case_tromso_2025_01_07_0800() = ReferenceCase(
     id = "tromso-2025-01-07-0800",
     landmark = "Arctic Cathedral, Tromsø",
     date = LocalDate(2025, 1, 7),
@@ -777,7 +777,7 @@ private fun tromso20250107at0800() = ReferenceCase(
     ),
 )
 
-private fun sydney20251224at0800() = ReferenceCase(
+private fun case_sydney_2025_12_24_0800() = ReferenceCase(
     id = "sydney-2025-12-24-0800",
     landmark = "Sydney Opera House",
     date = LocalDate(2025, 12, 24),
@@ -803,7 +803,7 @@ private fun sydney20251224at0800() = ReferenceCase(
     ),
 )
 
-private fun sydney20250626at0800() = ReferenceCase(
+private fun case_sydney_2025_06_26_0800() = ReferenceCase(
     id = "sydney-2025-06-26-0800",
     landmark = "Sydney Opera House",
     date = LocalDate(2025, 6, 26),
@@ -829,7 +829,7 @@ private fun sydney20250626at0800() = ReferenceCase(
     ),
 )
 
-private fun sydney20251005at0800() = ReferenceCase(
+private fun case_sydney_2025_10_05_0800() = ReferenceCase(
     id = "sydney-2025-10-05-0800",
     landmark = "Sydney Opera House",
     date = LocalDate(2025, 10, 5),
@@ -855,7 +855,7 @@ private fun sydney20251005at0800() = ReferenceCase(
     ),
 )
 
-private fun wellington20251016at0800() = ReferenceCase(
+private fun case_wellington_2025_10_16_0800() = ReferenceCase(
     id = "wellington-2025-10-16-0800",
     landmark = "Te Papa, Wellington",
     date = LocalDate(2025, 10, 16),
@@ -881,7 +881,7 @@ private fun wellington20251016at0800() = ReferenceCase(
     ),
 )
 
-private fun wellington20251228at0800() = ReferenceCase(
+private fun case_wellington_2025_12_28_0800() = ReferenceCase(
     id = "wellington-2025-12-28-0800",
     landmark = "Te Papa, Wellington",
     date = LocalDate(2025, 12, 28),
@@ -907,7 +907,7 @@ private fun wellington20251228at0800() = ReferenceCase(
     ),
 )
 
-private fun wellington20250406at0800() = ReferenceCase(
+private fun case_wellington_2025_04_06_0800() = ReferenceCase(
     id = "wellington-2025-04-06-0800",
     landmark = "Te Papa, Wellington",
     date = LocalDate(2025, 4, 6),
@@ -933,7 +933,7 @@ private fun wellington20250406at0800() = ReferenceCase(
     ),
 )
 
-private fun seattle20251117at0800() = ReferenceCase(
+private fun case_seattle_2025_11_17_0800() = ReferenceCase(
     id = "seattle-2025-11-17-0800",
     landmark = "Space Needle, Seattle",
     date = LocalDate(2025, 11, 17),
@@ -959,7 +959,7 @@ private fun seattle20251117at0800() = ReferenceCase(
     ),
 )
 
-private fun seattle20250701at1200() = ReferenceCase(
+private fun case_seattle_2025_07_01_1200() = ReferenceCase(
     id = "seattle-2025-07-01-1200",
     landmark = "Space Needle, Seattle",
     date = LocalDate(2025, 7, 1),
@@ -985,7 +985,7 @@ private fun seattle20250701at1200() = ReferenceCase(
     ),
 )
 
-private fun seattle20250309at0800() = ReferenceCase(
+private fun case_seattle_2025_03_09_0800() = ReferenceCase(
     id = "seattle-2025-03-09-0800",
     landmark = "Space Needle, Seattle",
     date = LocalDate(2025, 3, 9),

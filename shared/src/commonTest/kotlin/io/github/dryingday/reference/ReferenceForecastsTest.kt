@@ -1,6 +1,7 @@
 package io.github.dryingday.reference
 
 import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.test.Test
@@ -10,7 +11,7 @@ import kotlin.time.Duration.Companion.hours
 
 /** The generated reference set is complete enough for the engine to give all three days a verdict. */
 class ReferenceForecastsTest {
-    private val cases = referenceCases()
+    private val cases = allReferenceCases
 
     @Test
     fun thereAreAboutThreeDozenCasesWithUniqueIds() {
@@ -44,9 +45,13 @@ class ReferenceForecastsTest {
                     it.date <= case.date.plus(DatePeriod(days = 2))
             }
             for (day in days) {
-                var hour = starts.filter { it <= day.sunrise }.maxOrNull()
+                // Daylight as the engine sees it: sunrise to sunset, clipped to the local date.
+                val zone = case.forecast.timeZone
+                val from = maxOf(day.sunrise, day.date.atStartOfDayIn(zone))
+                val to = minOf(day.sunset, day.date.plus(DatePeriod(days = 1)).atStartOfDayIn(zone))
+                var hour = starts.filter { it <= from }.maxOrNull()
                     ?: error("${case.id}: no hour at sunrise on ${day.date}")
-                while (hour < day.sunset) {
+                while (hour < to) {
                     assertTrue(hour in starts, "${case.id}: no hour from $hour")
                     hour += 1.hours
                 }
