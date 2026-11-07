@@ -116,7 +116,6 @@ subprojects {
         source.setFrom(files("src"))
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     }
-
 }
 
 allprojects {
