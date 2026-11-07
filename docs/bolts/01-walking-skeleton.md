@@ -4,11 +4,14 @@ The whole pipeline works end to end before any feature exists: the project build
 
 ## In scope
 
-- Kotlin Multiplatform project with a `composeApp` module: `commonMain`, `commonTest`, `androidMain`, `iosMain` (iOS targets configured; skipped where Xcode isn't available, including Linux CI and F-Droid's build server).
+- Two modules, following the AGP 9 layout (AGP 9 no longer builds an Android app from a multiplatform module):
+  - `shared`: Kotlin Multiplatform library (`com.android.kotlin.multiplatform.library`) with `commonMain`, `commonTest`, `androidMain`, `iosMain`. All logic and Compose UI lives here.
+  - `androidApp`: thin Android application module (activity, manifest, resources).
+  - iOS targets are behind `dryingday.ios=true` in `gradle.properties`, off by default: they need macOS with Xcode, and are skipped on Linux CI and F-Droid's build server. A later `iosApp/` Xcode project is the iOS equivalent of `androidApp`.
 - Placeholder Compose screen ("Drying Day") from `commonMain`.
 - One trivial shared unit test so `commonTest` runs.
 - Gradle wrapper with verified distribution checksum; versions in `gradle/libs.versions.toml`; latest stable Kotlin, AGP and Compose Multiplatform at time of build.
-- Android: `minSdk 26`, `targetSdk`/`compileSdk 36`, app ID `io.github.dryingday`, no permissions yet.
+- Android: `minSdk 26`, `targetSdk`/`compileSdk 37`, app ID `io.github.dryingday`, no permissions yet.
 - ktlint and detekt wired into `./gradlew check`.
 - GitHub Actions: `./gradlew check assembleDebug` on Ubuntu with Temurin 21.
 - A check that fails the build if a Google Play Services, Firebase or other known non-free dependency appears.
@@ -34,7 +37,7 @@ Any weather, location or drying logic. App icon and store metadata (bolt 6).
 | PR | Contents | Expected tier |
 |---|---|---|
 | 0 | Bootstrap commit straight to `main`: LICENSE, README stub, REVIEW.md, `docs/` (plan, review policy, this spec). Reviewed by the maintainer as files before pushing. | high |
-| 1 | Gradle skeleton: wrapper, version catalog, settings, empty `composeApp` building for Android | high |
+| 1 | Gradle skeleton: wrapper, version catalog, settings, `shared` and `androidApp` modules building a debug APK | high |
 | 2 | Placeholder screen + first shared test; iOS entry point stub | medium |
 | 3 | ktlint + detekt in `check`, and the non-free dependency check | high |
 | 4 | CI workflow | high |
