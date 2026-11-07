@@ -23,7 +23,8 @@ from dataclasses import dataclass, field
 
 MAINTAINER = "frangipanes"
 BOT_GH_CONFIG = os.path.expanduser("~/.config/gh-drying-bot")
-AGENT_APPROVAL_PREFIX = "Approved by the agent: risk:low under docs/review-policy.md."
+AGENT_MARKER = "Approved by the agent"  # any approval starting like this is the agent's
+AGENT_APPROVAL_PREFIX = AGENT_MARKER + ": risk:low under docs/review-policy.md."
 RULESET_FILE = ".github/rulesets/main.json"
 
 
@@ -87,12 +88,12 @@ def is_protected(path, patterns):
 # The only commands allowed to merge, approve or apply a ruleset: one call to the wrapper with
 # nothing chained on, a plain PR number, and a quoted reason with no substitutions.
 _WRAPPER = re.compile(
-    r"""^\s*(?:python3\s+)?(?:\S*/)?\.claude/hooks/maintainer\.py\s+"""
+    r"""^\s*(?:python3\s+)?(?:\./)?\.claude/hooks/maintainer\.py\s+"""
     r"""(?:merge\s+\d+|approve\s+\d+\s+--reason\s+(?:"[^"`$\\]*"|'[^']*')|apply-ruleset)\s*$"""
 )
 
 _RISKY = [
-    (r"\bpr\s+merge\b", "a PR merge"),
+    (r"\bpr\b.*\bmerge\b", "a PR merge"),
     (r"pulls/\d+/merge\b", "a PR merge through the API"),
     (r"mergePullRequest|enablePullRequestAutoMerge|addPullRequestReview|submitPullRequestReview"
      r"|approvePullRequest|(?:create|update|delete)RepositoryRuleset", "a GraphQL merge, review or ruleset change"),
@@ -106,12 +107,16 @@ def classify(command):
     or None for anything that can't merge, approve or change a ruleset."""
     if _WRAPPER.match(command):
         return "wrapper"
+    # Match on what the shell would see: quotes and backslashes only split or escape words.
+    command = re.sub(r"[\"'\\]", "", command)
     if re.search(r"maintainer\.py\b.*\b(?:merge|approve|apply-ruleset)\b", command):
-        return "maintainer.py has to be called on its own, with a plain PR number and a quoted --reason"
+        return ("maintainer.py has to be called on its own as .claude/hooks/maintainer.py, "
+                "with a plain PR number and a quoted --reason")
     for pattern, what in _RISKY:
         if re.search(pattern, command, re.I):
             return f"this looks like {what}"
-    if re.search(r"\bpr\s+review\b", command) and re.search(r"(?:^|\s)(?:--approve|-a)(?:\s|$|['\"])", command):
+    if re.search(r"\bpr\b.*\breview\b", command) and re.search(
+            r"--approve\b|(?:^|\s)-[A-Za-z]*a[A-Za-z]*(?=\s|$)", command):
         return "this looks like a PR approval"
     if re.search(r"pulls/\d+/reviews\b", command) and re.search(r"APPROVE", command, re.I):
         return "this looks like a PR approval through the API"
@@ -130,7 +135,7 @@ def maintainer_approved_head(pr):
     state = None
     for r in pr.reviews:
         if r["user"] == MAINTAINER and r["commit"] == pr.head and r["state"] in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
-            agent = (r.get("body") or "").startswith(AGENT_APPROVAL_PREFIX)
+            agent = (r.get("body") or "").startswith(AGENT_MARKER)
             state = "AGENT" if (r["state"] == "APPROVED" and agent) else r["state"]
     return state == "APPROVED"
 

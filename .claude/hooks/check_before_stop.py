@@ -4,9 +4,11 @@
 The result is remembered against the state of the working tree (HEAD, tracked changes and
 untracked files), kept in .gradle/, which git ignores:
 - unchanged since the last green check: stop straight away, so chat-only turns stay fast;
-- unchanged since the last failed check: block again with the saved output, without rebuilding.
-A timeout counts as a failure. Claude Code ends a turn after 8 consecutive Stop-hook
-continuations, so a failure that can't be fixed in the session doesn't trap it.
+- unchanged since the last failed check, while retrying in the same turn (stop_hook_active):
+  block again with the saved output, without rebuilding.
+A timeout or an error in this hook counts as a failure. Claude Code's hooks reference says it
+ends a turn after 8 consecutive Stop-hook continuations, so a failure that can't be fixed in
+the session doesn't trap it.
 """
 
 import hashlib
@@ -31,7 +33,7 @@ def tree_key(cwd):
     h.update(_git(cwd, "rev-parse", "HEAD"))
     h.update(_git(cwd, "diff", "HEAD", "--binary"))
     for name in sorted(_git(cwd, "ls-files", "--others", "--exclude-standard", "-z").split(b"\0")):
-        if name:
+        if name and not name.startswith(b".gradle/"):  # where this hook keeps its own state
             h.update(name)
             path = os.path.join(cwd, name.decode())
             if os.path.isfile(path):
@@ -62,7 +64,14 @@ def block(reason):
 
 
 def main():
-    event = json.load(sys.stdin)
+    try:
+        return check(json.load(sys.stdin))
+    except Exception as e:  # fail closed: an error mustn't let the agent stop unchecked
+        block(f"The check-before-stop hook failed ({e}), so ./gradlew check wasn't confirmed. Run it, then stop.")
+        return 0
+
+
+def check(event):
     cwd = event.get("cwd") or os.getcwd()
     try:
         root = _git(cwd, "rev-parse", "--show-toplevel").decode().strip()
@@ -74,7 +83,9 @@ def main():
     green, failed = os.path.join(root, GREEN), os.path.join(root, FAILED)
     if os.path.exists(green) and open(green).read().strip() == key:
         return 0
-    if os.path.exists(failed):
+    # Within one turn's retries, an unchanged failing tree isn't rebuilt. A new turn always
+    # reruns, so a flaky failure gets another go.
+    if event.get("stop_hook_active") and os.path.exists(failed):
         saved = json.load(open(failed))
         if saved.get("key") == key:
             block("./gradlew check still fails and nothing has changed since it last ran. "

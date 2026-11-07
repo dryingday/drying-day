@@ -63,7 +63,10 @@ def approve(number, reason, cwd):
         fail(d.reason)
     print(d.reason)
     body = f"{AGENT_APPROVAL_PREFIX} {reason.strip()}"
-    print(gh(["pr", "review", str(number), "--approve", "--body", body], cwd, as_maintainer=True), end="")
+    # Through the API so the approval is pinned to the commit that was checked.
+    gh(["api", "-X", "POST", f"repos/{repo_name(cwd)}/pulls/{number}/reviews",
+        "-f", "event=APPROVE", "-f", f"commit_id={pr.head}", "-f", f"body={body}"], cwd, as_maintainer=True)
+    print(f"Approved PR #{number} at {pr.head[:7]}.")
 
 
 def _normalise(ruleset):
@@ -101,6 +104,9 @@ def main():
     args = parser.parse_args()
 
     cwd = git(["rev-parse", "--show-toplevel"], os.getcwd()).strip()
+    here = os.path.realpath(__file__)
+    if here != os.path.realpath(os.path.join(cwd, ".claude", "hooks", "maintainer.py")):
+        fail(f"run this repository's own .claude/hooks/maintainer.py, not {here}.")
     try:
         check_maintainer_account(cwd)
         if args.command == "merge":

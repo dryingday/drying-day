@@ -77,8 +77,9 @@ class Classify(unittest.TestCase):
         for command in [
             f"python3 {WRAPPER} merge 7",
             f"{WRAPPER} merge 7",
+            f"./{WRAPPER} merge 7",
             f'python3 {WRAPPER} approve 7 --reason "docs only, no protected paths"',
-            f"python3 /Users/x/drying-day/{WRAPPER} apply-ruleset",
+            f"python3 {WRAPPER} apply-ruleset",
         ]:
             with self.subTest(command=command):
                 self.assertEqual(classify(command), "wrapper")
@@ -118,6 +119,22 @@ class Classify(unittest.TestCase):
             "gh api repos/o/r/rulesets --input x.json",
             "gh alias set m 'pr merge'",
             "git push origin HEAD:main",
+            # Other spellings gh accepts.
+            'gh pr review 12 --approve=true -b "lgtm"',
+            'gh pr review 12 -ab "ok"',
+            "gh pr -R frangipanes/drying-day review 12 --approve",
+            "gh pr -R frangipanes/drying-day merge 12 --squash",
+            "gh pr --repo frangipanes/drying-day merge 12",
+            # Quoting that splits a word.
+            'gh pr "merge" 8 --squash',
+            "gh pr mer''ge 8",
+            "gh pr m\\erge 8",
+            'gh pr "review" 8 --approve',
+            'gh api repos/o/r/pulls/8/reviews -f event=APP""ROVE',
+            'gh api -X DELETE repos/o/r/rule""sets/1',
+            # The wrapper only from this repo's relative path.
+            "/tmp/pr12/.claude/hooks/maintainer.py merge 5",
+            f"true&&{WRAPPER} merge 5",
         ]:
             with self.subTest(command=command):
                 self.assertNotIn(classify(command), ("wrapper", None))
@@ -174,6 +191,10 @@ class Decisions(unittest.TestCase):
         self.assertTrue(decide("approve", pr(labels=["risk:low"]), PATTERNS).allow)
         self.assertFalse(decide("approve", pr(labels=["risk:low"], files=["gradlew"]), PATTERNS).allow)
         self.assertFalse(decide("approve", pr(labels=["risk:medium"]), PATTERNS).allow)
+
+    def test_any_approval_starting_with_the_agent_marker_is_the_agents(self):
+        agent = review(body="Approved by the agent: something else")
+        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[agent]), PATTERNS).allow)
 
     def test_bot_reviews_never_count(self):
         bot = review(user="frangipanes-bot")
