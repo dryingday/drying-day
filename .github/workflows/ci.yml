@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Only superseded PR runs are cancelled: every commit on main keeps its result.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Check and assemble
+    # Pinned: the build uses the Android SDK on the runner image, so a silent image change could break it.
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      # Actions are pinned to full commit SHAs; the comment is the release they came from.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # Validates the wrapper jar against Gradle's published checksums. The basic cache provider
+      # is the open-source (MIT) one; the default, "enhanced", is proprietary.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-provider: basic
+
+      # --continue reports every failing check in one run, not just the first.
+      - run: ./gradlew --continue check assembleDebug
+
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports
+          path: '**/build/reports/'
+          retention-days: 7
