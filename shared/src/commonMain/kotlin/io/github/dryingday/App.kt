@@ -10,12 +10,10 @@ import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.app_name
 import org.jetbrains.compose.resources.stringResource
 
-internal val PLACEHOLDER_TITLE = Res.string.app_name
-
 /** Placeholder screen until the main screen arrives in bolt 5. */
 @Composable
 fun App() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        BasicText(stringResource(PLACEHOLDER_TITLE))
+        BasicText(stringResource(Res.string.app_name))
     }
 }

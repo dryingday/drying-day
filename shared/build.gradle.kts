@@ -12,6 +12,10 @@ kotlin {
         namespace = "io.github.dryingday.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+        // Packages composeResources into the app; off by default in the KMP library plugin.
+        androidResources {
+            enable = true
+        }
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
         }
