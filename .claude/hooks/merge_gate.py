@@ -98,7 +98,8 @@ _RISKY = [
     (r"mergePullRequest|enablePullRequestAutoMerge|addPullRequestReview|submitPullRequestReview"
      r"|approvePullRequest|(?:create|update|delete)RepositoryRuleset", "a GraphQL merge, review or ruleset change"),
     (r"\bgh\b.*\balias\b", "a gh alias"),
-    (r"\bgit\s+push\b.*(?:\s|:)(?:refs/heads/)?main\b", "a push to main"),
+    # Only within the push command itself, up to the next ; & | or newline.
+    (r"\bgit\s+push\b[^;&|\n]*(?:\s|:)(?:refs/heads/)?main\b", "a push to main"),
 ]
 
 

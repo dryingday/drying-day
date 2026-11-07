@@ -119,6 +119,9 @@ class Classify(unittest.TestCase):
             "gh api repos/o/r/rulesets --input x.json",
             "gh alias set m 'pr merge'",
             "git push origin HEAD:main",
+            "git push origin main",
+            "git push --force origin refs/heads/main",
+            "git status && git push origin main",
             # Other spellings gh accepts.
             'gh pr review 12 --approve=true -b "lgtm"',
             'gh pr review 12 -ab "ok"',
@@ -151,6 +154,9 @@ class Classify(unittest.TestCase):
             f"chmod +x {WRAPPER}",
             f"git add {WRAPPER} && git commit -m wrapper",
             f"python3 {WRAPPER} --help",
+            # "main" later in the line belongs to another command, not the push.
+            "git push -u origin bolt/01-x && gh pr create --base main --title t --body b",
+            "git push -q origin bolt/01-x; git checkout main",
         ]:
             with self.subTest(command=command):
                 self.assertIsNone(classify(command))
