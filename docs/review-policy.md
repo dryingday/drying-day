@@ -20,14 +20,14 @@ The article has three tiers: low (no human), medium (one person) and high (two p
 
 ## Protected paths
 
-Owned by the maintainer in `.github/CODEOWNERS`, so GitHub requires their approval whatever the tier says.
+Owned by the maintainer in `.github/CODEOWNERS`, so GitHub requires the maintainer account's approval whatever the tier says. The agent can also use that account (see Enforcement), so for the agent this rule is enforced by the merge hook, not by GitHub.
 
 - `.github/**`: CI workflows, PR templates, CODEOWNERS, the `main` ruleset
-- `settings.gradle.kts`, `**/build.gradle.kts`, `gradle.properties`, `gradle/**`, `scripts/**`: dependencies, plugins, the wrapper and dependency verification (supply chain and F-Droid compliance)
-- `config/**`, `.editorconfig`: lint and formatting rules
+- `settings.gradle.kts`, `**/build.gradle.kts`, `gradle.properties`, `gradle/**`, `gradlew`, `gradlew.bat`, `scripts/**`: dependencies, plugins, the wrapper and dependency verification (supply chain and F-Droid compliance)
+- `config/**`, `.editorconfig`, `lint.xml`, lint and detekt baselines: lint and formatting rules
 - `**/AndroidManifest.xml`: permissions
 - `.claude/**`, `CLAUDE.md`, `REVIEW.md`, `docs/review-policy.md`: the guardrails themselves
-- `LICENSE`, signing and release configuration, `fastlane/**` changelogs, version bumps
+- `LICENSE`, signing and release configuration (keystores, `keystore.properties`), `fastlane/**` changelogs, version bumps
 
 ## Protected changes
 
@@ -41,7 +41,7 @@ High wherever they are in the code:
 
 ## Who sets the tier
 
-1. **Path rules**, deterministic: CODEOWNERS for protected paths.
+1. **Path rules**, deterministic: a PR touching a protected path (CODEOWNERS) is high. The merge hook checks this for the agent.
 2. **A tier reviewer**: a fresh subagent that sees only the diff, this policy and REVIEW.md, not the conversation that wrote the code. It picks a tier with a one-line reason.
 3. **An escalation check**, as in the article: the same reviewer separately asks whether this particular change needs a person even if its tier says it doesn't (e.g. a "refactor" that subtly changes rounding).
 
@@ -65,7 +65,10 @@ An approval covers the commit it was given on. If the agent pushes after the mai
 
 - **Agent identity:** the agent opens PRs, pushes and comments as its own GitHub machine account, `frangipanes-bot`, so the maintainer can approve them (GitHub doesn't let authors approve their own PRs). It uses the maintainer's account for two things only:
   - merging a PR the maintainer has approved on its current commit, with CI green, at any tier;
-  - approving and merging a low-risk PR. The approval reads "Approved by the agent: risk:low under docs/review-policy.md" with the tier reviewer's reason, so it can be told apart from the maintainer's.
-- **Ruleset on `main`:** kept in `.github/rulesets/main.json` and applied by the maintainer's account. Changes by PR only, squash merges; the CI check "Check and assemble" required; branch must be up to date; code owner approval required for protected paths; approvals dismissed on new pushes; no force pushes or deletion.
-- **Claude Code hook:** a `PreToolUse` hook blocks `gh pr merge` unless the PR is labelled `risk:low` or the maintainer has approved its current commit.
+  - approving and merging a low-risk PR. The approval reads "Approved by the agent: risk:low under docs/review-policy.md" with the tier reviewer's reason, so it can be told apart from the maintainer's;
+  - applying `.github/rulesets/main.json` to GitHub, only as merged with the maintainer's approval.
+
+  GitHub can't tell these actions from the maintainer's own. The merge hook is what holds the agent to them: it refuses an approval or merge through the maintainer's account when the PR touches a protected path or isn't low risk, unless the maintainer has approved the current commit. Approvals starting "Approved by the agent" never count as the maintainer's.
+- **Ruleset on `main`:** kept in `.github/rulesets/main.json` and applied by the maintainer's account. Changes by PR only, squash merges; one approval, and code owner approval for protected paths; the CI check "Check and assemble" required; branch up to date; review threads resolved; approvals dismissed on new pushes; no force pushes or deletion; no bypass, so the maintainer's own protected-path changes go through a PR from the agent's account.
+- **Claude Code hook:** a `PreToolUse` hook blocks the agent's `gh pr merge` and `gh pr review --approve` unless the maintainer has approved the PR's current commit, or the PR is labelled `risk:low` and touches no protected path.
 - **Bolt summary:** at the end of each bolt the agent lists what it merged on its own, and alerts the maintainer only about PRs waiting for them.

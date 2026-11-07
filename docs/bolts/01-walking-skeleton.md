@@ -29,7 +29,7 @@ Any weather, location or drying logic. App icon and store metadata (bolt 6).
 - The debug APK installs on a phone or emulator and shows the placeholder screen.
 - Adding `com.google.android.gms:play-services-location` to a branch fails the build.
 - A PR touching `.github/` requires code owner approval; a docs-only PR doesn't.
-- `gh pr merge` is blocked by the hook unless the PR is labelled `risk:low` or the maintainer has approved its current commit.
+- The hook blocks the agent's `gh pr merge` and `gh pr review --approve` unless the maintainer has approved the PR's current commit (an approval starting "Approved by the agent" doesn't count), or the PR is labelled `risk:low` and touches no protected path.
 - PRs are opened by the agent's machine account and can be approved by the maintainer.
 - No personal data (names of places, addresses) in the repo.
 

@@ -4,15 +4,20 @@
 # CI, PR templates, rulesets and this file
 /.github/                @frangipanes
 
-# Dependencies, plugins, the wrapper and dependency verification
+# Dependencies, plugins, the wrapper and dependency verification.
+# Signing and version changes live in *.gradle.kts for now.
 *.gradle.kts             @frangipanes
+/gradlew                 @frangipanes
+/gradlew.bat             @frangipanes
 /gradle.properties       @frangipanes
 /gradle/                 @frangipanes
 /scripts/                @frangipanes
 
-# Lint and formatting rules
+# Lint and formatting rules, including module lint configs and baselines
 /config/                 @frangipanes
 /.editorconfig           @frangipanes
+lint.xml                 @frangipanes
+*baseline*.xml           @frangipanes
 
 # Permissions
 AndroidManifest.xml      @frangipanes
@@ -23,6 +28,9 @@ AndroidManifest.xml      @frangipanes
 /REVIEW.md               @frangipanes
 /docs/review-policy.md   @frangipanes
 
-# Licence, release and store changelogs
+# Licence, signing, release and store changelogs
 /LICENSE                 @frangipanes
+*.jks                    @frangipanes
+*.keystore               @frangipanes
+keystore.properties      @frangipanes
 /fastlane/**/changelogs/ @frangipanes
