@@ -1,8 +1,8 @@
-"""Tests for merge_gate.py. Run: python3 -m unittest discover -s .claude/hooks"""
+"""Tests for merge_gate.py and maintainer.py. Run: python3 -m unittest discover -s .claude/hooks"""
 
 import unittest
 
-from merge_gate import AGENT_APPROVAL_PREFIX, Pr, actions_in, decide, is_protected, parse_codeowners
+from merge_gate import AGENT_APPROVAL_PREFIX, Pr, classify, decide, is_protected, parse_codeowners
 
 CODEOWNERS = """
 # comment
@@ -66,78 +66,118 @@ class ProtectedPaths(unittest.TestCase):
         self.assertTrue(is_protected("docs/PLAN.md", None))
 
 
-class CommandParsing(unittest.TestCase):
-    def test_finds_merges_and_approvals(self):
-        cases = {
-            "gh pr merge 7 --squash --delete-branch": [("merge", 7)],
-            "GH_CONFIG_DIR=~/.config/gh-drying-bot gh pr merge 12": [("merge", 12)],
-            "gh pr merge --squash": [("merge", None)],
-            'gh pr review 7 --approve --body "x"': [("approve", 7)],
-            "gh pr review 7 -a": [("approve", 7)],
-            "gh pr review 7 --comment -b hi": [],
-            "gh api -X PUT repos/o/r/pulls/9/merge": [("merge", 9)],
-            "gh api repos/o/r/pulls/9/reviews -f event=APPROVE": [("approve", 9)],
-            "gh api repos/o/r/pulls/9/reviews -f event=COMMENT": [],
-            "gh api -X PUT repos/o/r/rulesets/1 --input .github/rulesets/main.json": [("ruleset", None)],
-            "gh pr view 7 --json state": [],
-            "git log && gh pr merge 3": [("merge", 3)],
-            "cd x; gh pr merge 4": [("merge", 4)],
-            "export A=1 && GH_CONFIG_DIR=y gh pr merge 5": [("merge", 5)],
-            "x=$(gh pr merge 6)": [("merge", 6)],
-            # Text that only mentions a command isn't one.
-            "echo 'run gh pr merge 3 later'": [],
-            'git commit -m "then gh pr review 7 --approve"': [],
-            "grep -n 'gh api repos/o/r/pulls/9/merge' notes.md": [],
-        }
-        for command, expected in cases.items():
+WRAPPER = ".claude/hooks/maintainer.py"
+
+
+class Classify(unittest.TestCase):
+    """The hook allows only plain calls to the wrapper; anything else that could merge, approve
+    or change a ruleset is refused, however it's spelled."""
+
+    def test_wrapper_calls_allowed(self):
+        for command in [
+            f"python3 {WRAPPER} merge 7",
+            f"{WRAPPER} merge 7",
+            f'python3 {WRAPPER} approve 7 --reason "docs only, no protected paths"',
+            f"python3 /Users/x/drying-day/{WRAPPER} apply-ruleset",
+        ]:
             with self.subTest(command=command):
-                self.assertEqual(actions_in(command), expected)
+                self.assertEqual(classify(command), "wrapper")
+
+    def test_wrapper_chained_with_anything_refused(self):
+        for command in [
+            f"python3 {WRAPPER} merge 7; gh pr merge 8",
+            f"python3 {WRAPPER} merge 7 && echo done",
+            f"python3 {WRAPPER} merge $(cat n)",
+            f"python3 {WRAPPER} merge `cat n`",
+            f"python3 {WRAPPER} merge 7 | tee log",
+        ]:
+            with self.subTest(command=command):
+                self.assertNotIn(classify(command), ("wrapper", None))
+
+    def test_direct_merges_approvals_and_ruleset_writes_refused(self):
+        for command in [
+            "gh pr merge 7 --squash",
+            "gh pr merge --squash 12",
+            "gh pr merge https://github.com/o/r/pull/12",
+            "GH_CONFIG_DIR=~/.config/gh-drying-bot gh pr merge 12",
+            "gh -R o/r pr merge 7",
+            "bash -c 'gh pr merge 7'",
+            "command gh pr merge 7",
+            "/opt/homebrew/bin/gh pr merge 7",
+            "{ gh pr merge 7; }",
+            "if gh pr merge 7; then echo ok; fi",
+            'gh pr review 7 --approve --body "x"',
+            'gh pr review 9 --body "docs; tidy" --approve',
+            "gh pr review 7 -a",
+            "gh api -X PUT repos/o/r/pulls/9/merge",
+            "gh api repos/o/r/pulls/9/reviews -f event=APPROVE",
+            "gh api graphql -f query='mutation{mergePullRequest(input:{})}'",
+            "gh api graphql -f query='mutation{addPullRequestReview(input:{event:APPROVE})}'",
+            "gh api -X DELETE repos/o/r/rulesets/1",
+            "gh api --method=PUT repos/o/r/rulesets/1 --input x.json",
+            "gh api repos/o/r/rulesets --input x.json",
+            "gh alias set m 'pr merge'",
+            "git push origin HEAD:main",
+        ]:
+            with self.subTest(command=command):
+                self.assertNotIn(classify(command), ("wrapper", None))
+
+    def test_ordinary_commands_pass(self):
+        for command in [
+            "gh pr view 7 --json state",
+            "gh pr create --draft --title x --body y",
+            "gh api repos/o/r/pulls/9/reviews",
+            "gh api repos/o/r/rulesets/1",
+            "gh pr review 7 --comment -b hi",
+            "git push -u origin bolt/01-x",
+            "./gradlew check",
+            f"chmod +x {WRAPPER}",
+            f"git add {WRAPPER} && git commit -m wrapper",
+            f"python3 {WRAPPER} --help",
+        ]:
+            with self.subTest(command=command):
+                self.assertIsNone(classify(command))
 
 
 class Decisions(unittest.TestCase):
     def test_merge_allowed_after_maintainer_approval_of_head(self):
-        self.assertTrue(decide("merge", pr(files=[".github/x.yml"], reviews=[review()]), PATTERNS, "").allow)
+        self.assertTrue(decide("merge", pr(files=[".github/x.yml"], reviews=[review()]), PATTERNS).allow)
 
     def test_merge_denied_when_approval_is_on_an_older_commit(self):
-        d = decide("merge", pr(files=[".github/x.yml"], reviews=[review(commit="old0000")]), PATTERNS, "")
-        self.assertFalse(d.allow)
+        self.assertFalse(decide("merge", pr(files=[".github/x.yml"], reviews=[review(commit="old0000")]), PATTERNS).allow)
 
     def test_agent_approval_does_not_count_as_maintainers(self):
         agent = review(body=AGENT_APPROVAL_PREFIX + " reason")
-        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[agent]), PATTERNS, "").allow)
+        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[agent]), PATTERNS).allow)
 
     def test_later_changes_requested_cancels_approval(self):
         reviews = [review(), review(state="CHANGES_REQUESTED")]
-        self.assertFalse(decide("merge", pr(reviews=reviews), PATTERNS, "").allow)
+        self.assertFalse(decide("merge", pr(reviews=reviews), PATTERNS).allow)
 
     def test_low_risk_unprotected_merge_allowed(self):
-        self.assertTrue(decide("merge", pr(labels=["risk:low"]), PATTERNS, "").allow)
+        self.assertTrue(decide("merge", pr(labels=["risk:low"]), PATTERNS).allow)
 
     def test_low_risk_label_on_protected_path_denied(self):
-        self.assertFalse(decide("merge", pr(labels=["risk:low"], files=["build.gradle"]), PATTERNS, "").allow)
+        self.assertFalse(decide("merge", pr(labels=["risk:low"], files=["build.gradle"]), PATTERNS).allow)
+
+    def test_highest_risk_label_wins(self):
+        self.assertFalse(decide("merge", pr(labels=["risk:low", "risk:high"]), PATTERNS).allow)
+        self.assertFalse(decide("approve", pr(labels=["risk:low", "risk:medium"]), PATTERNS).allow)
 
     def test_medium_without_approval_denied(self):
-        self.assertFalse(decide("merge", pr(labels=["risk:medium"]), PATTERNS, "").allow)
+        self.assertFalse(decide("merge", pr(labels=["risk:medium"]), PATTERNS).allow)
 
     def test_unlabelled_without_approval_denied(self):
-        self.assertFalse(decide("merge", pr(), PATTERNS, "").allow)
+        self.assertFalse(decide("merge", pr(), PATTERNS).allow)
 
-    def test_agent_approval_allowed_for_low_unprotected_with_marked_text(self):
-        command = f'gh pr review 7 --approve --body "{AGENT_APPROVAL_PREFIX} docs only"'
-        self.assertTrue(decide("approve", pr(labels=["risk:low"]), PATTERNS, command).allow)
-
-    def test_agent_approval_needs_marked_text(self):
-        command = 'gh pr review 7 --approve --body "LGTM"'
-        self.assertFalse(decide("approve", pr(labels=["risk:low"]), PATTERNS, command).allow)
-
-    def test_agent_approval_denied_for_protected_or_not_low(self):
-        command = f'gh pr review 7 --approve --body "{AGENT_APPROVAL_PREFIX} x"'
-        self.assertFalse(decide("approve", pr(labels=["risk:low"], files=["gradlew"]), PATTERNS, command).allow)
-        self.assertFalse(decide("approve", pr(labels=["risk:medium"]), PATTERNS, command).allow)
+    def test_agent_approval_allowed_only_for_low_unprotected(self):
+        self.assertTrue(decide("approve", pr(labels=["risk:low"]), PATTERNS).allow)
+        self.assertFalse(decide("approve", pr(labels=["risk:low"], files=["gradlew"]), PATTERNS).allow)
+        self.assertFalse(decide("approve", pr(labels=["risk:medium"]), PATTERNS).allow)
 
     def test_bot_reviews_never_count(self):
         bot = review(user="frangipanes-bot")
-        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[bot]), PATTERNS, "").allow)
+        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[bot]), PATTERNS).allow)
 
 
 if __name__ == "__main__":

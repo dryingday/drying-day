@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Stop hook: don't let the agent finish while ./gradlew check fails (Spotless always rerun).
 
-It skips the build when the working tree is exactly as it was at the last green check
-(HEAD, tracked changes and untracked files), so chat-only turns stay fast. The state of the
-last green check is kept in .gradle/, which git ignores. Claude Code stops re-running a
-blocking Stop hook after 8 consecutive continuations, so a check that can't be fixed in the
-session doesn't trap it.
+The result is remembered against the state of the working tree (HEAD, tracked changes and
+untracked files), kept in .gradle/, which git ignores:
+- unchanged since the last green check: stop straight away, so chat-only turns stay fast;
+- unchanged since the last failed check: block again with the saved output, without rebuilding.
+A timeout counts as a failure. Claude Code ends a turn after 8 consecutive Stop-hook
+continuations, so a failure that can't be fixed in the session doesn't trap it.
 """
 
 import hashlib
@@ -14,8 +15,11 @@ import os
 import subprocess
 import sys
 
-STAMP = os.path.join(".gradle", "claude-last-green-check")
+GREEN = os.path.join(".gradle", "claude-last-green-check")
+FAILED = os.path.join(".gradle", "claude-last-failed-check.json")
 TAIL_LINES = 60
+CHECK_TIMEOUT = 900
+SPOTLESS_TIMEOUT = 300
 
 
 def _git(cwd, *args):
@@ -36,6 +40,27 @@ def tree_key(cwd):
     return h.hexdigest()
 
 
+def run_checks(root):
+    """None when green, otherwise the tail of the failing output."""
+    steps = [
+        (["./gradlew", "check", "--console=plain", "-q"], CHECK_TIMEOUT),
+        # Spotless has reported UP-TO-DATE after a change before, so it always runs fresh.
+        (["./gradlew", "spotlessCheck", "--rerun-tasks", "--console=plain", "-q"], SPOTLESS_TIMEOUT),
+    ]
+    for command, timeout in steps:
+        try:
+            result = subprocess.run(command, cwd=root, capture_output=True, text=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            return f"`{' '.join(command[:2])}` didn't finish within {timeout // 60} minutes."
+        if result.returncode != 0:
+            return "\n".join((result.stdout + result.stderr).splitlines()[-TAIL_LINES:])
+    return None
+
+
+def block(reason):
+    print(json.dumps({"decision": "block", "reason": reason}))
+
+
 def main():
     event = json.load(sys.stdin)
     cwd = event.get("cwd") or os.getcwd()
@@ -46,25 +71,24 @@ def main():
     if not os.path.exists(os.path.join(root, "gradlew")):
         return 0
     key = tree_key(root)
-    stamp = os.path.join(root, STAMP)
-    if os.path.exists(stamp) and open(stamp).read().strip() == key:
+    green, failed = os.path.join(root, GREEN), os.path.join(root, FAILED)
+    if os.path.exists(green) and open(green).read().strip() == key:
         return 0
-    result = subprocess.run(["./gradlew", "check", "--console=plain", "-q"], cwd=root,
-                            capture_output=True, text=True, timeout=900)
-    if result.returncode == 0:
-        # Spotless has reported UP-TO-DATE after a change before, so it always runs fresh.
-        result = subprocess.run(["./gradlew", "spotlessCheck", "--rerun-tasks", "--console=plain", "-q"],
-                                cwd=root, capture_output=True, text=True, timeout=300)
-    if result.returncode == 0:
-        os.makedirs(os.path.dirname(stamp), exist_ok=True)
-        with open(stamp, "w") as f:
+    if os.path.exists(failed):
+        saved = json.load(open(failed))
+        if saved.get("key") == key:
+            block("./gradlew check still fails and nothing has changed since it last ran. "
+                  "Fix it, then stop.\n\n" + saved.get("output", ""))
+            return 0
+    output = run_checks(root)
+    os.makedirs(os.path.join(root, ".gradle"), exist_ok=True)
+    if output is None:
+        with open(green, "w") as f:
             f.write(key)
         return 0
-    tail = "\n".join((result.stdout + result.stderr).splitlines()[-TAIL_LINES:])
-    print(json.dumps({
-        "decision": "block",
-        "reason": "./gradlew check fails, so the work isn't finished. Fix it, then stop.\n\n" + tail,
-    }))
+    with open(failed, "w") as f:
+        json.dump({"key": key, "output": output}, f)
+    block("./gradlew check fails, so the work isn't finished. Fix it, then stop.\n\n" + output)
     return 0
 
 
