@@ -7,6 +7,7 @@ androidx-lifecycle = "2.11.0"
 detekt = "2.0.0-alpha.6"
 spotless = "8.11.0"
 ktlint = "1.8.0"
+kotlinx-datetime = "0.8.0"
 
 android-compileSdk = "37"
 android-targetSdk = "37"
@@ -19,6 +20,7 @@ compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.re
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-multiplatform" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 [plugins]
