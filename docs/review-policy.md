@@ -20,7 +20,7 @@ The article has three tiers: low (no human), medium (one person) and high (two p
 
 ## Protected paths
 
-Owned by the maintainer in `.github/CODEOWNERS`, so GitHub requires the maintainer account's approval whatever the tier says. The agent can also use that account (see Enforcement), so for the agent this rule is enforced by the merge hook, not by GitHub.
+Owned by the maintainer in `.github/CODEOWNERS`, so GitHub requires the maintainer account's approval whatever the tier says. The agent can also use that account (see Enforcement), so for the agent this rule is enforced by `maintainer.py` and the merge gate hook, not by GitHub.
 
 - `.github/**`: CI workflows, PR templates, CODEOWNERS, the `main` ruleset
 - Gradle scripts in either language (`*.gradle.kts`, `*.gradle`), `buildSrc/**`, `build-logic/**`, `gradle.properties` files, `gradle/**`, `gradlew`, `gradlew.bat`, `scripts/**`: dependencies, plugins, the wrapper and dependency verification (supply chain and F-Droid compliance)
@@ -41,7 +41,7 @@ High wherever they are in the code:
 
 ## Who sets the tier
 
-1. **Path rules**, deterministic: a PR touching a protected path (CODEOWNERS) is high. The merge hook checks this for the agent.
+1. **Path rules**, deterministic: a PR touching a protected path (CODEOWNERS) is high. `maintainer.py` checks this for the agent.
 2. **A tier reviewer**: a fresh subagent that sees only the diff, this policy and REVIEW.md, not the conversation that wrote the code. It picks a tier with a one-line reason.
 3. **An escalation check**, as in the article: the same reviewer separately asks whether this particular change needs a person even if its tier says it doesn't (e.g. a "refactor" that subtly changes rounding).
 
@@ -68,7 +68,7 @@ An approval covers the commit it was given on. If the agent pushes after the mai
   - approving and merging a low-risk PR. The approval reads "Approved by the agent: risk:low under docs/review-policy.md" with the tier reviewer's reason, so it can be told apart from the maintainer's;
   - applying `.github/rulesets/main.json` to GitHub, only as merged with the maintainer's approval.
 
-  GitHub can't tell these actions from the maintainer's own. The merge hook is what holds the agent to them: it refuses an approval or merge through the maintainer's account when the PR touches a protected path or isn't low risk, unless the maintainer has approved the current commit. Approvals starting "Approved by the agent" never count as the maintainer's.
+  GitHub can't tell these actions from the maintainer's own, so the agent takes all three through one script, `.claude/hooks/maintainer.py`. It merges only if the maintainer approved the PR's current commit, or the PR is labelled `risk:low` alone and touches no protected path, and pins the merge to that commit. It approves only that second kind of PR, with the marked text. It applies the ruleset only as merged on `main`. Approvals starting "Approved by the agent" never count as the maintainer's.
 - **Ruleset on `main`:** kept in `.github/rulesets/main.json` and applied by the maintainer's account. Changes by PR only, squash merges; one approval, and code owner approval for protected paths; the CI check "Check and assemble" required; branch up to date; review threads resolved; approvals dismissed on new pushes; no force pushes or deletion; no bypass, so the maintainer's own protected-path changes go through a PR from the agent's account.
-- **Claude Code hook:** a `PreToolUse` hook blocks the agent's `gh pr merge` and `gh pr review --approve` unless the maintainer has approved the PR's current commit, or the PR is labelled `risk:low` and touches no protected path.
+- **Claude Code hooks:** a `PreToolUse` hook refuses any shell command that looks like a merge, an approval or a ruleset change, in any spelling, unless it's a plain call to `maintainer.py`. If the hook itself fails, the command is refused. A `Stop` hook won't let the agent finish while `./gradlew check` fails. These guard against mistakes: an agent determined to get round them could, so the maintainer's review of `.claude/**` is what keeps them honest.
 - **Bolt summary:** at the end of each bolt the agent lists what it merged on its own, and alerts the maintainer only about PRs waiting for them.
