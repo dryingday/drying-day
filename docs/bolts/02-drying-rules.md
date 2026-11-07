@@ -117,7 +117,7 @@ The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usabl
 - **Blind labels.** A fresh subagent, given only each case's hourly data in local time, sunrise and sunset, and the verdict definitions (not the engine, the rules or the thresholds), labels each case for both loads: verdict, hang-out and bring-in to the hour, and a one-line reason. Labelling can happen before the engine exists.
 - **Disagreements.** The engine runs on every case. Each disagreement goes in `docs/reference-set.md` with both answers, and the maintainer decides: the label was wrong, or the rule was. A rule change is its own high-tier PR.
 - `ReferenceSetTest` asserts every agreed case on its first day (the "today" entry): the same verdict, and hang-out and bring-in within an hour of the label. The two days after only need to be non-null.
-- Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places", and the maintainer agreed (PR #13) that the rule in CLAUDE.md and CONTRIBUTING.md means no homes or personal places; both now say so.
+- Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places", and the maintainer agreed ([on PR #13](https://github.com/dryingday/drying-day/pull/13#discussion_r4503700795)) to an exception to the "no real places" rule for the reference set alone. CLAUDE.md, CONTRIBUTING.md and REVIEW.md now say so.
 
 ## Out of scope
 
@@ -131,13 +131,14 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 - Tests show correct hang-out and bring-in times across the spring and autumn daylight-saving changes in at least two zones in different hemispheres, a sunrise or sunset that falls mid-hour, a `now` partway through the day, and polar day and night.
 - Missing hours or required fields give `null` for that day, never a verdict.
 - Every reference case has a blind label for both loads; every disagreement has the maintainer's decision in `docs/reference-set.md`; `ReferenceSetTest` passes on all agreed cases.
-- No real homes or personal data in fixtures: landmarks only, coordinates to two decimals.
+- No real places outside the reference set, and in it public landmarks only, coordinates to two decimals; no homes or personal data.
 
 ## PRs
 
 | PR | Contents | Expected tier |
 |---|---|---|
 | 0 | This spec | high (sets the drying thresholds) |
+| 0b | The reference-set exception to "no real places" in CLAUDE.md, CONTRIBUTING.md and REVIEW.md | high (CLAUDE.md, REVIEW.md) |
 | 1 | kotlinx-datetime; `Forecast`, `HourlyWeather`, `DailyLight`, `Load`, `DayAdvice` and the code enums; no logic | high (new dependency) |
 | 2 | Hour classification and points: usable time, wet, damp, VPD, wind and sun tables | high (thresholds) |
 | 3a | Windows, hang-out and bring-in, dryness and verdict for the three days; daylight-saving, polar and missing-data tests | high (bring-in timing) |

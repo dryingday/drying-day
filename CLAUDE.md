@@ -69,6 +69,7 @@ Follow "How work is done" in [docs/PLAN.md](docs/PLAN.md) and the policy. In pra
 - **Dependencies:** Google Maven and Maven Central only; no Gradle Plugin Portal. After any
   dependency or plugin change, run `python3 scripts/update-verification-metadata.py` on a Mac
   and check the diff.
-- **No homes or personal places** anywhere in the repository: no default location, no personal
-  data in fixtures. Fixtures that need real coordinates use public landmarks, rounded to two
-  decimal places (see `docs/bolts/02-drying-rules.md`).
+- **No real places** anywhere in the repository: no default location, no homes, no personal
+  data. One exception: the reference set (its fetch script, fixtures, tests and
+  `docs/reference-set.md`) uses public landmarks, coordinates to two decimal places. See
+  `docs/bolts/02-drying-rules.md`.
