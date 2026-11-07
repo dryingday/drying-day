@@ -15,7 +15,7 @@ The whole pipeline works end to end before any feature exists: the project build
 - ktlint and detekt wired into `./gradlew check`.
 - GitHub Actions: `./gradlew check assembleDebug` on Ubuntu with Temurin 21.
 - A check that fails the build if a Google Play Services, Firebase or other known non-free dependency appears.
-- Dependency verification: SHA-256 checksums for every dependency and plugin in `gradle/verification-metadata.xml`, including the Linux and Windows builds of platform-specific tools, so a tampered or unexpected artifact fails the build.
+- Dependency verification: SHA-256 checksums in `gradle/verification-metadata.xml` for every artifact Gradle resolves (dependencies, plugins, lint and formatting tools), so a changed or unexpected artifact fails the build. Platform-specific tools are pinned for every machine that builds the project: AAPT2 for Linux, macOS and Windows, Kotlin/Native for both Mac architectures. `scripts/update-verification-metadata.py` regenerates the file after a dependency change. Not covered: downloads outside Gradle's dependency resolution, such as the Android SDK manager and Kotlin/Native's toolchain bundles from download.jetbrains.com.
 - Review machinery: `.github/CODEOWNERS`, the `risk:low|medium|high` labels, the `main` ruleset, tier-reviewer and spec-reviewer subagents in `.claude/agents/`, the merge-blocking hook, the Stop hook.
 - `README.md`, `CLAUDE.md`, `CONTRIBUTING.md`, PR template.
 
@@ -41,7 +41,7 @@ Any weather, location or drying logic. App icon and store metadata (bolt 6).
 | 1 | Gradle skeleton: wrapper, version catalog, settings, `shared` and `androidApp` modules building a debug APK | high |
 | 2 | Placeholder screen + first shared test; iOS entry point stub | medium |
 | 3 | ktlint + detekt in `check`, and the non-free dependency check | high |
-| 3b | Dependency verification metadata (added after PR 1's security review) | high |
+| 3b | Dependency verification metadata, proposed in PR 1's security review; pins what PRs 1–3 brought in | high |
 | 4 | CI workflow | high |
 | 5 | CODEOWNERS, labels, ruleset, tier and spec reviewer subagents, merge-blocking hook, Stop hook | high |
 | 6 | CLAUDE.md, CONTRIBUTING.md, PR template, README | high (CLAUDE.md, `.github/`) |
