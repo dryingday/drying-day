@@ -46,7 +46,7 @@ data class DayAdvice(
         require(dryness in 0..MAX_DRYNESS) { "dryness must be 0 to 100, was $dryness" }
         val expected = when {
             dryness == MAX_DRYNESS -> Verdict.WILL_DRY
-            dryness >= PARTLY_DRY_FROM -> Verdict.PARTLY_DRY
+            dryness >= DryingThresholds.PARTLY_DRY_FROM_PERCENT -> Verdict.PARTLY_DRY
             else -> Verdict.DONT_BOTHER
         }
         require(verdict == expected) { "dryness $dryness means $expected, not $verdict" }
@@ -68,9 +68,6 @@ data class DayAdvice(
 
     private companion object {
         const val MAX_DRYNESS = 100
-
-        // Rule 5 of docs/bolts/02-drying-rules.md. Moves to the one thresholds file with PR 2.
-        const val PARTLY_DRY_FROM = 50
         const val MAX_TIPS = 3
 
         fun requireInEnumOrder(codes: List<Enum<*>>, name: String) =
