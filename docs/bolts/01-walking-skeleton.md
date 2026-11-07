@@ -29,7 +29,7 @@ Any weather, location or drying logic. App icon and store metadata (bolt 6).
 - The debug APK installs on a phone or emulator and shows the placeholder screen.
 - Adding `com.google.android.gms:play-services-location` to a branch fails the build.
 - A PR touching `.github/` requires code owner approval; a docs-only PR doesn't.
-- `gh pr merge` on a PR not labelled `risk:low` is blocked by the hook.
+- `gh pr merge` is blocked by the hook unless the PR is labelled `risk:low` or the maintainer has approved its current commit.
 - PRs are opened by the agent's machine account and can be approved by the maintainer.
 - No personal data (names of places, addresses) in the repo.
 
@@ -43,7 +43,8 @@ Any weather, location or drying logic. App icon and store metadata (bolt 6).
 | 3 | ktlint + detekt in `check`, and the non-free dependency check | high |
 | 3b | Dependency verification metadata, proposed in PR 1's security review; pins what PRs 1–3 brought in | high |
 | 4 | CI workflow | high |
-| 5 | CODEOWNERS, labels, ruleset, tier and spec reviewer subagents, merge-blocking hook, Stop hook | high |
+| 5a | CODEOWNERS, the `main` ruleset as `.github/rulesets/main.json`, review-policy updates for the agent's accounts (the `risk:*` labels already exist) | high |
+| 5b | Tier and spec reviewer subagents, merge-blocking hook, Stop hook | high |
 | 6 | CLAUDE.md, CONTRIBUTING.md, PR template, README | high (CLAUDE.md, `.github/`) |
 
 Bolt 1 is mostly protected paths, so nearly all of it needs the maintainer. From bolt 2 onwards most PRs should be low or medium.

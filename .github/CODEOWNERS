@@ -1,0 +1,28 @@
+# Protected paths (docs/review-policy.md). GitHub requires the maintainer's approval
+# for any PR that touches them, whatever its risk tier.
+
+# CI, PR templates, rulesets and this file
+/.github/                @frangipanes
+
+# Dependencies, plugins, the wrapper and dependency verification
+*.gradle.kts             @frangipanes
+/gradle.properties       @frangipanes
+/gradle/                 @frangipanes
+/scripts/                @frangipanes
+
+# Lint and formatting rules
+/config/                 @frangipanes
+/.editorconfig           @frangipanes
+
+# Permissions
+AndroidManifest.xml      @frangipanes
+
+# The guardrails themselves
+/.claude/                @frangipanes
+/CLAUDE.md               @frangipanes
+/REVIEW.md               @frangipanes
+/docs/review-policy.md   @frangipanes
+
+# Licence, release and store changelogs
+/LICENSE                 @frangipanes
+/fastlane/**/changelogs/ @frangipanes
