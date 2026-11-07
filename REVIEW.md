@@ -33,7 +33,7 @@ Report at most three Nits per review.
 - Times are computed in the forecast location's time zone with kotlinx-datetime, never the device's default zone
 - Network calls use HTTPS, have timeouts, and handle offline and error responses
 - User-facing text is in string resources, not hard-coded
-- No default or hard-coded location anywhere
+- No default or hard-coded location anywhere, except the reference set's public landmarks (two decimal places) in its script, fixtures and tests
 - The Open-Meteo attribution stays visible wherever its data is shown
 
 ## Evidence
