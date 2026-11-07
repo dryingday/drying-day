@@ -23,7 +23,8 @@ builds a debug APK. `./gradlew spotlessApply` fixes formatting. The iOS targets 
   fails if one appears. Dependencies come from Google Maven and Maven Central only.
 - **Private.** No accounts, analytics or tracking. The only network calls go to the weather
   source the user picked. Location is coarse.
-- **No real places** in code, tests or fixtures, and no default location.
+- **No homes or personal places** in code, tests or fixtures, and no default location. Fixtures
+  that need real coordinates use public landmarks, rounded to two decimal places.
 - **User-facing text** goes in string resources.
 - **Times** are computed in the forecast location's time zone, never the device's.
 

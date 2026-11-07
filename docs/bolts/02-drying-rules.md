@@ -117,7 +117,7 @@ The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usabl
 - **Blind labels.** A fresh subagent, given only each case's hourly data in local time, sunrise and sunset, and the verdict definitions (not the engine, the rules or the thresholds), labels each case for both loads: verdict, hang-out and bring-in to the hour, and a one-line reason. Labelling can happen before the engine exists.
 - **Disagreements.** The engine runs on every case. Each disagreement goes in `docs/reference-set.md` with both answers, and the maintainer decides: the label was wrong, or the rule was. A rule change is its own high-tier PR.
 - `ReferenceSetTest` asserts every agreed case on its first day (the "today" entry): the same verdict, and hang-out and bring-in within an hour of the label. The two days after only need to be non-null.
-- Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places"; CLAUDE.md says "No real places anywhere in the repository". This spec proposes reading that as no homes or personal places, which is the maintainer's decision; if agreed, CLAUDE.md is reworded in its own PR (it's protected) before PR 5.
+- Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places", and the maintainer agreed (PR #13) that the rule in CLAUDE.md and CONTRIBUTING.md means no homes or personal places; both now say so.
 
 ## Out of scope
 
