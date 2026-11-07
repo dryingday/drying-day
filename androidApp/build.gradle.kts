@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -28,4 +29,10 @@ android {
 
 dependencies {
     implementation(projects.shared)
+    implementation(libs.androidx.activity.compose)
+    constraints {
+        implementation(libs.androidx.lifecycle.runtime) {
+            because("the version Compose Multiplatform 1.12.2 pairs with; 2.9.x's lint checks break on AGP 9.5")
+        }
+    }
 }
