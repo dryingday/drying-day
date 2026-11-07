@@ -12,12 +12,11 @@ pluginManagement {
             }
         }
         mavenCentral()
-        gradlePluginPortal()
     }
 }
 
-// F-Droid accepts prebuilt artifacts only from approved repositories. Libraries come from
-// Google Maven and Maven Central only; Gradle plugins may also come from the Plugin Portal.
+// F-Droid accepts prebuilt artifacts only from approved repositories,
+// so Google Maven and Maven Central are the only ones used.
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {

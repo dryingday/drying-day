@@ -11,7 +11,7 @@ The whole pipeline works end to end before any feature exists: the project build
 - Placeholder Compose screen ("Drying Day") from `commonMain`.
 - One trivial shared unit test so `commonTest` runs.
 - Gradle wrapper with verified distribution checksum; versions in `gradle/libs.versions.toml`; latest stable Kotlin, AGP and Compose Multiplatform at time of build.
-- Android: `minSdk 26`, `targetSdk`/`compileSdk 37`, app ID `io.github.dryingday`, no permissions yet.
+- Android: `minSdk 26`, `targetSdk`/`compileSdk 37`, app ID `io.github.dryingday`, no permissions yet. Cloud backup and device-to-device transfer are switched off (`allowBackup=false` plus data extraction rules excluding every domain): nothing the app stores should leave the device without the user knowing.
 - ktlint and detekt wired into `./gradlew check`.
 - GitHub Actions: `./gradlew check assembleDebug` on Ubuntu with Temurin 21.
 - A check that fails the build if a Google Play Services, Firebase or other known non-free dependency appears.
