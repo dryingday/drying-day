@@ -15,15 +15,17 @@ class DayAdviceTest {
         bringIn: Instant? = this.bringIn,
         dryness: Int = 100,
         tips: List<Tip> = emptyList(),
+        reasons: List<Reason> = emptyList(),
+        indoorPlan: List<IndoorStep> = emptyList(),
     ) = DayAdvice(
         date = LocalDate(2025, 6, 14),
         verdict = verdict,
         hangOut = hangOut,
         bringIn = bringIn,
         dryness = dryness,
-        reasons = emptyList(),
+        reasons = reasons,
         tips = tips,
-        indoorPlan = emptyList(),
+        indoorPlan = indoorPlan,
     )
 
     @Test
@@ -37,6 +39,44 @@ class DayAdviceTest {
     fun willDryMeansFullyDryAndOnlyThat() {
         assertFailsWith<IllegalArgumentException> { advice(Verdict.WILL_DRY, dryness = 99) }
         assertFailsWith<IllegalArgumentException> { advice(Verdict.PARTLY_DRY, dryness = 100) }
+    }
+
+    @Test
+    fun halfDryIsTheLineBetweenPartlyAndDontBother() {
+        advice(Verdict.PARTLY_DRY, dryness = 50)
+        advice(Verdict.DONT_BOTHER, hangOut = null, bringIn = null, dryness = 49)
+        assertFailsWith<IllegalArgumentException> { advice(Verdict.PARTLY_DRY, dryness = 49) }
+        assertFailsWith<IllegalArgumentException> {
+            advice(Verdict.DONT_BOTHER, hangOut = null, bringIn = null, dryness = 50)
+        }
+    }
+
+    @Test
+    fun willDryHasNoReasonsOrIndoorPlan() {
+        assertFailsWith<IllegalArgumentException> { advice(reasons = listOf(Reason.RAIN)) }
+        assertFailsWith<IllegalArgumentException> { advice(indoorPlan = listOf(IndoorStep.AIRER_SPACED)) }
+        advice(
+            Verdict.PARTLY_DRY,
+            dryness = 70,
+            reasons = listOf(Reason.RAIN),
+            indoorPlan = listOf(IndoorStep.AIRER_SPACED),
+        )
+    }
+
+    @Test
+    fun codesAreInTheirOrderAndEachOnce() {
+        assertFailsWith<IllegalArgumentException> { advice(tips = listOf(Tip.SPACE_OUT, Tip.PEG_WELL)) }
+        assertFailsWith<IllegalArgumentException> { advice(tips = listOf(Tip.PEG_WELL, Tip.PEG_WELL)) }
+        assertFailsWith<IllegalArgumentException> {
+            advice(Verdict.PARTLY_DRY, dryness = 70, reasons = listOf(Reason.STILL_AIR, Reason.RAIN))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            advice(
+                Verdict.PARTLY_DRY,
+                dryness = 70,
+                indoorPlan = listOf(IndoorStep.NOT_ON_RADIATOR, IndoorStep.AIRER_SPACED),
+            )
+        }
     }
 
     @Test

@@ -6,6 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 class ForecastTest {
@@ -18,9 +19,10 @@ class ForecastTest {
         precipitationMm: Double = 0.0,
         windSpeedKmh: Double = 12.0,
         visibilityM: Double? = 20_000.0,
+        temperatureC: Double = 18.0,
     ) = HourlyWeather(
         start = start,
-        temperatureC = 18.0,
+        temperatureC = temperatureC,
         relativeHumidityPercent = relativeHumidityPercent,
         windSpeedKmh = windSpeedKmh,
         visibilityM = visibilityM,
@@ -70,6 +72,10 @@ class ForecastTest {
     fun rejectsNotANumber() {
         assertFailsWith<IllegalArgumentException> { hour(relativeHumidityPercent = Double.NaN) }
         assertFailsWith<IllegalArgumentException> { hour(precipitationMm = Double.NaN) }
+        assertFailsWith<IllegalArgumentException> { hour(temperatureC = Double.NaN) }
+        assertFailsWith<IllegalArgumentException> { hour(temperatureC = Double.NEGATIVE_INFINITY) }
+        assertFailsWith<IllegalArgumentException> { hour(windSpeedKmh = Double.POSITIVE_INFINITY) }
+        assertFailsWith<IllegalArgumentException> { hour(visibilityM = Double.POSITIVE_INFINITY) }
     }
 
     @Test
@@ -88,6 +94,24 @@ class ForecastTest {
         assertFailsWith<IllegalArgumentException> {
             Forecast(zone, listOf(hour(start = noon), hour(start = noon)), listOf(day))
         }
+    }
+
+    @Test
+    fun rejectsOverlappingHours() {
+        val zone = TimeZone.of("Europe/London")
+        assertFailsWith<IllegalArgumentException> {
+            Forecast(zone, listOf(hour(start = noon), hour(start = noon + 30.minutes)), listOf(day))
+        }
+    }
+
+    @Test
+    fun acceptsGapsAndHalfHourOffsets() {
+        val kolkataNoon = Instant.parse("2025-06-14T06:30:00Z")
+        Forecast(
+            TimeZone.of("Asia/Kolkata"),
+            listOf(hour(start = kolkataNoon), hour(start = kolkataNoon + 3.hours)),
+            emptyList(),
+        )
     }
 
     @Test

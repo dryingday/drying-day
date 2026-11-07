@@ -2,6 +2,7 @@ package io.github.dryingday.engine
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 /**
@@ -9,12 +10,15 @@ import kotlin.time.Instant
  * Independent of any weather source; see docs/bolts/02-drying-rules.md, "Input".
  *
  * @property timeZone the IANA zone of the forecast's location, never the device's. Days are cut in it.
- * @property hours in strictly increasing order of [HourlyWeather.start]. A gap is a missing hour.
+ * @property hours in increasing order of [HourlyWeather.start], at least an hour apart so none overlap.
+ *   A gap is a missing hour.
  * @property days in strictly increasing order of [DailyLight.date].
  */
 data class Forecast(val timeZone: TimeZone, val hours: List<HourlyWeather>, val days: List<DailyLight>) {
     init {
-        require(hours.zipWithNext().all { (a, b) -> a.start < b.start }) { "hours must be in order, each once" }
+        require(hours.zipWithNext().all { (a, b) -> b.start - a.start >= 1.hours }) {
+            "hours must be in order, at least an hour apart"
+        }
         require(days.zipWithNext().all { (a, b) -> a.date < b.date }) { "days must be in order, each once" }
     }
 }

@@ -35,7 +35,8 @@ kotlin {
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
-            implementation(libs.kotlinx.datetime)
+            // Its types are in the engine's public API.
+            api(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
