@@ -81,6 +81,13 @@ class CommandParsing(unittest.TestCase):
             "gh api -X PUT repos/o/r/rulesets/1 --input .github/rulesets/main.json": [("ruleset", None)],
             "gh pr view 7 --json state": [],
             "git log && gh pr merge 3": [("merge", 3)],
+            "cd x; gh pr merge 4": [("merge", 4)],
+            "export A=1 && GH_CONFIG_DIR=y gh pr merge 5": [("merge", 5)],
+            "x=$(gh pr merge 6)": [("merge", 6)],
+            # Text that only mentions a command isn't one.
+            "echo 'run gh pr merge 3 later'": [],
+            'git commit -m "then gh pr review 7 --approve"': [],
+            "grep -n 'gh api repos/o/r/pulls/9/merge' notes.md": [],
         }
         for command, expected in cases.items():
             with self.subTest(command=command):

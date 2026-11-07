@@ -84,9 +84,12 @@ def is_protected(path, patterns):
 
 # Commands ------------------------------------------------------------------------------------
 
-_MERGE = re.compile(r"\bgh\s+pr\s+merge\b(?:\s+(\d+))?")
-_REVIEW = re.compile(r"\bgh\s+pr\s+review\b(?:\s+(\d+))?([^;&|]*)")
-_API = re.compile(r"\bgh\s+api\b([^;&|]*)")
+# `gh` where a command starts: the start of a line, or after ; & | ( or $(, then any VAR=value
+# prefixes. Text that only mentions gh (an echo, a commit message, a grep) doesn't count.
+_AT_COMMAND = r"(?:^|[;&|(\n]|\$\()\s*(?:\w+=\S*\s+)*gh\s+"
+_MERGE = re.compile(_AT_COMMAND + r"pr\s+merge\b(?:\s+(\d+))?", re.M)
+_REVIEW = re.compile(_AT_COMMAND + r"pr\s+review\b(?:\s+(\d+))?([^;&|\n]*)", re.M)
+_API = re.compile(_AT_COMMAND + r"api\b([^;&|\n]*)", re.M)
 
 
 def actions_in(command):
