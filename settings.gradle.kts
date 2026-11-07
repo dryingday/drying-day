@@ -8,7 +8,7 @@ pluginManagement {
             content {
                 includeGroupByRegex("com\\.android.*")
                 includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
+                includeGroupByRegex("androidx\\..*")
             }
         }
         mavenCentral()
@@ -16,8 +16,8 @@ pluginManagement {
     }
 }
 
-// F-Droid accepts prebuilt dependencies only from approved repositories,
-// so these two are the only ones allowed.
+// F-Droid accepts prebuilt artifacts only from approved repositories. Libraries come from
+// Google Maven and Maven Central only; Gradle plugins may also come from the Plugin Portal.
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -25,7 +25,7 @@ dependencyResolutionManagement {
             content {
                 includeGroupByRegex("com\\.android.*")
                 includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
+                includeGroupByRegex("androidx\\..*")
             }
         }
         mavenCentral()

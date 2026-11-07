@@ -10,7 +10,7 @@ Reserve Important for findings that would:
 - Crash, hang, or show stale data as current
 - Send data off the device beyond the request to the user's chosen weather source, or log coordinates
 - Request a permission beyond coarse location, or use location more precisely than needed
-- Break F-Droid compatibility: a non-free dependency, Google Play Services, Firebase, a proprietary build step, or a dependency from outside Maven Central and Google Maven
+- Break F-Droid compatibility: a non-free dependency, Google Play Services, Firebase, a proprietary build step, or a library from outside Maven Central and Google Maven (Gradle plugins may also come from the Gradle Plugin Portal, which F-Droid's scanner allows)
 - Put personal data in the repository: a real home location, addresses, names
 
 Style, naming and refactoring suggestions are Nit at most.
