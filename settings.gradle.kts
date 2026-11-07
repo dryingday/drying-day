@@ -3,6 +3,16 @@ rootProject.name = "drying-day"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    // Google's Firebase and Play Services plugins only work with non-free libraries.
+    // The open-source licences plugin (com.google.android.gms.oss-licenses-plugin) is allowed.
+    resolutionStrategy {
+        eachPlugin {
+            val id = requested.id.id
+            if (id.startsWith("com.google.gms.") || id.startsWith("com.google.firebase.")) {
+                throw GradleException("Plugin $id needs non-free Google libraries, which F-Droid won't build.")
+            }
+        }
+    }
     repositories {
         // Android's own groups resolve only from Google Maven, never from Maven Central.
         exclusiveContent {

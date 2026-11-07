@@ -10,7 +10,8 @@ plugins {
 
 val ktlintVersion = libs.versions.ktlint.get()
 
-// Spotless doesn't pass .editorconfig through to ktlint here, so ktlint's settings live here.
+// Spotless doesn't pass .editorconfig through to ktlint, so the settings are given here too.
+// Keep in sync with .editorconfig, which editors and the ktlint CLI read.
 val ktlintSettings =
     mapOf(
         // Matches kotlin.code.style=official in gradle.properties.
@@ -23,13 +24,6 @@ val ktlintSettings =
         "ktlint_standard_chain-method-continuation" to "disabled",
     )
 
-spotless {
-    kotlinGradle {
-        target("*.gradle.kts")
-        ktlint(ktlintVersion).editorConfigOverride(ktlintSettings)
-    }
-}
-
 // Dependencies F-Droid treats as non-free, as regexes matched against "group:module:version".
 // Our own list of the main offenders. F-Droid's scanner checks its full list when it builds.
 val nonFreeDependencies =
@@ -40,18 +34,23 @@ val nonFreeDependencies =
         """^com\.firebase[.:]""",
         """^com\.google\.android\.play[.:]""", // Play Core, in-app updates and reviews
         """^com\.google\.android\.libraries[.:]""", // Places and other closed SDKs
+        """^com\.google\.android\.recaptcha[.:]""",
         """^com\.google\.mlkit[.:]""",
         """^com\.google\.ads[.:]""",
         """^com\.google\.android\.wearable[.:]""",
         """^com\.android\.billingclient[.:]""", // Play Billing
         """^com\.android\.installreferrer[.:]""",
+        """^com\.huawei\.hms[.:]""",
         """^com\.crashlytics[.:]""",
         """^io\.fabric[.:]""",
         """^com\.facebook\.android[.:]""",
         """^com\.amazon\.device[.:]""",
-        """^androidx\.core:core-google-shortcuts:""",
+        """^com\.onesignal[.:]""",
+        """^androidx\.core:core-google-shortcuts(:|$)""",
         """^androidx\.credentials:credentials-play-services""",
-        """^androidx\.media3:media3-exoplayer-ima:""",
+        """^androidx\.work:work-gcm(:|$)""",
+        """^androidx\.media3:media3-exoplayer-ima(:|$)""",
+        """^com\.google\.android\.exoplayer:extension-ima(:|$)""",
     )
 
 /** Fails if any resolved dependency matches a non-free pattern. */
@@ -98,18 +97,17 @@ subprojects {
             group = "verification"
             description = "Fails if a dependency F-Droid treats as non-free is on any classpath."
             patterns.set(nonFreeDependencies)
+            // Every resolvable classpath: compile, runtime, annotation processors, KSP, tests.
             configurations
-                .matching {
-                    it.isCanBeResolved &&
-                        (it.name.endsWith("CompileClasspath") || it.name.endsWith("RuntimeClasspath"))
-                }.all {
+                .matching { it.isCanBeResolved && it.name.endsWith("Classpath") }
+                .all {
                     modules.addAll(incoming.resolutionResult.rootComponent.map { it.allModules() })
                 }
         }
-    tasks.matching { it.name == "check" }.configureEach { dependsOn(checkNonFree) }
+    // In check, and before any Android build, so assembleDebug alone can't package a non-free module.
+    tasks.matching { it.name == "check" || it.name == "preBuild" }.configureEach { dependsOn(checkNonFree) }
 
     apply(plugin = "dev.detekt")
-    apply(plugin = "com.diffplug.spotless")
 
     extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         buildUponDefaultConfig = true
@@ -119,10 +117,16 @@ subprojects {
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     }
 
+}
+
+allprojects {
+    apply(plugin = "com.diffplug.spotless")
     extensions.configure<com.diffplug.gradle.spotless.SpotlessExtension> {
-        kotlin {
-            target("src/**/*.kt")
-            ktlint(ktlintVersion).editorConfigOverride(ktlintSettings)
+        if (this@allprojects != rootProject) {
+            kotlin {
+                target("src/**/*.kt")
+                ktlint(ktlintVersion).editorConfigOverride(ktlintSettings)
+            }
         }
         kotlinGradle {
             target("*.gradle.kts")

@@ -9,3 +9,7 @@ insert_final_newline = true
 indent_size = 4
 indent_style = space
 max_line_length = 120
+# ktlint. Keep in sync with ktlintSettings in build.gradle.kts.
+ktlint_code_style = intellij_idea
+ktlint_function_naming_ignore_when_annotated_with = Composable
+ktlint_standard_chain-method-continuation = disabled
