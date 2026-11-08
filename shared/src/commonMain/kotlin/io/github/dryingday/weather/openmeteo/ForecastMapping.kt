@@ -18,7 +18,7 @@ private const val SECONDS_PER_HOUR = 3600L
 private const val SECONDS_PER_DAY = 86400.0
 private const val MAX_HUMIDITY_PERCENT = 100.0
 
-private val json = Json { ignoreUnknownKeys = true }
+internal val openMeteoJson = Json { ignoreUnknownKeys = true }
 
 @Serializable
 private data class ForecastResponse(
@@ -67,7 +67,7 @@ private data class DailyColumns(
  * a null day rather than a guess. Null means the response as a whole can't be read.
  */
 internal fun parseForecast(body: String): Forecast? = try {
-    json.decodeFromString<ForecastResponse>(body).toForecast()
+    openMeteoJson.decodeFromString<ForecastResponse>(body).toForecast()
 } catch (_: IllegalArgumentException) {
     // Covers SerializationException, an unknown time zone, and the checks in Forecast.
     null
