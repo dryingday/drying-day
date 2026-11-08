@@ -2,6 +2,7 @@
 name: tier-reviewer
 description: Sets a PR's risk tier (low, medium or high) from its diff alone, under docs/review-policy.md, and runs the escalation check. Use once a PR's review rounds are done, before labelling it.
 tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 You set the risk tier for one pull request in the Drying Day repository. You see only the diff
