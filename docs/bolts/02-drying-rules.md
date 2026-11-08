@@ -43,11 +43,11 @@ Every number below is a named constant in one file, with a test on each side of 
 
   Humidity and temperature together, as the vapour pressure deficit, VPD = e<sub>s</sub>(T) × (1 − RH/100), with e<sub>s</sub>(T) = 0.6108 × exp(17.27 T / (T + 237.3)) kPa (Magnus):
 
-  | VPD (kPa) | < 0.2 | 0.2–0.4 | 0.4–0.7 | 0.7–1.0 | ≥ 1.0 |
-  |---|---|---|---|---|---|
-  | Points | 0 | 0.5 | 1 | 1.5 | 2 |
+  | VPD (kPa) | < 0.2 | 0.2–0.4 | 0.4–0.7 | 0.7–1.0 | 1.0–1.5 | 1.5–2.5 | ≥ 2.5 |
+  |---|---|---|---|---|---|---|---|
+  | Points | 0 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 |
 
-  For a feel: 0.2 kPa is 6 °C at 78 % or 15 °C at 88 %; 1.0 kPa is 20 °C at 57 % or 25 °C at 68 %.
+  For a feel: 0.2 kPa is 6 °C at 78 % or 15 °C at 88 %; 1.0 kPa is 20 °C at 57 % or 25 °C at 68 %; 1.5 kPa is 25 °C at 52 %; 2.5 kPa is 30 °C at 41 %. The two top bands came from comparing the engine with the reference set's blind labels: with the table flat above 1.0 kPa, hot, dry days dried up to two hours later than the labels said. [docs/reference-set.md](../reference-set.md) has the comparison.
 
   | Wind speed (km/h) | < 5 | 5–15 | 15–30 | ≥ 30 |
   |---|---|---|---|---|
@@ -59,7 +59,7 @@ Every number below is a named constant in one file, with a test on each side of 
 
   The sun bonus is only earned when the VPD points are above zero: sun doesn't dry washing in saturated air.
 
-**3. Load needs.** `LIGHT` is dry at 6 points, `HEAVY` at 12. For a feel: a sunny 24 °C day at 40 % with a 20 km/h breeze earns about 3 points an hour (light dry in 2 hours, heavy in 4); a grey 14 °C day at 65 % with a 20 km/h breeze earns about 1.3 (light in 4–5 hours, heavy in 9, so usually not); 6 °C at 85 % earns nothing.
+**3. Load needs.** `LIGHT` is dry at 6 points, `HEAVY` at 12. For a feel: a sunny 24 °C day at 40 % with a 20 km/h breeze earns 3.75 points an hour (light dry in about 1½ hours, heavy in 3¼); a grey 14 °C day at 65 % with a 20 km/h breeze earns about 1.3 (light in 4–5 hours, heavy in 9, so usually not); 6 °C at 85 % earns nothing.
 
 **4. Windows.** A window is a run of usable time with no wet or damp hour in it: rain, dew and fog all end a window, since each would undo the work. Its hang-out is the start of the usable part of its first hour that earns points (so never before sunrise or, today, `now`). Its bring-in is the earlier of:
 
@@ -145,4 +145,5 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 | 3b | Reasons | high (thresholds) |
 | 4 | Tips and indoor plan | high (their cut-offs are thresholds) |
 | 5 | Fetch script, fixtures and generated `ReferenceForecasts.kt`. Needs PR 1's types; can run alongside PRs 2–4. | high (`scripts/`) |
-| 6 | Blind labels, `docs/reference-set.md` and `ReferenceSetTest` | low if no rule changes, otherwise the rule change is a separate high PR |
+| 6a | Blind labels, the first comparison in `docs/reference-set.md`, and the two higher VPD bands it led to | high (thresholds) |
+| 6 | The maintainer's decisions in `docs/reference-set.md`, and `ReferenceSetTest` | low if no rule changes, otherwise the rule change is a separate high PR |

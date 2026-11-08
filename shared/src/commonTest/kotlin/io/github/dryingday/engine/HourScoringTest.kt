@@ -95,6 +95,8 @@ class HourScoringTest {
         // The spec's examples for the band edges.
         assertClose(0.206, vapourPressureDeficitKpa(6.0, 78.0))
         assertClose(1.005, vapourPressureDeficitKpa(20.0, 57.0))
+        assertClose(1.521, vapourPressureDeficitKpa(25.0, 52.0))
+        assertClose(2.503, vapourPressureDeficitKpa(30.0, 41.0))
     }
 
     @Test
@@ -107,7 +109,11 @@ class HourScoringTest {
         assertEquals(1.5, vpdPoints(0.7))
         assertEquals(1.5, vpdPoints(0.999))
         assertEquals(2.0, vpdPoints(1.0))
-        assertEquals(2.0, vpdPoints(3.0))
+        assertEquals(2.0, vpdPoints(1.499))
+        assertEquals(2.5, vpdPoints(1.5))
+        assertEquals(2.5, vpdPoints(2.499))
+        assertEquals(3.0, vpdPoints(2.5))
+        assertEquals(3.0, vpdPoints(6.0))
     }
 
     @Test
@@ -138,8 +144,8 @@ class HourScoringTest {
 
     @Test
     fun pointsCombineTheTables() {
-        // The spec's sunny day: 24 °C, 40 %, 20 km/h, strong sun: 2 × 1.3 + 0.5.
-        assertClose(3.1, hour(24.0, 40.0, 20.0, shortwaveRadiationWm2 = 800.0).pointsPerHour())
+        // The spec's sunny day: 24 °C, 40 % (1.79 kPa), 20 km/h, strong sun: 2.5 × 1.3 + 0.5.
+        assertClose(3.75, hour(24.0, 40.0, 20.0, shortwaveRadiationWm2 = 800.0).pointsPerHour())
         // Its grey day: 14 °C, 65 %, 20 km/h, weak sun: 1 × 1.3.
         assertClose(1.3, hour(14.0, 65.0, 20.0, shortwaveRadiationWm2 = 250.0).pointsPerHour())
         // Its cold damp day earns nothing, sun or not.
@@ -149,7 +155,7 @@ class HourScoringTest {
     @Test
     fun aPartialHourEarnsProRata() {
         val sunny = hour(24.0, 40.0, 20.0, shortwaveRadiationWm2 = 800.0)
-        assertClose(3.1 / 4, sunny.points(15.minutes))
+        assertClose(3.75 / 4, sunny.points(15.minutes))
         assertClose(0.0, sunny.points(Duration.ZERO))
     }
 
