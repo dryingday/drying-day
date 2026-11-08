@@ -33,12 +33,15 @@ data class Coordinates(val latitude: Double, val longitude: Double) {
         require(longitude in -MAX_LONGITUDE..MAX_LONGITUDE) { "longitude out of range" }
     }
 
-    /** Leaves the values out, for the same reason. [Place] and results that hold one inherit this. */
+    /** Leaves the values out, for the same reason. */
     override fun toString() = "Coordinates(hidden)"
 }
 
 /** A place found by name. [region] is a state, county or similar. */
-data class Place(val name: String, val region: String?, val country: String?, val coordinates: Coordinates)
+data class Place(val name: String, val region: String?, val country: String?, val coordinates: Coordinates) {
+    /** A saved place says where someone lives, as coordinates do, so it stays out of logs too. */
+    override fun toString() = "Place(hidden)"
+}
 
 /** A credit a source's licence asks for. The words around these go in string resources. */
 data class Attribution(

@@ -95,7 +95,7 @@ class OpenMeteoSource(engine: HttpClientEngine) :
                 "name" to name,
                 "count" to PLACE_RESULTS,
                 "format" to "json",
-                language?.let { "language" to it },
+                language?.takeIf { it.isNotBlank() }?.let { "language" to it },
             )
         return fetch(SEARCH_URL, parameters, ::parsePlaces)
     }

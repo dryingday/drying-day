@@ -40,13 +40,18 @@ class CoordinatesTest {
         val texts =
             listOf(
                 coordinates.toString(),
-                Place("Testville", null, null, coordinates).toString(),
-                SourceResult.Success(listOf(Place("Testville", null, null, coordinates))).toString(),
+                Place("Testville", "Sample Region", "Exampleland", coordinates).toString(),
+                SourceResult.Success(
+                    listOf(Place("Testville", "Sample Region", "Exampleland", coordinates)),
+                ).toString(),
             )
 
         for (text in texts) {
             assertFalse(text.contains("12.34"), text)
             assertFalse(text.contains("56.78"), text)
+            assertFalse(text.contains("Testville"), text)
+            assertFalse(text.contains("Sample Region"), text)
+            assertFalse(text.contains("Exampleland"), text)
         }
     }
 

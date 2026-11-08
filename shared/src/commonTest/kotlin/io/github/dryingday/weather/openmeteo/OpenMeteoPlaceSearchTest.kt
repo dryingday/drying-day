@@ -23,7 +23,7 @@ private const val TWO_PLACES =
     {"id":1,"name":"Testville","latitude":12.34567,"longitude":-65.43219,"elevation":28.0,"feature_code":"PPL",
     "country_code":"XX","admin1_id":2,"timezone":"Etc/UTC","population":100,"postcodes":["0000"],
     "country":"Exampleland","admin1":"Sample Region","admin2":"Sample County"},
-    {"id":2,"name":"Otherton","latitude":-1.5,"longitude":2.5}
+    {"id":2,"name":"Samplewick","latitude":-1.5,"longitude":2.5}
     ],"generationtime_ms":0.1}"""
 
 private fun source(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData) =
@@ -57,6 +57,17 @@ class OpenMeteoPlaceSearchTest {
             url = it.url.toString()
             respond(TWO_PLACES)
         }.searchPlaces("Testville", null)
+
+        assertEquals("https://geocoding-api.open-meteo.com/v1/search?name=Testville&count=10&format=json", url)
+    }
+
+    @Test
+    fun leavesOutABlankLanguage() = runTest {
+        var url = ""
+        source {
+            url = it.url.toString()
+            respond(TWO_PLACES)
+        }.searchPlaces("Testville", " ")
 
         assertEquals("https://geocoding-api.open-meteo.com/v1/search?name=Testville&count=10&format=json", url)
     }
@@ -106,7 +117,7 @@ class OpenMeteoPlaceSearchTest {
         assertEquals(
             success(
                 Place("Testville", "Sample Region", "Exampleland", Coordinates(12.34567, -65.43219)),
-                Place("Otherton", null, null, Coordinates(-1.5, 2.5)),
+                Place("Samplewick", null, null, Coordinates(-1.5, 2.5)),
             ),
             placesFrom(TWO_PLACES),
         )
@@ -132,10 +143,31 @@ class OpenMeteoPlaceSearchTest {
             {"name":"No latitude","longitude":2.0},
             {"name":"No longitude","latitude":1.0},
             {"name":"Null latitude","latitude":null,"longitude":2.0},
-            {"name":"Otherton","latitude":-1.5,"longitude":2.5}
+            {"name":"Samplewick","latitude":-1.5,"longitude":2.5}
             ]}"""
 
-        assertEquals(success(Place("Otherton", null, null, Coordinates(-1.5, 2.5))), placesFrom(body))
+        assertEquals(success(Place("Samplewick", null, null, Coordinates(-1.5, 2.5))), placesFrom(body))
+    }
+
+    @Test
+    fun skipsResultsThatAreMalformed() = runTest {
+        val body =
+            """{"results":[
+            {"name":"Wrong type","latitude":"north","longitude":2.0},
+            {"name":123,"latitude":1.0,"longitude":2.0},
+            null,
+            "not an object",
+            {"name":"Samplewick","latitude":-1.5,"longitude":2.5}
+            ]}"""
+
+        assertEquals(success(Place("Samplewick", null, null, Coordinates(-1.5, 2.5))), placesFrom(body))
+    }
+
+    @Test
+    fun aBlankRegionOrCountryIsAbsent() = runTest {
+        val body = """{"results":[{"name":"Samplewick","latitude":-1.5,"longitude":2.5,"admin1":" ","country":""}]}"""
+
+        assertEquals(success(Place("Samplewick", null, null, Coordinates(-1.5, 2.5))), placesFrom(body))
     }
 
     @Test
@@ -144,10 +176,10 @@ class OpenMeteoPlaceSearchTest {
             """{"results":[
             {"name":"Too far north","latitude":91.0,"longitude":2.0},
             {"name":"Too far east","latitude":1.0,"longitude":181.0},
-            {"name":"Otherton","latitude":-1.5,"longitude":2.5}
+            {"name":"Samplewick","latitude":-1.5,"longitude":2.5}
             ]}"""
 
-        assertEquals(success(Place("Otherton", null, null, Coordinates(-1.5, 2.5))), placesFrom(body))
+        assertEquals(success(Place("Samplewick", null, null, Coordinates(-1.5, 2.5))), placesFrom(body))
     }
 
     @Test
@@ -179,5 +211,10 @@ class OpenMeteoPlaceSearchTest {
             source.attributions.map { it.covers }.toSet(),
         )
         assertTrue(source.attributions.all { it.url.startsWith("https://") && it.licenceUrl.startsWith("https://") })
+        val places = source.attributions.single { it.covers == AttributionScope.PLACES }
+        assertEquals("GeoNames", places.name)
+        assertEquals("https://www.geonames.org/", places.url)
+        assertEquals("CC BY 4.0", places.licence)
+        assertEquals("https://creativecommons.org/licenses/by/4.0/", places.licenceUrl)
     }
 }
