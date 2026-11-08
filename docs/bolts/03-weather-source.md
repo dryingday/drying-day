@@ -13,10 +13,10 @@ In `commonMain`, package `io.github.dryingday.weather`, modelled on Breezy Weath
 - `WeatherSource`: `id`, `attributions: List<Attribution>`.
 - `ForecastSource : WeatherSource`: `suspend fun forecast(at: Coordinates): SourceResult<Forecast>`.
 - `PlaceSearchSource : WeatherSource`: `suspend fun searchPlaces(query: String, language: String?): SourceResult<List<Place>>`.
-- `Coordinates(latitude, longitude)`, rejecting anything out of range or not finite.
+- `Coordinates(latitude, longitude)`, rejecting anything out of range or not finite, with a message that doesn't include the values.
 - `Place(name, region: String?, country: String?, coordinates)`.
 - `Attribution(name, url, licence, licenceUrl, covers: WEATHER | PLACES)`. Names and URLs are data; the sentences around them are string resources.
-- `SourceResult<T>`: `Success(value)` or `Failure(error)`, with `SourceError` one of `UNREACHABLE` (offline, DNS, TLS, timeout), `SERVICE` (any non-2xx, including 400 and 429) and `BAD_RESPONSE` (2xx that can't be read). A `Failure` carries only that code: Ktor's exception messages contain the URL, and the URL contains the coordinates. `CancellationException` is rethrown.
+- `SourceResult<T>`: `Success(value)` or `Failure(error)`, with `SourceError` one of `UNREACHABLE` (offline, DNS, TLS, timeout, a connection lost while reading the body, and any other exception), `SERVICE` (any non-2xx, including 3xx, 400 and 429) and `BAD_RESPONSE` (a complete 2xx body that can't be decoded or mapped). A `Failure` carries only that code: Ktor's exception messages contain the URL, and the URL contains the coordinates. `CancellationException` is rethrown; no other exception leaves the source.
 
 Open-Meteo lives in `weather/openmeteo`.
 
@@ -28,7 +28,7 @@ Open-Meteo lives in `weather/openmeteo`.
 - `hourly`: `temperature_2m,relative_humidity_2m,wind_speed_10m,visibility,precipitation_probability,precipitation,wind_gusts_10m,shortwave_radiation`.
 - `daily`: `sunrise,sunset,daylight_duration`.
 - `timezone=auto`, `timeformat=unixtime`.
-- `past_days=1`, `forecast_days=5`. The engine needs today to the end of the day after tomorrow, plus six indoor hours. The day either side is margin: every time in a response is at one fixed UTC offset, so at a daylight-saving change the first hour of the real local day can fall outside a response that starts at "midnight"; and a forecast cached overnight (bolt 5) still covers three days. Checked 2026-11-08 at Greenwich: 144 hours, 6 days, no null probabilities or visibilities.
+- `past_days=1`, `forecast_days=5`. The engine needs today to the end of the day after tomorrow, plus six indoor hours. The day either side is margin: every time in a response is at one fixed UTC offset, so at a daylight-saving change the first hour of the real local day can fall outside a response that starts at "midnight"; and a forecast cached overnight (bolt 5) still covers three days. Checked 2026-11-08 at a reference-set landmark: 144 hours, 6 days, no null probabilities or visibilities.
 - Units are the API's defaults, °C, km/h and mm, as the generator assumes.
 
 ### Forecast mapping
@@ -46,7 +46,7 @@ Where the generator could stop with an error, the live mapping can't, so:
 |---|---|
 | An hour missing a required value, or with a value `HourlyWeather` rejects (say, a temperature of 999) | That hour is dropped, so a day that needs it is `null` |
 | Visibility or precipitation probability null | Kept as null, as the engine allows. Either end of a mean being null makes the mean null |
-| A day with a null sun time, or a sunset before its sunrise | That day is dropped |
+| A day with a null `time`, `sunrise`, `sunset` or `daylight_duration`, or a sunset before its sunrise | That day is dropped |
 | Two days landing on one date | Both are dropped |
 | An unknown zone id (an old device's zone database), arrays of different lengths, stamps out of order, a required array absent, a body that isn't the expected JSON | `BAD_RESPONSE` |
 
@@ -56,24 +56,25 @@ A partial forecast is fine: the engine already says `null` for a day it can't vo
 
 `GET https://geocoding-api.open-meteo.com/v1/search` with `name`, `count=10`, `format=json`, and `language` when given. Unknown languages are accepted and fall back (checked 2026-11-08 with `xx`).
 
-- A query that's under two characters after trimming returns an empty list without a request: the API returns nothing for one character.
+- The query is trimmed, and the trimmed text is what's sent. Under two characters (`String.length`) returns an empty list without a request: the API returns nothing for one character.
 - A response with no `results` key is an empty list, not an error (checked 2026-11-08). It's what an unmatched name returns.
 - A result missing a name or coordinates, or with coordinates out of range, is skipped. `admin1` maps to `region`, and it and `country` are optional.
 
 ### HTTP
 
-- Ktor client, with one engine per platform: `ktor-client-android` (platform `HttpURLConnection`, no OkHttp) and `ktor-client-darwin`. JSON is decoded directly with kotlinx.serialization (`ignoreUnknownKeys`), so no content-negotiation modules.
-- HTTPS only: both base URLs are constants, and redirects never downgrade.
-- Timeouts as named constants: connect 10 s, whole request 30 s.
-- No logging plugin, no cookies, no automatic retries, no other headers beyond a fixed `User-Agent: DryingDay`. Without it, Android's default names the OS version and device model (`http.agent`), which is data off the device that the forecast doesn't need.
-- `HttpClient` is passed in, so tests use `MockEngine`.
+- Ktor client, with one engine per platform: `ktor-client-android` (platform `HttpURLConnection`, no OkHttp) and `ktor-client-darwin`, chosen by a committed `expect fun platformHttpEngine(): HttpClientEngine`. JSON is decoded directly with kotlinx.serialization (`ignoreUnknownKeys`), so no content-negotiation modules.
+- The source takes an `HttpClientEngine` and builds its own `HttpClient`, so a caller can't leave out the settings below and tests run the production configuration over `MockEngine`.
+- HTTPS only: both base URLs are constants, and `followRedirects = false`. Neither API needs redirects, so a 3xx is `SERVICE` and nothing can be sent to another host or downgraded.
+- Timeouts through `HttpTimeout`, as named constants: connect 10 s, whole request 30 s. Without them the Android engine waits 100 s.
+- `expectSuccess = false`, so a non-2xx reaches the source as a status, not an exception.
+- No logging plugin, no cookies, no automatic retries, and the app adds no headers. The `User-Agent` is Ktor's default, `ktor-client` (Ktor 3.6.1's `mergeHeaders`, which its Android engine uses), so Android's own, which names the device model, isn't sent. Whatever else the platform's HTTP stack adds itself is outside the app's control.
 
 ### Attribution
 
 Open-Meteo's [licence](https://open-meteo.com/en/licence) (CC BY 4.0, checked 2026-11-08) asks for credit, a link to the licence, an indication of changes, and "a link next to any location Open-Meteo data are displayed". Its geocoding docs ask for "Location data based on GeoNames" (also CC BY).
 
-- A `SourceAttributions` composable in `commonMain` renders each source's attributions from string resources, with tappable links to the source and the licence, opened in the browser via `LocalUriHandler`. It says the drying advice is worked out from the data, which covers "changes were made". Roughly: "Weather data by Open-Meteo.com (CC BY 4.0). Drying advice worked out from it by this app. Place data based on GeoNames (CC BY 4.0)."
-- It goes on the placeholder screen now, so it's visible on a device. Bolt 5 keeps it next to the data.
+- A `SourceAttributions` composable in `commonMain` renders each source's attributions from string resources, with tappable links to the source and the licence, opened in the browser. A device with no browser must not crash when a link is tapped. It says the drying advice is worked out from the data, which covers "changes were made". Roughly: "Weather data by Open-Meteo.com (CC BY 4.0). Drying advice worked out from it by this app. Place data based on GeoNames (CC BY 4.0)."
+- It goes on the placeholder screen now, so it's visible on a device. Bolt 4 shows the `PLACES` attribution next to search results, and bolt 5 keeps the full credit next to the forecast.
 
 ### Free-tier terms
 
@@ -96,11 +97,12 @@ Location and saved places (bolt 4). Calling the source from the app, caching, st
 - `./gradlew check` passes with no network. The Kotlin compiles for iOS with `-Pdryingday.ios=true`.
 - Every recorded reference response, run through the Kotlin mapping in a host test, gives exactly the `Forecast` the generator wrote to `ReferenceForecasts.kt`.
 - Tests show that a shower stamped 14:00 lands in the hour from 13:00; humidity over 100 is clamped; each row of the table above behaves as it says; polar day and night are rebuilt from real local midnight, including across a daylight-saving change.
-- Tests assert the exact request URLs, including coordinates rounded to two decimals; the `User-Agent`; that a place query under two characters makes no request; and each `SourceError`, with cancellation rethrown.
+- Tests assert the exact request URLs, including coordinates rounded to two decimals; the 10 s and 30 s timeouts on the request; that a 3xx is `SERVICE` with no second request; and each `SourceError`, including a connection lost mid-body, with cancellation rethrown.
+- Tests for place search: a query under two characters makes no request; the trimmed query is what's sent; no `results` key is an empty list; malformed or out-of-range results are skipped; `admin1` maps to `region`, and `region` and `country` may be absent.
 - Fixtures add no real places. Forecast tests use the reference set's recorded responses and small synthetic JSON; place search uses invented names in the shape the live API returns.
-- Coordinates are never logged, nor put in an exception or result the source returns.
-- The attribution shows on a device, with both links working.
-- One real forecast request and one place search succeed through the Android engine on the emulator, using a local patch that isn't committed. The PR records the result and the value of `http.agent` the `User-Agent` replaces.
+- Coordinates don't reach a log or an error. A test shows that a `Failure` from an exception whose message holds the request URL contains none of the coordinates; there's no logging call under `weather/`; and `Coordinates`' own validation message omits the values.
+- The attribution shows on a device, and every link opens.
+- One real forecast request and one place search succeed through `platformHttpEngine()` on the emulator. Only the call that triggers them is a local patch, not committed. The PR records the result.
 
 ## PRs
 
@@ -109,6 +111,6 @@ Location and saved places (bolt 4). Calling the source from the app, caching, st
 | 0 | This spec | high (sets the app's network calls) |
 | 1 | Dependencies and verification metadata; the interface and types; no logic beyond their validation | high (new dependencies) |
 | 2 | Forecast response types and mapping; the parity test against the reference set | medium (forecast handling) |
-| 3 | The forecast request over Ktor: rounding, headers, timeouts, errors | high (new network call) |
+| 3 | `platformHttpEngine()`, the client configuration and the forecast request: rounding, timeouts, redirects, errors | high (new network call) |
 | 4 | Place search | high (new network call) |
 | 5 | Attribution, `INTERNET`, cleartext off, the emulator check | high (`AndroidManifest.xml`) |
