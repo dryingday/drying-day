@@ -25,8 +25,8 @@ internal object DryingThresholds {
         Band(from = 0.4, value = 1.0),
         Band(from = 0.7, value = 1.5),
         Band(from = 1.0, value = 2.0),
-        // Calibrated against the reference set: without these, a 38 °C day at 24 % dried no faster than
-        // 20 °C at 57 %.
+        // Added after comparing the engine with the reference set's blind labels (docs/reference-set.md):
+        // without them, 38 °C at 24 % (5.0 kPa) dried no faster than 20 °C at 57 % (1.0 kPa).
         Band(from = 1.5, value = 2.5),
         Band(from = 2.5, value = 3.0),
     )

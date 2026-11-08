@@ -37,7 +37,8 @@ class AdviseTest {
         val visibilityM: Double? = null,
     )
 
-    // Points an hour, from the spec's worked examples (rule 2).
+    // Points an hour. The grey and raw days are the spec's worked examples; sunny is kept below 1.5 kPa so
+    // these timing tests don't depend on the top of the VPD table, which has its own test below.
     private val sunny = W() // 1.32 kPa: 2 × 1.3 + 0.5 = 3.1
     private val grey = W(14.0, 65.0, 20.0, 250.0) // 1 × 1.3 = 1.3
     private val raw = W(6.0, 85.0, 15.0, 200.0) // 0
@@ -112,6 +113,14 @@ class AdviseTest {
         assertEquals(100, advice.dryness)
         assertEquals(at(day0, 8 to 0), advice.hangOut)
         assertNear(at(day0, 8 to 0) + 1.hours * (6 / 3.1), advice.bringIn)
+    }
+
+    @Test
+    fun aHotDryDayDriesFasterThanAWarmOne() {
+        // 30 °C at 30 % is 2.97 kPa: 3 × 1.3 + 0.5 = 4.4 points an hour, against 3.1 for the sunny fixture.
+        val hot = W(30.0, 30.0)
+        val advice = assertNotNull(forecast { _, _ -> hot }.today(Load.HEAVY))
+        assertNear(at(day0, 8 to 0) + 1.hours * (12 / 4.4), advice.bringIn)
     }
 
     @Test

@@ -1,0 +1,559 @@
+{
+ "labels": [
+  {
+   "id": "greenwich-2025-06-19-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Hot, sunny and dry air dries light things in a few hours."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "14:00",
+    "reason": "Strong sun and humidity falling to 30% dry towels by early afternoon."
+   }
+  },
+  {
+   "id": "greenwich-2025-06-19-1300",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "13:00",
+    "bringIn": "15:00",
+    "reason": "Peak heat, sun and low humidity dry light items quickly."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "13:00",
+    "bringIn": "17:00",
+    "reason": "Hot, dry, breezy afternoon leaves plenty of time for heavy items."
+   }
+  },
+  {
+   "id": "greenwich-2025-05-25-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "11:00",
+    "bringIn": "14:00",
+    "reason": "Wait for the morning shower risk to pass; then windy, dry air dries it fast."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "11:00",
+    "bringIn": "17:00",
+    "reason": "Strong wind and humidity in the 30s dry heavy items through the afternoon."
+   }
+  },
+  {
+   "id": "greenwich-2025-04-13-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Breezy and drying by midday, done before the afternoon showers."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "08:00",
+    "bringIn": "14:00",
+    "reason": "Cool day cut short by showers from mid-afternoon; heavy items won't finish."
+   }
+  },
+  {
+   "id": "greenwich-2025-11-15-0800",
+   "light": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Fog and humidity above 90% all day: nothing will dry."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Fog and humidity above 90% all day: nothing will dry."
+   }
+  },
+  {
+   "id": "greenwich-2025-01-10-0800",
+   "light": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Freezing fog and high humidity on a short winter day."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Freezing fog and high humidity on a short winter day."
+   }
+  },
+  {
+   "id": "greenwich-2025-03-30-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Dry, windy and sunny with humidity dropping into the 30s."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "16:00",
+    "reason": "Brisk wind and very dry afternoon air finish heavy items before evening."
+   }
+  },
+  {
+   "id": "greenwich-2025-10-26-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Cool but breezy and dry until rain arrives late afternoon."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "08:00",
+    "bringIn": "15:00",
+    "reason": "Cool temperatures and rain from 16:00 leave heavy items damp."
+   }
+  },
+  {
+   "id": "greenwich-2025-04-05-1600",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "16:00",
+    "bringIn": "18:00",
+    "reason": "Very dry, windy air dries light things in the last sunny hours."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "16:00",
+    "bringIn": "19:00",
+    "reason": "Only three hours before dark; very dry wind gets heavy items over half dry."
+   }
+  },
+  {
+   "id": "edinburgh-2025-03-30-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Strong wind, sun and falling humidity make a good drying day."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "16:00",
+    "reason": "Windy and dry all day gives heavy items enough time."
+   }
+  },
+  {
+   "id": "edinburgh-2025-06-08-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Bright, breezy morning dries light things before shower risk builds."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Shower risk climbs past 40% from midday, so bring heavy items in part-dry."
+   }
+  },
+  {
+   "id": "edinburgh-2025-08-21-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Mild, dry day with modest humidity; light items dry by early afternoon."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "18:00",
+    "reason": "Slow with light wind and weak sun, but a long dry day gets heavy items done."
+   }
+  },
+  {
+   "id": "dublin-2025-08-18-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Warm and breezy enough for light items despite humidity in the 70s."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "08:00",
+    "bringIn": "18:00",
+    "reason": "Humidity stays around 75-80%, so heavy items won't fully dry."
+   }
+  },
+  {
+   "id": "dublin-2025-04-02-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Cool but sunny and breezy with humidity falling to the 50s."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "18:00",
+    "reason": "Long dry, breezy, sunny day is enough for heavy items by early evening."
+   }
+  },
+  {
+   "id": "amsterdam-2025-09-21-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Strong wind dries light things quickly; only a small shower risk."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "17:00",
+    "reason": "Windy all day with humidity falling to about 50% in the afternoon."
+   }
+  },
+  {
+   "id": "amsterdam-2025-05-19-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Sunny, breezy and dry air make for fast drying."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "15:00",
+    "reason": "Strong sun and humidity in the 30s dry heavy items by mid-afternoon."
+   }
+  },
+  {
+   "id": "berlin-2025-07-02-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "10:00",
+    "reason": "Very hot and extremely dry air dries light things in two hours."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Heat above 30C and humidity near 20% dry heavy items by midday."
+   }
+  },
+  {
+   "id": "berlin-2025-12-25-0800",
+   "light": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Well below freezing all day with weak winter sun; it will just freeze."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Well below freezing all day with weak winter sun; it will just freeze."
+   }
+  },
+  {
+   "id": "berlin-2025-01-18-0800",
+   "light": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Freezing fog and 100% humidity all day."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Freezing fog and 100% humidity all day."
+   }
+  },
+  {
+   "id": "madrid-2025-07-17-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "10:00",
+    "reason": "Intense heat and very dry air dry light things almost at once."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Extreme heat and humidity near 10% dry heavy items by midday."
+   }
+  },
+  {
+   "id": "madrid-2025-01-04-0800",
+   "light": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "12:00",
+    "bringIn": "17:00",
+    "reason": "Fog clears late and humidity stays in the 80s with no wind; light items only part dry."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Morning fog, humidity above 80% and still air: heavy items won't get far."
+   }
+  },
+  {
+   "id": "madrid-2025-02-16-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "09:00",
+    "bringIn": "13:00",
+    "reason": "Cold start but sunny with humidity falling to the 30s by afternoon."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "09:00",
+    "bringIn": "17:00",
+    "reason": "Dry, sunny afternoon air is enough for heavy items before sunset."
+   }
+  },
+  {
+   "id": "rome-2025-07-09-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "10:00",
+    "reason": "Hot, sunny, breezy and dry: very fast drying."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Hot, dry and breezy all day dries heavy items by early afternoon."
+   }
+  },
+  {
+   "id": "rome-2025-10-25-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Warm, breezy late morning dries light items before afternoon rain."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "08:00",
+    "bringIn": "15:00",
+    "reason": "Rain arrives mid-afternoon before heavy items can finish."
+   }
+  },
+  {
+   "id": "oslo-2025-12-21-0800",
+   "light": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Six hours of near-freezing twilight with no wind or sun."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Six hours of near-freezing twilight with no wind or sun."
+   }
+  },
+  {
+   "id": "oslo-2025-06-21-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Sunny, warm and dry air with humidity around 30-40%."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "14:00",
+    "reason": "Long sunny day with low humidity dries heavy items by early afternoon."
+   }
+  },
+  {
+   "id": "tromso-2025-07-18-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Warm, sunny, breezy and dry."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "14:00",
+    "reason": "Warm, dry and breezy all day with strong sun."
+   }
+  },
+  {
+   "id": "tromso-2025-01-07-0800",
+   "light": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Polar night and well below freezing."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Polar night and well below freezing."
+   }
+  },
+  {
+   "id": "sydney-2025-12-24-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "10:00",
+    "reason": "Hot strong sun and dropping humidity dry light things fast."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Hot, very sunny day dries heavy items by early afternoon."
+   }
+  },
+  {
+   "id": "sydney-2025-06-26-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Cool but dry, sunny and breezy winter day."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "16:00",
+    "reason": "Breezy with humidity in the 40s; heavy items just make it before sunset."
+   }
+  },
+  {
+   "id": "sydney-2025-10-05-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Humid start soon gives way to warm sun and dry air."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "14:00",
+    "reason": "Warm, sunny and breezy afternoon dries heavy items."
+   }
+  },
+  {
+   "id": "wellington-2025-10-16-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Strong wind and sun dry light things fast; peg well."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "15:00",
+    "reason": "Very windy and dry; bring in before the gale gusts from 16:00."
+   }
+  },
+  {
+   "id": "wellington-2025-12-28-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "15:00",
+    "bringIn": "18:00",
+    "reason": "Showers through midday; strong sun and breeze after 15:00 dry light items."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "15:00",
+    "bringIn": "19:00",
+    "reason": "Only a few dry hours after the showers before evening humidity rises."
+   }
+  },
+  {
+   "id": "wellington-2025-04-06-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "11:00",
+    "reason": "Strong wind dries light things before showers build from late morning."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "08:00",
+    "bringIn": "12:00",
+    "reason": "Showers from midday cut drying short for heavy items."
+   }
+  },
+  {
+   "id": "seattle-2025-11-17-0800",
+   "light": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Rain and humidity in the 90s all day."
+   },
+   "heavy": {
+    "verdict": "DONT_BOTHER",
+    "hangOut": null,
+    "bringIn": null,
+    "reason": "Rain and humidity in the 90s all day."
+   }
+  },
+  {
+   "id": "seattle-2025-07-01-1200",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "12:00",
+    "bringIn": "14:00",
+    "reason": "Warm, sunny and breezy afternoon."
+   },
+   "heavy": {
+    "verdict": "WILL_DRY",
+    "hangOut": "12:00",
+    "bringIn": "16:00",
+    "reason": "Warm sun, breeze and humidity under 50% dry heavy items by late afternoon."
+   }
+  },
+  {
+   "id": "seattle-2025-03-09-0800",
+   "light": {
+    "verdict": "WILL_DRY",
+    "hangOut": "08:00",
+    "bringIn": "13:00",
+    "reason": "Cool but windy with humidity falling to the 60s before rain."
+   },
+   "heavy": {
+    "verdict": "PARTLY_DRY",
+    "hangOut": "08:00",
+    "bringIn": "14:00",
+    "reason": "Cool, and rain arrives mid-afternoon before heavy items dry."
+   }
+  }
+ ]
+}

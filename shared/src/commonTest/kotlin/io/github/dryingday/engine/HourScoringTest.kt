@@ -95,6 +95,8 @@ class HourScoringTest {
         // The spec's examples for the band edges.
         assertClose(0.206, vapourPressureDeficitKpa(6.0, 78.0))
         assertClose(1.005, vapourPressureDeficitKpa(20.0, 57.0))
+        assertClose(1.521, vapourPressureDeficitKpa(25.0, 52.0))
+        assertClose(2.503, vapourPressureDeficitKpa(30.0, 41.0))
     }
 
     @Test

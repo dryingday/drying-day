@@ -47,7 +47,7 @@ Every number below is a named constant in one file, with a test on each side of 
   |---|---|---|---|---|---|---|---|
   | Points | 0 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 |
 
-  For a feel: 0.2 kPa is 6 °C at 78 % or 15 °C at 88 %; 1.0 kPa is 20 °C at 57 % or 25 °C at 68 %; 1.5 kPa is 25 °C at 52 %; 2.5 kPa is 30 °C at 41 %. The two top bands came from the reference set: with the table flat above 1.0 kPa, hot, dry days dried an hour or two later than the blind labels said (PR 6 records the comparison in `docs/reference-set.md`).
+  For a feel: 0.2 kPa is 6 °C at 78 % or 15 °C at 88 %; 1.0 kPa is 20 °C at 57 % or 25 °C at 68 %; 1.5 kPa is 25 °C at 52 %; 2.5 kPa is 30 °C at 41 %. The two top bands came from comparing the engine with the reference set's blind labels: with the table flat above 1.0 kPa, hot, dry days dried up to two hours later than the labels said. [docs/reference-set.md](../reference-set.md) has the comparison.
 
   | Wind speed (km/h) | < 5 | 5–15 | 15–30 | ≥ 30 |
   |---|---|---|---|---|
@@ -145,4 +145,5 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 | 3b | Reasons | high (thresholds) |
 | 4 | Tips and indoor plan | high (their cut-offs are thresholds) |
 | 5 | Fetch script, fixtures and generated `ReferenceForecasts.kt`. Needs PR 1's types; can run alongside PRs 2–4. | high (`scripts/`) |
-| 6 | Blind labels, `docs/reference-set.md` and `ReferenceSetTest` | low if no rule changes, otherwise the rule change is a separate high PR |
+| 6a | Blind labels, the first comparison in `docs/reference-set.md`, and the two higher VPD bands it led to | high (thresholds) |
+| 6 | The maintainer's decisions in `docs/reference-set.md`, and `ReferenceSetTest` | low if no rule changes, otherwise the rule change is a separate high PR |
