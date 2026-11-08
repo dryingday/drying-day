@@ -40,6 +40,16 @@ class TipsTest {
     }
 
     @Test
+    fun spaceOutIsForMoreThanHalfTheTimeOnTheLine() {
+        // A heavy load out 08:00 to an 18:00 sunset, partly dry: still air for exactly half, then six hours of ten.
+        val still = W(14.0, 65.0, 3.0, 250.0)
+        val half = forecast(sunset = 18 to 0) { _, h -> if (h < 13) still else grey }
+        assertEquals(listOf(Tip.HEAVY_ITEMS), tips(half, Load.HEAVY))
+        val most = forecast(sunset = 18 to 0) { _, h -> if (h < 14) still else grey }
+        assertEquals(listOf(Tip.HEAVY_ITEMS, Tip.SPACE_OUT), tips(most, Load.HEAVY))
+    }
+
+    @Test
     fun darksInsideOutAfterTwoHoursOfStrongSun() {
         // Grey with sun: 1.8 points an hour, so a light load is out 08:00–11:20.
         fun sun(strongUntil: Int, strong: Double = 700.0) =

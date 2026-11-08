@@ -88,12 +88,12 @@ The day's advice uses the window with the earliest bring-in among those that rea
 
 Codes only. Tips are for `WILL_DRY` and `PARTLY_DRY`, judged over the time on the line, from hang-out to bring-in; at most three per day, in this order of priority:
 
-| Tip | When (in the chosen window) |
+| Tip | When (in the time on the line) |
 |---|---|
 | `PEG_WELL` | Gusts ≥ 40 km/h |
 | `SHOWERS_POSSIBLE` | Any hour at 20–39 % precipitation probability |
 | `HEAVY_ITEMS` (pockets out, hang by hems, turn halfway) | `HEAVY` load |
-| `SPACE_OUT` | Wind factor < 1 for most of the window |
+| `SPACE_OUT` | Wind factor < 1 for most of the time on the line |
 | `DARKS_INSIDE_OUT` | Two or more hours at ≥ 700 W/m² |
 
 Indoor plan, for `PARTLY_DRY` (after bring-in) and `DONT_BOTHER`:
@@ -106,7 +106,7 @@ Indoor plan, for `PARTLY_DRY` (after bring-in) and `DONT_BOTHER`:
 | `NOT_ON_RADIATOR` (near is fine) | Always |
 | `TURN_HEAVY_ITEMS` | `HEAVY` load |
 
-The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usable time (from `now` today) for `DONT_BOTHER`; when that's empty, the six hours from its start. The mean is weighted by time. With no forecast for that time, neither `OPEN_WINDOW` nor `DEHUMIDIFIER_OR_CLOSED_ROOM` is given.
+The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usable time for `DONT_BOTHER`. It starts no earlier than `now` and lasts at least six hours, so a bring-in at sunset or a question after dark still looks at the hours ahead. The mean is weighted by time. If any of that time is missing from the forecast, neither `OPEN_WINDOW` nor `DEHUMIDIFIER_OR_CLOSED_ROOM` is given.
 
 ### Reference set
 

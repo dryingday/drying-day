@@ -55,7 +55,7 @@ private fun dayAdvice(
             emptyList()
         } else {
             // After bring-in for a partly dry load; the usable time when it isn't worth hanging out.
-            indoorPlan(forecast.hours, onTheLine?.let { Interval(it.bringIn, daylight.end) } ?: usable, load)
+            indoorPlan(forecast.hours, onTheLine?.let { Interval(it.bringIn, daylight.end) } ?: usable, now, load)
         },
     )
 }

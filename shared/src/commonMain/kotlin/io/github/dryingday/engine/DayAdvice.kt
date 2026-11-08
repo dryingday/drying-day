@@ -60,7 +60,9 @@ data class DayAdvice(
         if (verdict == Verdict.WILL_DRY) {
             require(reasons.isEmpty() && indoorPlan.isEmpty()) { "WILL_DRY has no reasons or indoor plan" }
         }
-        require(tips.size <= MAX_TIPS) { "at most $MAX_TIPS tips, was ${tips.size}" }
+        require(tips.size <= DryingThresholds.MAX_TIPS) {
+            "at most ${DryingThresholds.MAX_TIPS} tips, was ${tips.size}"
+        }
         requireInEnumOrder(reasons, "reasons")
         requireInEnumOrder(tips, "tips")
         requireInEnumOrder(indoorPlan, "indoor plan")
@@ -68,7 +70,6 @@ data class DayAdvice(
 
     private companion object {
         const val MAX_DRYNESS = 100
-        const val MAX_TIPS = 3
 
         fun requireInEnumOrder(codes: List<Enum<*>>, name: String) =
             require(codes.zipWithNext().all { (a, b) -> a.ordinal < b.ordinal }) {

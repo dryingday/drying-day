@@ -62,8 +62,7 @@ private class JudgedDay(
 
     private fun heldBack(kind: HourKind) = window?.endedBy == kind || before.any { it.kind() == kind }
 
-    private fun mostOfTheTime(condition: (HourlyWeather) -> Boolean) =
-        hours.timeIn(judged, condition) * 2 > judged.length
+    private fun mostOfTheTime(condition: (HourlyWeather) -> Boolean) = hours.mostOf(judged, condition)
 }
 
 private fun HourlyWeather.isSlow() = vapourPressureDeficitKpa(temperatureC, relativeHumidityPercent) < SLOW_VPD_KPA
