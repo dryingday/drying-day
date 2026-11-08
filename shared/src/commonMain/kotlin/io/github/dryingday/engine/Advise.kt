@@ -24,10 +24,15 @@ private fun adviseDay(forecast: Forecast, load: Load, now: Instant, date: LocalD
     val daylight = light.daylight(forecast.timeZone)
     val from = maxOf(daylight.start, now)
     val hours = forecast.hours.filter { it.start < daylight.end && it.start + 1.hours > from }
+    val hasUsableTime = from < daylight.end
     return when {
-        from >= daylight.end -> fromBestWindow(date, emptyList(), load.needPoints)
-        !covers(hours, Interval(from, daylight.end)) -> null
-        else -> fromBestWindow(date, windows(hours, daylight, now, load.needPoints), load.needPoints)
+        hasUsableTime && !covers(hours, Interval(from, daylight.end)) -> null
+
+        else -> fromBestWindow(
+            date,
+            if (hasUsableTime) windows(hours, daylight, now, load.needPoints) else emptyList(),
+            load.needPoints,
+        ) { best -> reasons(hours, daylight, now, best) }
     }
 }
 
@@ -35,7 +40,12 @@ private fun adviseDay(forecast: Forecast, load: Load, now: Instant, date: LocalD
  * Rules 4 and 5: the window with the earliest bring-in among those that dry the load, else the one with the
  * most points (a tie goes to the earlier). No window at all is DONT_BOTHER at 0 %.
  */
-private fun fromBestWindow(date: LocalDate, windows: List<Window>, need: Double): DayAdvice {
+private fun fromBestWindow(
+    date: LocalDate,
+    windows: List<Window>,
+    need: Double,
+    reasons: (Window?) -> List<Reason>,
+): DayAdvice {
     val best = windows.filter { it.dry }.minByOrNull { it.bringIn } ?: windows.maxByOrNull { it.points }
     val dryness = when {
         best == null -> 0
@@ -57,14 +67,24 @@ private fun fromBestWindow(date: LocalDate, windows: List<Window>, need: Double)
         hangOut = best?.hangOut.takeIf { shown },
         bringIn = best?.bringIn.takeIf { shown },
         dryness = dryness,
-        reasons = emptyList(),
+        reasons = if (verdict == Verdict.WILL_DRY) emptyList() else reasons(best),
         tips = emptyList(),
         indoorPlan = emptyList(),
     )
 }
 
-/** A stretch of drying time on the line: from [hangOut] to [bringIn], earning [points]. */
-private class Window(val hangOut: Instant, val bringIn: Instant, val points: Double, val dry: Boolean)
+/**
+ * A stretch of drying time on the line: from [hangOut] to [bringIn], earning [points]. The window itself
+ * runs on to [end], which [endedBy] (a wet or damp hour) or sunset, when [endedBy] is null, brought about.
+ */
+internal class Window(
+    val hangOut: Instant,
+    val bringIn: Instant,
+    val end: Instant,
+    val endedBy: HourKind?,
+    val points: Double,
+    val dry: Boolean,
+)
 
 /**
  * Rule 4. A window is a run of drying hours: a wet or damp hour ends it. It starts at the usable part of
@@ -77,8 +97,8 @@ private fun windows(hours: List<HourlyWeather>, daylight: Interval, now: Instant
     var points = 0.0
     var dryAt: Instant? = null
 
-    fun close() {
-        hangOut?.let { windows += Window(it, dryAt ?: end, minOf(points, need), dryAt != null) }
+    fun close(endedBy: HourKind?) {
+        hangOut?.let { windows += Window(it, dryAt ?: end, end, endedBy, minOf(points, need), dryAt != null) }
         hangOut = null
         points = 0.0
         dryAt = null
@@ -105,11 +125,11 @@ private fun windows(hours: List<HourlyWeather>, daylight: Interval, now: Instant
         val usable = hour.usableTime(daylight, now)
         when {
             usable <= Duration.ZERO -> Unit
-            hour.kind() != HourKind.DRYING -> close()
+            hour.kind() != HourKind.DRYING -> close(hour.kind())
             else -> add(hour, usable)
         }
     }
-    close()
+    close(endedBy = null)
     return windows
 }
 

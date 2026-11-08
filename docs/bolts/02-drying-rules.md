@@ -74,15 +74,15 @@ The day's advice uses the window with the earliest bring-in among those that rea
 
 | Reason | When |
 |---|---|
-| `DAY_OVER` | Today, with no usable time left after `now` |
-| `RAIN` | A wet hour ends the chosen window, or there's no window and the day has wet hours |
-| `FOG` | A damp hour with low visibility ends the chosen window, or there's no window and the day has one |
+| `DAY_OVER` | Today had daylight and `now` is past it. When it applies, it's the only reason |
+| `RAIN` | A wet hour ends the chosen window, or there's no window and the day's usable time has wet hours |
+| `FOG` | A damp hour with low visibility ends the chosen window, or there's no window and the day's usable time has one |
 | `COLD` | Most of the window's time is below 0.4 kPa VPD at under 10 °C |
 | `DAMP_AIR` | Most of the window's time is below 0.4 kPa VPD at 10 °C or more, or a damp hour with high humidity ends the window |
 | `STILL_AIR` | Most of the window's time has a wind factor below 1 |
 | `SHORT_DAYLIGHT` | The day's usable time, from `now` today, is under 6 hours |
 
-With no window at all, the "most of the window" reasons are judged over the day's usable time instead.
+"Most" is more than half, by time; the window runs from its hang-out to its end. With no window at all, the "most of the window" reasons are judged over the day's usable time instead. Polar night, which has no daylight, is `SHORT_DAYLIGHT`.
 
 ### Tips and indoor plan
 
