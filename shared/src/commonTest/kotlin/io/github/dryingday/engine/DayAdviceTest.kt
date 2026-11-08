@@ -9,6 +9,7 @@ class DayAdviceTest {
     private val hangOut = Instant.parse("2025-06-14T08:00:00Z")
     private val bringIn = Instant.parse("2025-06-14T12:30:00Z")
 
+    @Suppress("LongParameterList") // A test builder: every parameter has a default and is passed by name.
     private fun advice(
         verdict: Verdict = Verdict.WILL_DRY,
         hangOut: Instant? = this.hangOut,

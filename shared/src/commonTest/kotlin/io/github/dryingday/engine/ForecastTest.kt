@@ -12,6 +12,7 @@ import kotlin.time.Instant
 class ForecastTest {
     private val noon = Instant.parse("2025-06-14T12:00:00Z")
 
+    @Suppress("LongParameterList") // A test builder: every parameter has a default and is passed by name.
     private fun hour(
         start: Instant = noon,
         relativeHumidityPercent: Double = 60.0,

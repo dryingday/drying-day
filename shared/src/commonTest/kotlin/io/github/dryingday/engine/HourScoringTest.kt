@@ -10,6 +10,7 @@ import kotlin.time.Instant
 
 /** Rule 2 of docs/bolts/02-drying-rules.md, each boundary tested on both sides. */
 class HourScoringTest {
+    @Suppress("LongParameterList") // A test builder: every parameter has a default and is passed by name.
     private fun hour(
         temperatureC: Double = 20.0,
         relativeHumidityPercent: Double = 50.0,
