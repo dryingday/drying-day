@@ -1,6 +1,5 @@
 package io.github.dryingday.engine
 
-import io.github.dryingday.reference.allReferenceCases
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -10,17 +9,14 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-/** Synthetic forecasts for the engine tests: three days of hours with weather by local date and hour. */
+// Synthetic forecasts for the engine tests: three days of hours with weather by local date and hour.
 
 internal val london = TimeZone.of("Europe/London")
 internal val auckland = TimeZone.of("Pacific/Auckland")
@@ -38,7 +34,7 @@ internal data class W(
 )
 
 // Points an hour. The grey and raw days are the spec's worked examples; sunny is kept below 1.5 kPa so
-// these timing tests don't depend on the top of the VPD table, which has its own test below.
+// timing tests don't depend on the top of the VPD table, which AdviseTest tests on its own.
 internal val sunny = W() // 1.32 kPa: 2 × 1.3 + 0.5 = 3.1
 internal val grey = W(14.0, 65.0, 20.0, 250.0) // 1 × 1.3 = 1.3
 internal val raw = W(6.0, 85.0, 15.0, 200.0) // 0

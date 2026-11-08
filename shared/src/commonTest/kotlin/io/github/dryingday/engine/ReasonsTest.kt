@@ -19,25 +19,48 @@ class ReasonsTest {
     @Test
     fun rainEndingTheWindow() {
         // Sunny 08–11 is 9.3 of 12 points, then rain.
-        assertEquals(
-            Verdict.PARTLY_DRY to listOf(Reason.RAIN),
-            reasons(
-                forecast { _, h ->
-                    if (h <
-                        11
-                    ) {
-                        sunny
-                    } else {
-                        rain
-                    }
-                },
-            ),
-        )
+        val f = forecast { _, h -> if (h < 11) sunny else rain }
+        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.RAIN), reasons(f))
     }
 
     @Test
     fun rainAllDay() {
         assertEquals(Verdict.DONT_BOTHER to listOf(Reason.RAIN), reasons(forecast { _, _ -> rain }))
+    }
+
+    @Test
+    fun rainBeforeTheWindowCountsToo() {
+        // Rain until 15, then grey to sunset: 5 h, 6.5 of 12 points.
+        val f = forecast { _, h -> if (h < 15) rain else grey }
+        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.RAIN), reasons(f))
+    }
+
+    @Test
+    fun morningFogThatDelaysHangingOutCounts() {
+        val f = forecast { _, h -> if (h < 13) fog else grey }
+        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.FOG), reasons(f))
+    }
+
+    @Test
+    fun dewAllDayIsDampAirEvenWithNoWindow() {
+        // 8 °C at 96 %: dew every hour, so there's no window; and cold.
+        val f = forecast { _, _ -> W(8.0, 96.0) }
+        assertEquals(Verdict.DONT_BOTHER to listOf(Reason.COLD, Reason.DAMP_AIR), reasons(f))
+    }
+
+    @Test
+    fun rainAfterTheWindowDoesNotCount() {
+        // Grey 08–17 (97 %), ended by dew at 17; the rain from 18 comes after the window.
+        val f = forecast { _, h ->
+            if (h < 17) {
+                grey
+            } else if (h == 17) {
+                dew
+            } else {
+                rain
+            }
+        }
+        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.DAMP_AIR), reasons(f))
     }
 
     @Test
@@ -48,27 +71,16 @@ class ReasonsTest {
 
     @Test
     fun fogEndingTheWindowOrAllDay() {
-        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.FOG), reasons(forecast { _, h -> if (h < 11) sunny else fog }))
+        val f = forecast { _, h -> if (h < 11) sunny else fog }
+        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.FOG), reasons(f))
         assertEquals(Verdict.DONT_BOTHER to listOf(Reason.FOG), reasons(forecast { _, _ -> fog }))
     }
 
     @Test
     fun dewEndingTheWindowIsDampAir() {
         // Grey 08–17 is 11.7 of 12 points.
-        assertEquals(
-            Verdict.PARTLY_DRY to listOf(Reason.DAMP_AIR),
-            reasons(
-                forecast { _, h ->
-                    if (h <
-                        17
-                    ) {
-                        grey
-                    } else {
-                        dew
-                    }
-                },
-            ),
-        )
+        val f = forecast { _, h -> if (h < 17) grey else dew }
+        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.DAMP_AIR), reasons(f))
     }
 
     @Test
@@ -80,6 +92,21 @@ class ReasonsTest {
         assertEquals(listOf(Reason.DAMP_AIR), reasons(forecast { _, _ -> mild }).second)
         // At 10 °C it's damp air, not cold.
         assertEquals(listOf(Reason.DAMP_AIR), reasons(forecast { _, _ -> W(10.0, 70.0, 10.0, 0.0) }).second)
+    }
+
+    @Test
+    fun justAboveTheSlowLineIsNeitherColdNorDamp() {
+        // 10 °C at 67 % is 0.405 kPa: 1 point an hour with a 10 km/h breeze, 11 of 12 for a heavy load by 19:00.
+        val f = forecast(sunset = 19 to 0) { _, _ -> W(10.0, 67.0, 10.0, 0.0) }
+        assertEquals(Verdict.PARTLY_DRY to emptyList(), reasons(f))
+    }
+
+    @Test
+    fun theWholeWindowCountsNotJustFromHangOut() {
+        // Raw 08–15 earns nothing but is drying time in the window; grey 15–20 earns 6.5 of 12. The cold
+        // morning is most of the window.
+        val f = forecast { _, h -> if (h < 15) raw else grey }
+        assertEquals(Verdict.PARTLY_DRY to listOf(Reason.COLD), reasons(f))
     }
 
     @Test

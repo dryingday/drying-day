@@ -55,6 +55,9 @@ internal object DryingThresholds {
     const val SLOW_VPD_KPA = 0.4
     const val COLD_BELOW_C = 10.0
 
+    // Rule 6: a wind factor below this is still air.
+    const val STILL_AIR_BELOW_FACTOR = 1.0
+
     // Rule 6: less usable time than this is short daylight.
     val SHORT_DAYLIGHT = 6.hours
 

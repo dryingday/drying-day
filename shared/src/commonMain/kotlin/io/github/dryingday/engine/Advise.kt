@@ -32,7 +32,7 @@ private fun adviseDay(forecast: Forecast, load: Load, now: Instant, date: LocalD
             date,
             if (hasUsableTime) windows(hours, daylight, now, load.needPoints) else emptyList(),
             load.needPoints,
-        ) { best -> reasons(hours, daylight, now, best) }
+        ) { best -> reasons(hours, daylight, Interval(minOf(from, daylight.end), daylight.end), now, best) }
     }
 }
 
@@ -74,10 +74,12 @@ private fun fromBestWindow(
 }
 
 /**
- * A stretch of drying time on the line: from [hangOut] to [bringIn], earning [points]. The window itself
- * runs on to [end], which [endedBy] (a wet or damp hour) or sunset, when [endedBy] is null, brought about.
+ * A run of drying time from [start] to [end], which [endedBy] (a wet or damp hour) or sunset, when [endedBy]
+ * is null, brought about. On the line from [hangOut], its first moment that earns points, to [bringIn],
+ * earning [points].
  */
 internal class Window(
+    val start: Instant,
     val hangOut: Instant,
     val bringIn: Instant,
     val end: Instant,
@@ -87,50 +89,62 @@ internal class Window(
 )
 
 /**
- * Rule 4. A window is a run of drying hours: a wet or damp hour ends it. It starts at the usable part of
- * its first hour that earns points, and ends when the load reaches [need] or at the window's end.
+ * Rule 4. A window is a run of drying hours: a wet or damp hour ends it. It's on the line from the usable part
+ * of its first hour that earns points, until the load reaches [need] or the window ends.
  */
 private fun windows(hours: List<HourlyWeather>, daylight: Interval, now: Instant, need: Double): List<Window> {
-    val windows = mutableListOf<Window>()
-    var hangOut: Instant? = null
-    var end: Instant = daylight.start
-    var points = 0.0
-    var dryAt: Instant? = null
-
-    fun close(endedBy: HourKind?) {
-        hangOut?.let { windows += Window(it, dryAt ?: end, end, endedBy, minOf(points, need), dryAt != null) }
-        hangOut = null
-        points = 0.0
-        dryAt = null
-    }
-
-    fun add(hour: HourlyWeather, usable: Duration) {
-        val usableFrom = maxOf(hour.start, daylight.start, now)
-        val rate = hour.pointsPerHour()
-        if (hangOut == null && rate > 0.0) hangOut = usableFrom
-        if (hangOut != null && dryAt == null) {
-            val earned = rate * (usable / 1.hours)
-            // Point sums are doubles: twenty hours at 0.3 come to 5.999999999999998, which is 6.
-            if (points + earned >= need - POINTS_TOLERANCE) {
-                dryAt = usableFrom + 1.hours * (maxOf(need - points, 0.0) / rate)
-                points = need
-            } else {
-                points += earned
-            }
+    val builder = WindowBuilder(need)
+    for (hour in hours) {
+        val usable = hour.usableTime(daylight, now)
+        val kind = hour.kind()
+        when {
+            usable <= Duration.ZERO -> Unit
+            kind != HourKind.DRYING -> builder.close(kind)
+            else -> builder.add(hour, maxOf(hour.start, daylight.start, now), usable)
         }
+    }
+    builder.close(endedBy = null)
+    return builder.windows
+}
+
+private class WindowBuilder(private val need: Double) {
+    val windows = mutableListOf<Window>()
+    private var start: Instant? = null
+    private var hangOut: Instant? = null
+    private var end: Instant? = null
+    private var points = 0.0
+    private var dryAt: Instant? = null
+
+    fun add(hour: HourlyWeather, usableFrom: Instant, usable: Duration) {
+        val rate = hour.pointsPerHour()
+        if (start == null) start = usableFrom
+        if (hangOut == null && rate > 0.0) hangOut = usableFrom
+        if (hangOut != null && dryAt == null) earn(rate, usableFrom, usable)
         end = usableFrom + usable
     }
 
-    for (hour in hours) {
-        val usable = hour.usableTime(daylight, now)
-        when {
-            usable <= Duration.ZERO -> Unit
-            hour.kind() != HourKind.DRYING -> close(hour.kind())
-            else -> add(hour, usable)
+    private fun earn(rate: Double, usableFrom: Instant, usable: Duration) {
+        val earned = rate * (usable / 1.hours)
+        // Point sums are doubles: twenty hours at 0.3 come to 5.999999999999998, which is 6.
+        if (points + earned >= need - POINTS_TOLERANCE) {
+            dryAt = usableFrom + 1.hours * (maxOf(need - points, 0.0) / rate)
+            points = need
+        } else {
+            points += earned
         }
     }
-    close(endedBy = null)
-    return windows
+
+    fun close(endedBy: HourKind?) {
+        val (s, h, e) = Triple(start, hangOut, end)
+        if (s != null && h != null && e != null) {
+            windows += Window(s, h, dryAt ?: e, e, endedBy, minOf(points, need), dryAt != null)
+        }
+        start = null
+        hangOut = null
+        end = null
+        points = 0.0
+        dryAt = null
+    }
 }
 
 /** Whether [hours], in order, cover [span] with no gap. */
