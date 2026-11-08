@@ -111,24 +111,29 @@ subprojects {
 
     extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         buildUponDefaultConfig = true
-        // Every source set, including iosMain when the iOS targets are off. Without this,
-        // the plain detekt task finds no sources in a multiplatform module.
-        source.setFrom(files("src"))
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     }
 
-    // The plain detekt task skips every rule that needs type resolution (43 of detekt's defaults, such
-    // as UnsafeCallOnNullableType and UnusedVariable, and UnusedImport). These tasks run them, on the
-    // Android compilations of shared and androidApp. iosMain is still only covered by the plain task.
-    val typeResolvedDetekt = setOf("detektMainAndroid", "detektHostTestAndroid", "detektMain", "detektTest")
-    tasks.matching { it.name == "check" }.configureEach {
-        // By name: a filtered task collection makes Gradle create every task, and one of AGP's
-        // Compose preview tasks fails when created. tasks.names lists them without creating any.
-        dependsOn(provider { typeResolvedDetekt.filter { it in tasks.names } })
+    // detekt's rules that need type resolution (43 of its defaults, such as UnsafeCallOnNullableType and
+    // UnusedVariable, and UnusedImport) only run in its per-compilation tasks, so these do the work. The
+    // plain detekt task depends on them, so `detekt` and `check` give the same result, and itself covers
+    // only what they can't reach: the iOS source sets, which have no compilation while the iOS targets
+    // are off. Named here, not discovered, so a renamed task fails the build instead of dropping out.
+    val typeResolvedDetekt =
+        mapOf(
+            "shared" to listOf("detektMainAndroid", "detektHostTestAndroid"),
+            "androidApp" to listOf("detektDebug", "detektDebugUnitTest"),
+        ).getValue(name)
+    tasks.named<dev.detekt.gradle.Detekt>("detekt") {
+        setSource(files("src/iosMain", "src/iosTest"))
+        dependsOn(typeResolvedDetekt)
     }
-    // Generated code, such as Compose's resource accessors, isn't ours to lint.
+    // Generated code, such as Compose's resource accessors, isn't ours to lint. Matched against this
+    // project's own build directory: a checkout can itself sit under a directory called build, as on
+    // F-Droid's build server (/home/vagrant/build/<app id>).
+    val buildDirectory = layout.buildDirectory.get().asFile
     tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
-        exclude { it.file.invariantSeparatorsPath.contains("/build/") }
+        exclude { it.file.startsWith(buildDirectory) }
     }
 }
 
