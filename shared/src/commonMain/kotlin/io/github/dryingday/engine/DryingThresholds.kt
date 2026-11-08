@@ -25,6 +25,10 @@ internal object DryingThresholds {
         Band(from = 0.4, value = 1.0),
         Band(from = 0.7, value = 1.5),
         Band(from = 1.0, value = 2.0),
+        // Calibrated against the reference set: without these, a 38 °C day at 24 % dried no faster than
+        // 20 °C at 57 %.
+        Band(from = 1.5, value = 2.5),
+        Band(from = 2.5, value = 3.0),
     )
 
     // Rule 2: the wind factor for sustained wind at 10 m (km/h).

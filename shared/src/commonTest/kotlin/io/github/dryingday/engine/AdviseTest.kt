@@ -29,8 +29,8 @@ class AdviseTest {
 
     /** Weather for one hour, by its local start time. */
     private data class W(
-        val temperatureC: Double = 24.0,
-        val relativeHumidityPercent: Double = 40.0,
+        val temperatureC: Double = 22.0,
+        val relativeHumidityPercent: Double = 50.0,
         val windSpeedKmh: Double = 20.0,
         val shortwaveRadiationWm2: Double = 800.0,
         val precipitationMm: Double = 0.0,
@@ -38,7 +38,7 @@ class AdviseTest {
     )
 
     // Points an hour, from the spec's worked examples (rule 2).
-    private val sunny = W() // 2 × 1.3 + 0.5 = 3.1
+    private val sunny = W() // 1.32 kPa: 2 × 1.3 + 0.5 = 3.1
     private val grey = W(14.0, 65.0, 20.0, 250.0) // 1 × 1.3 = 1.3
     private val raw = W(6.0, 85.0, 15.0, 200.0) // 0
     private val rain = W(precipitationMm = 2.0)
