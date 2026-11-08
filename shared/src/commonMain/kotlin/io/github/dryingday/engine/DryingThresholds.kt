@@ -1,5 +1,7 @@
 package io.github.dryingday.engine
 
+import kotlin.time.Duration.Companion.hours
+
 /**
  * Every drying threshold in one place, as docs/bolts/02-drying-rules.md sets them. Changing any of these
  * is a high-tier change under docs/review-policy.md, and the spec has to change with it.
@@ -48,6 +50,16 @@ internal object DryingThresholds {
     // Rule 3: the points each load needs to be dry.
     const val LIGHT_NEED_POINTS = 6.0
     const val HEAVY_NEED_POINTS = 12.0
+
+    // Rule 6: reasons. Air below this deficit dries slowly; below this temperature that's put down to cold.
+    const val SLOW_VPD_KPA = 0.4
+    const val COLD_BELOW_C = 10.0
+
+    // Rule 6: a wind factor below this is still air.
+    const val STILL_AIR_BELOW_FACTOR = 1.0
+
+    // Rule 6: less usable time than this is short daylight.
+    val SHORT_DAYLIGHT = 6.hours
 
     // Rule 5: the verdict line between PARTLY_DRY and DONT_BOTHER, in percent of the load's need.
     const val PARTLY_DRY_FROM_PERCENT = 50
