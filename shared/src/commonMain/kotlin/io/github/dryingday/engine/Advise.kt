@@ -25,20 +25,28 @@ private fun adviseDay(forecast: Forecast, load: Load, now: Instant, date: LocalD
     val from = maxOf(daylight.start, now)
     val hours = forecast.hours.filter { it.start < daylight.end && it.start + 1.hours > from }
     return when {
-        from >= daylight.end -> noWindow(date)
+        from >= daylight.end -> fromBestWindow(date, emptyList(), load.needPoints)
         !covers(hours, Interval(from, daylight.end)) -> null
         else -> fromBestWindow(date, windows(hours, daylight, now, load.needPoints), load.needPoints)
     }
 }
 
-/** Rules 4 and 5: the window with the earliest bring-in among those that dry the load, else the most points. */
+/**
+ * Rules 4 and 5: the window with the earliest bring-in among those that dry the load, else the one with the
+ * most points (a tie goes to the earlier). No window at all is DONT_BOTHER at 0 %.
+ */
 private fun fromBestWindow(date: LocalDate, windows: List<Window>, need: Double): DayAdvice {
-    val best = windows.filter { it.dry }.minByOrNull { it.bringIn }
-        ?: windows.maxByOrNull { it.points }
-        ?: return noWindow(date)
-    val dryness = if (best.dry) MAX_DRYNESS else floor(best.points / need * MAX_DRYNESS).toInt()
+    val best = windows.filter { it.dry }.minByOrNull { it.bringIn } ?: windows.maxByOrNull { it.points }
+    val dryness = when {
+        best == null -> 0
+
+        best.dry -> MAX_DRYNESS
+
+        // Rounded down, but a point sum a hair under a whole percentage still counts as reaching it.
+        else -> minOf(floor(best.points / need * MAX_DRYNESS + PERCENT_TOLERANCE).toInt(), MAX_DRYNESS - 1)
+    }
     val verdict = when {
-        best.dry -> Verdict.WILL_DRY
+        best?.dry == true -> Verdict.WILL_DRY
         dryness >= DryingThresholds.PARTLY_DRY_FROM_PERCENT -> Verdict.PARTLY_DRY
         else -> Verdict.DONT_BOTHER
     }
@@ -46,8 +54,8 @@ private fun fromBestWindow(date: LocalDate, windows: List<Window>, need: Double)
     return DayAdvice(
         date = date,
         verdict = verdict,
-        hangOut = best.hangOut.takeIf { shown },
-        bringIn = best.bringIn.takeIf { shown },
+        hangOut = best?.hangOut.takeIf { shown },
+        bringIn = best?.bringIn.takeIf { shown },
         dryness = dryness,
         reasons = emptyList(),
         tips = emptyList(),
@@ -65,13 +73,12 @@ private class Window(val hangOut: Instant, val bringIn: Instant, val points: Dou
 private fun windows(hours: List<HourlyWeather>, daylight: Interval, now: Instant, need: Double): List<Window> {
     val windows = mutableListOf<Window>()
     var hangOut: Instant? = null
+    var end: Instant = daylight.start
     var points = 0.0
-    var end: Instant? = null
     var dryAt: Instant? = null
 
     fun close() {
-        val start = hangOut ?: return
-        windows += Window(start, dryAt ?: end!!, minOf(points, need), dryAt != null)
+        hangOut?.let { windows += Window(it, dryAt ?: end, minOf(points, need), dryAt != null) }
         hangOut = null
         points = 0.0
         dryAt = null
@@ -82,9 +89,10 @@ private fun windows(hours: List<HourlyWeather>, daylight: Interval, now: Instant
         val rate = hour.pointsPerHour()
         if (hangOut == null && rate > 0.0) hangOut = usableFrom
         if (hangOut != null && dryAt == null) {
-            val earned = hour.points(usable)
-            if (points + earned >= need) {
-                dryAt = usableFrom + 1.hours * ((need - points) / rate)
+            val earned = rate * (usable / 1.hours)
+            // Point sums are doubles: twenty hours at 0.3 come to 5.999999999999998, which is 6.
+            if (points + earned >= need - POINTS_TOLERANCE) {
+                dryAt = usableFrom + 1.hours * (maxOf(need - points, 0.0) / rate)
                 points = need
             } else {
                 points += earned
@@ -111,16 +119,7 @@ private fun covers(hours: List<HourlyWeather>, span: Interval): Boolean {
     return hours.zipWithNext().all { (a, b) -> b.start == a.start + 1.hours }
 }
 
-private fun noWindow(date: LocalDate) = DayAdvice(
-    date = date,
-    verdict = Verdict.DONT_BOTHER,
-    hangOut = null,
-    bringIn = null,
-    dryness = 0,
-    reasons = emptyList(),
-    tips = emptyList(),
-    indoorPlan = emptyList(),
-)
-
 private const val DAYS = 3
 private const val MAX_DRYNESS = 100
+private const val POINTS_TOLERANCE = 1e-9
+private const val PERCENT_TOLERANCE = 1e-6

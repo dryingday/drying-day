@@ -131,6 +131,44 @@ class AdviseTest {
     }
 
     @Test
+    fun exactlyEnoughPointsIsDryDespiteRounding() {
+        // 0.5 VPD points × 0.6 for still air = 0.3 an hour; twenty of them sum to 5.999999999999998 in doubles.
+        val slow = W(15.0, 80.0, 2.0, 0.0) // VPD 0.34 kPa
+        val advice = assertNotNull(
+            forecast(sunrise = 0 to 0, sunset = 20 to 0) { _, _ -> slow }.today(
+                now = at(
+                    day0,
+                    0 to 0,
+                ),
+            ),
+        )
+        assertEquals(Verdict.WILL_DRY to 100, advice.verdict to advice.dryness)
+        assertNear(at(day0, 20 to 0), advice.bringIn)
+        // The same 6 points are exactly half a heavy load's need: partly dry, not 49 %.
+        val heavy =
+            assertNotNull(
+                forecast(sunrise = 0 to 0, sunset = 20 to 0) { _, _ -> slow }.today(
+                    Load.HEAVY,
+                    at(
+                        day0,
+                        0 to 0,
+                    ),
+                ),
+            )
+        assertEquals(Verdict.PARTLY_DRY to 50, heavy.verdict to heavy.dryness)
+    }
+
+    @Test
+    fun eachLoadIsDryAtItsNeedAndNotJustBefore() {
+        // From 08:00 at 1.3 points an hour: light needs 6 (4 h 37 min), heavy 12 (9 h 14 min).
+        fun grey(load: Load, sunset: Pair<Int, Int>) = forecast(sunset = sunset) { _, _ -> grey }.today(load)
+        assertEquals(Verdict.PARTLY_DRY to 97, grey(Load.LIGHT, 12 to 30)?.let { it.verdict to it.dryness })
+        assertEquals(Verdict.WILL_DRY, grey(Load.LIGHT, 12 to 40)?.verdict)
+        assertEquals(Verdict.PARTLY_DRY to 97, grey(Load.HEAVY, 17 to 0)?.let { it.verdict to it.dryness })
+        assertEquals(Verdict.WILL_DRY, grey(Load.HEAVY, 17 to 30)?.verdict)
+    }
+
+    @Test
     fun aRawDayIsNotWorthIt() {
         val advice = assertNotNull(forecast { _, _ -> raw }.today())
         assertEquals(Verdict.DONT_BOTHER, advice.verdict)
@@ -252,8 +290,12 @@ class AdviseTest {
         assertNull(advise(missingAtNoon, Load.LIGHT, at(day0, 8 to 0))[1])
         val missingAtNight = forecast(skipHours = setOf(at(LocalDate(2025, 6, 15), 2 to 0)))
         assertNotNull(advise(missingAtNight, Load.LIGHT, at(day0, 8 to 0))[1])
-        // Today's hours before now don't matter either.
+        // Today's hours before now don't matter either; the hour now falls in, or the last before sunset, do.
         assertNotNull(forecast(skipHours = setOf(at(day0, 7 to 0))).today())
+        assertNull(forecast(skipHours = setOf(at(day0, 10 to 0))).today(now = at(day0, 10 to 40)))
+        assertNull(forecast(skipHours = setOf(at(day0, 19 to 0))).today())
+        // An hour only partly in daylight counts too.
+        assertNull(forecast(sunrise = 6 to 35, skipHours = setOf(at(day0, 6 to 0))).today(now = at(day0, 5 to 0)))
     }
 
     @Test
@@ -263,6 +305,8 @@ class AdviseTest {
         val late = assertNotNull(polarDay.today(now = at(day0, 22 to 0, oslo)))
         assertEquals(Verdict.WILL_DRY, late.verdict)
         assertNear(at(day0, 22 to 0, oslo) + 1.hours * (6 / 3.1), late.bringIn)
+        val tomorrow = assertNotNull(advise(polarDay, Load.LIGHT, at(day0, 22 to 0, oslo))[1])
+        assertEquals(at(LocalDate(2025, 6, 15), 0 to 0, oslo), tomorrow.hangOut)
         val polarNight = forecast(zone = oslo, polar = Polar.NIGHT)
         val advice = assertNotNull(polarNight.today(now = at(day0, 8 to 0, oslo)))
         assertEquals(Verdict.DONT_BOTHER, advice.verdict)
@@ -282,6 +326,14 @@ class AdviseTest {
             val first = local.date
             val days = advise(forecast(zone, first), Load.LIGHT, local.toInstant(zone))
             assertEquals((0..2).map { first.plus(it, DateTimeUnit.DAY) }, days.map { it?.date }, "$zone $local")
+            // Tomorrow is the change day: sunrise at 06:00 local, dry 1 h 56 min later.
+            val changeDay = assertNotNull(days[1])
+            assertEquals(
+                LocalDateTime(changeDay.date.year, changeDay.date.month, changeDay.date.day, 6, 0),
+                changeDay.hangOut?.toLocalDateTime(zone),
+                "$zone",
+            )
+            assertEquals(7 to 56, changeDay.bringIn?.toLocalDateTime(zone)?.let { it.hour to it.minute }, "$zone")
         }
     }
 
