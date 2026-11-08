@@ -141,6 +141,33 @@ class ForecastMappingTest {
     }
 
     @Test
+    fun oneBadReadingCannotBeAveragedIntoAGoodOne() {
+        val cases =
+            listOf(
+                "temperature_2m" to listOf(100.0, 10.0),
+                HUMIDITY to listOf(-20.0, 60.0),
+                "wind_speed_10m" to listOf(-4.0, 8.0),
+                VISIBILITY to listOf(-100.0, 3000.0),
+            )
+
+        for ((field, values) in cases) {
+            assertEquals(0, parsed(body(hours = hourly(2, field to values))).hours.size, field)
+        }
+    }
+
+    @Test
+    fun aNullStampDropsOnlyTheHoursThatNeedIt() {
+        val hours = hourly(4, "time" to listOf(start, null, start + 2 * HOUR, start + 3 * HOUR))
+
+        assertEquals(
+            listOf(Instant.fromEpochSeconds(start + 2 * HOUR)),
+            parsed(body(hours = hours)).hours.map {
+                it.start
+            },
+        )
+    }
+
+    @Test
     fun visibilityIsNullIfEitherEndIs() {
         for (values in listOf(listOf(null, 1000.0), listOf(1000.0, null))) {
             val hour = parsed(body(hours = hourly(2, VISIBILITY to values))).hours.single()
@@ -233,6 +260,22 @@ class ForecastMappingTest {
     @Test
     fun aDayWhoseSunsetIsBeforeItsSunriseIsDropped() {
         val days = daily("sunset" to listOf(midnight))
+
+        assertEquals(0, parsed(body(days = days)).days.size)
+    }
+
+    @Test
+    fun aPolarDayWhoseSunsetIsBeforeItsSunriseIsDropped() {
+        for (daylight in listOf(0.0, DAY.toDouble())) {
+            val days = daily("sunset" to listOf(midnight), "daylight_duration" to listOf(daylight))
+
+            assertEquals(0, parsed(body(days = days)).days.size, "$daylight")
+        }
+    }
+
+    @Test
+    fun aSunTimeTooFarOutToBeADateIsDropped() {
+        val days = daily("sunrise" to listOf(Long.MAX_VALUE), "sunset" to listOf(Long.MAX_VALUE))
 
         assertEquals(0, parsed(body(days = days)).days.size)
     }

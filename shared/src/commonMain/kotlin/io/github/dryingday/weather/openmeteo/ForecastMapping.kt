@@ -3,6 +3,7 @@ package io.github.dryingday.weather.openmeteo
 import io.github.dryingday.engine.DailyLight
 import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.HourlyWeather
+import kotlinx.datetime.DateTimeArithmeticException
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -29,7 +30,7 @@ private data class ForecastResponse(
 
 @Serializable
 private data class HourlyColumns(
-    val time: List<Long>,
+    val time: List<Long?>,
     @SerialName("temperature_2m") val temperature: List<Double?>,
     @SerialName("relative_humidity_2m") val humidity: List<Double?>,
     @SerialName("wind_speed_10m") val windSpeed: List<Double?>,
@@ -75,7 +76,7 @@ internal fun parseForecast(body: String): Forecast? = try {
 private fun ForecastResponse.toForecast(): Forecast? {
     val isWellFormed =
         hourly.columns.all { it.size == hourly.time.size } &&
-            hourly.time.zipWithNext().all { (a, b) -> a < b } &&
+            hourly.time.filterNotNull().zipWithNext().all { (a, b) -> a < b } &&
             daily.sunrise.size == daily.time.size &&
             daily.sunset.size == daily.time.size &&
             daily.daylightDuration.size == daily.time.size
@@ -85,27 +86,40 @@ private fun ForecastResponse.toForecast(): Forecast? {
 }
 
 /** The hour from stamp [i]: preceding-hour values are stamped at its end, instantaneous ones at both ends. */
-private fun HourlyColumns.hour(i: Int): HourlyWeather? = runCatching {
+private fun HourlyColumns.hour(i: Int): HourlyWeather? = try {
     val end = i + 1
-    require(time[end] - time[i] == SECONDS_PER_HOUR)
-    HourlyWeather(
-        start = Instant.fromEpochSeconds(time[i]),
-        temperatureC = requireNotNull(temperature.mean(i)),
-        relativeHumidityPercent = requireNotNull(humidity.mean(i, limit = MAX_HUMIDITY_PERCENT)),
-        windSpeedKmh = requireNotNull(windSpeed.mean(i)),
-        visibilityM = visibility.mean(i),
-        precipitationProbabilityPercent = precipitationProbability[end],
-        precipitationMm = requireNotNull(precipitation[end]),
-        windGustKmh = requireNotNull(windGusts[end]),
-        shortwaveRadiationWm2 = requireNotNull(shortwaveRadiation[end]),
+    val start = requireNotNull(time[i])
+    require(requireNotNull(time[end]) - start == SECONDS_PER_HOUR)
+    val first = reading(start, stamp = i, end = end)
+    val last = reading(start, stamp = end, end = end)
+    val firstVisibility = first.visibilityM
+    val lastVisibility = last.visibilityM
+    first.copy(
+        temperatureC = (first.temperatureC + last.temperatureC) / 2,
+        relativeHumidityPercent = (first.relativeHumidityPercent + last.relativeHumidityPercent) / 2,
+        windSpeedKmh = (first.windSpeedKmh + last.windSpeedKmh) / 2,
+        visibilityM = if (firstVisibility == null || lastVisibility == null) {
+            null
+        } else {
+            (firstVisibility + lastVisibility) / 2
+        },
     )
-}.getOrNull()
-
-private fun List<Double?>.mean(i: Int, limit: Double = Double.MAX_VALUE): Double? {
-    val a = this[i]?.coerceAtMost(limit)
-    val b = this[i + 1]?.coerceAtMost(limit)
-    return if (a == null || b == null) null else (a + b) / 2
+} catch (_: IllegalArgumentException) {
+    null
 }
+
+/** One stamp's readings. They go through [HourlyWeather]'s checks singly, so averaging can't hide a bad one. */
+private fun HourlyColumns.reading(start: Long, stamp: Int, end: Int) = HourlyWeather(
+    start = Instant.fromEpochSeconds(start),
+    temperatureC = requireNotNull(temperature[stamp]),
+    relativeHumidityPercent = requireNotNull(humidity[stamp]).coerceAtMost(MAX_HUMIDITY_PERCENT),
+    windSpeedKmh = requireNotNull(windSpeed[stamp]),
+    visibilityM = visibility[stamp],
+    precipitationProbabilityPercent = precipitationProbability[end],
+    precipitationMm = requireNotNull(precipitation[end]),
+    windGustKmh = requireNotNull(windGusts[end]),
+    shortwaveRadiationWm2 = requireNotNull(shortwaveRadiation[end]),
+)
 
 private fun ForecastResponse.days(zone: TimeZone): List<DailyLight> = daily.time.indices
     .mapNotNull { day(it, zone) }
@@ -114,27 +128,24 @@ private fun ForecastResponse.days(zone: TimeZone): List<DailyLight> = daily.time
     .mapNotNull { it.singleOrNull() }
     .sortedBy { it.date }
 
-private fun ForecastResponse.day(i: Int, zone: TimeZone): DailyLight? = runCatching {
+private fun ForecastResponse.day(i: Int, zone: TimeZone): DailyLight? = try {
     val dayStart = requireNotNull(daily.time[i])
     val sunrise = Instant.fromEpochSeconds(requireNotNull(daily.sunrise[i]))
     val sunset = Instant.fromEpochSeconds(requireNotNull(daily.sunset[i]))
     val daylight = requireNotNull(daily.daylightDuration[i])
+    require(sunrise <= sunset)
     if (daylight == 0.0 || daylight >= SECONDS_PER_DAY) {
         // Open-Meteo's "midnight" is at its one fixed offset, so rebuild it in the real zone.
         val date = Instant.fromEpochSeconds(dayStart + utcOffsetSeconds).toLocalDateTime(TimeZone.UTC).date
         val midnight = date.atStartOfDayIn(zone)
-        DailyLight(
-            date,
-            midnight,
-            if (daylight ==
-                0.0
-            ) {
-                midnight
-            } else {
-                date.plus(1, DateTimeUnit.DAY).atStartOfDayIn(zone)
-            },
-        )
+        val end = if (daylight == 0.0) midnight else date.plus(1, DateTimeUnit.DAY).atStartOfDayIn(zone)
+        DailyLight(date, midnight, end)
     } else {
         DailyLight(sunrise.toLocalDateTime(zone).date, sunrise, sunset)
     }
-}.getOrNull()
+} catch (_: IllegalArgumentException) {
+    null
+} catch (_: DateTimeArithmeticException) {
+    // A time too far out to be a date.
+    null
+}
