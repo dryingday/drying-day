@@ -41,6 +41,10 @@ internal object DryingThresholds {
         Band(from = 600.0, value = 0.5),
     )
 
+    // Rule 3: the points each load needs to be dry.
+    const val LIGHT_NEED_POINTS = 6.0
+    const val HEAVY_NEED_POINTS = 12.0
+
     // Rule 5: the verdict line between PARTLY_DRY and DONT_BOTHER, in percent of the load's need.
     const val PARTLY_DRY_FROM_PERCENT = 50
 }
@@ -50,3 +54,10 @@ internal data class Band(val from: Double, val value: Double)
 
 /** The value of the last band [x] has reached, or [below] when it's under the first. */
 internal fun List<Band>.lookup(x: Double, below: Double = 0.0): Double = lastOrNull { x >= it.from }?.value ?: below
+
+/** Rule 3: the points this load needs to be dry. */
+internal val Load.needPoints: Double
+    get() = when (this) {
+        Load.LIGHT -> DryingThresholds.LIGHT_NEED_POINTS
+        Load.HEAVY -> DryingThresholds.HEAVY_NEED_POINTS
+    }
