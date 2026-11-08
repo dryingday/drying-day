@@ -55,9 +55,13 @@ a known disagreement the test skips. None was a rule change. The decisions are a
 must agree.
 
 In all: 55 case-loads agree with their label, 4 labels were wrong, and 15 disagreements are open. Of the
-open ones, 14 are times: heavy loads dry 1–2 hours sooner in the engine than the labeller thinks on mild or
-northern days, and light loads about an hour later. That's one labeller's view of how long a towel takes,
-and real line-drying observations would settle it better than another rule change.
+open ones, one is a verdict (Wellington on 6 April, light) and 14 are times. Most of the times follow a
+pattern: heavy loads dry 1–2 hours sooner in the engine than the labeller thinks on mild or northern days
+(7 cases), and light loads about an hour later (5). The other three are Seattle on 9 March, where the
+engine waits for morning damp to clear before hanging out (both loads), and Wellington on 28 December,
+heavy, an hour later out and two hours later in after showers. That's one labeller's view of how long
+washing takes, and real line-drying observations would settle it better than another rule change.
+`ReferenceSetTest` checks that every open case still disagrees, so this list can't go stale.
 
 Engine times are local; dryness is the engine's.
 

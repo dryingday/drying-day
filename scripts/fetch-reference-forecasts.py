@@ -39,6 +39,7 @@ CASES = TESTDATA / "cases.json"
 KOTLIN = Path("shared/src/commonTest/kotlin/io/github/dryingday/reference/ReferenceForecasts.kt")
 LABELS = TESTDATA / "labels.json"
 DECISIONS = TESTDATA / "decisions.json"
+DOCUMENT = Path("docs/reference-set.md")
 KOTLIN_EXPECTATIONS = Path("shared/src/commonTest/kotlin/io/github/dryingday/reference/ReferenceExpectations.kt")
 LOADS = ("light", "heavy")
 VERDICTS = ("WILL_DRY", "PARTLY_DRY", "DONT_BOTHER")
@@ -218,15 +219,20 @@ def expectations(cases, labels, decisions):
     decided = {}
     for d in decisions["decisions"]:
         key = (d["id"], d["load"])
-        if d["id"] not in by_id or d["load"] not in LOADS:
+        if d.get("id") not in by_id or d.get("load") not in LOADS or "decision" not in d:
             raise ValueError(f"a decision for no label: {key}")
         if key in decided:
             raise ValueError(f"two decisions for {key}")
         if d["decision"] == "label wrong":
             check_answer(d, key)
+            if answer_of(d) == answer_of(by_id[d["id"]][d["load"]]):
+                raise ValueError(f"a wrong label decided the same as the label: {key}")
         elif d["decision"] != "open":
             raise ValueError(f"unknown decision {d['decision']!r} for {key}")
         decided[key] = d
+    unknown = set(by_id) - {case["id"] for case in cases}
+    if unknown:
+        raise ValueError(f"labels for no case: {sorted(unknown)}")
     out = []
     for case in cases:
         if case["id"] not in by_id:
@@ -236,17 +242,37 @@ def expectations(cases, labels, decisions):
             answer = d if d is not None and d["decision"] == "label wrong" else by_id[case["id"]][load]
             check_answer(answer, (case["id"], load))
             decision = {None: "AGREED", "label wrong": "LABEL_WRONG", "open": "OPEN"}[d and d["decision"]]
-            out.append({"id": case["id"], "load": load, "verdict": answer["verdict"], "hangOut": answer["hangOut"],
-                        "bringIn": answer["bringIn"], "decision": decision})
+            verdict, hang_out, bring_in = answer_of(answer)
+            out.append({"id": case["id"], "load": load, "verdict": verdict, "hangOut": hang_out,
+                        "bringIn": bring_in, "decision": decision})
     return out
 
 
+def answer_of(answer):
+    return answer.get("verdict"), answer.get("hangOut"), answer.get("bringIn")
+
+
 def check_answer(answer, key):
-    if answer.get("verdict") not in VERDICTS:
+    verdict, hang_out, bring_in = answer_of(answer)
+    if verdict not in VERDICTS:
         raise ValueError(f"no verdict for {key}")
-    timed = answer["verdict"] != "DONT_BOTHER"
-    if (answer.get("hangOut") is not None, answer.get("bringIn") is not None) != (timed, timed):
+    timed = verdict != "DONT_BOTHER"
+    if (hang_out is not None, bring_in is not None) != (timed, timed):
         raise ValueError(f"times don't fit the verdict for {key}")
+    for t in (hang_out, bring_in):
+        if t is not None and not re.fullmatch(r"([01][0-9]|2[0-3]):[0-5][0-9]", t):
+            raise ValueError(f"not an HH:MM time for {key}: {t!r}")
+
+
+def check_document(decisions, text):
+    """The Decision column of docs/reference-set.md must say what decisions.json does, row for row."""
+    words = {"**Label wrong.**": "label wrong", "**Open.**": "open"}
+    in_doc = {}
+    for match in re.finditer(r"^\| `([^`]+)` \| (light|heavy) \|.*\| (\*\*(?:Label wrong|Open)\.\*\*)[^|]*\|$", text, re.M):
+        in_doc[(match[1], match[2])] = words[match[3]]
+    in_json = {(d["id"], d["load"]): d["decision"] for d in decisions["decisions"]}
+    if in_doc != in_json:
+        raise ValueError(f"{DOCUMENT} and decisions.json disagree: {sorted(set(in_doc.items()) ^ set(in_json.items()))}")
 
 
 def kotlin_expectations_file(rows):
@@ -285,15 +311,18 @@ def main():
         for case in cases:
             print(f"fetching {case['id']}", file=sys.stderr)
             responses[case["id"]] = fetch(case)
-    # Generate before writing anything, so a failed fetch or a bad response leaves the files as they were.
+    # Generate and check before writing anything, so a failed fetch, a bad response or a bad decision leaves
+    # the files as they were.
     kotlin = kotlin_file(cases, responses)
+    decisions = json.loads(DECISIONS.read_text())
+    check_document(decisions, DOCUMENT.read_text())
+    expectations_kotlin = kotlin_expectations_file(expectations(cases, json.loads(LABELS.read_text()), decisions))
     if not args.offline:
         for i, data in responses.items():
             paths[i].write_text(json.dumps(data, separators=(",", ":")) + "\n")
-    rows = expectations(cases, json.loads(LABELS.read_text()), json.loads(DECISIONS.read_text()))
     KOTLIN.write_text(kotlin)
-    KOTLIN_EXPECTATIONS.write_text(kotlin_expectations_file(rows))
-    print(f"wrote {KOTLIN} with {len(cases)} cases", file=sys.stderr)
+    KOTLIN_EXPECTATIONS.write_text(expectations_kotlin)
+    print(f"wrote {KOTLIN} and {KOTLIN_EXPECTATIONS} for {len(cases)} cases", file=sys.stderr)
 
 
 if __name__ == "__main__":
