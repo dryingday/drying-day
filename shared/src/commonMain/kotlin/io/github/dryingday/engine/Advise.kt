@@ -12,7 +12,8 @@ import kotlin.time.Instant
 /**
  * Drying advice for today, tomorrow and the day after, as local dates in the forecast's zone, for [load]
  * asked at [now]. A day is null when its forecast is incomplete: no daylight data, or an hour of its
- * daylight from [now] onwards missing. Rules 3 to 5 of docs/bolts/02-drying-rules.md.
+ * daylight from [now] onwards missing. Rules 3 to 6 and the tips and indoor plan of
+ * docs/bolts/02-drying-rules.md.
  */
 fun advise(forecast: Forecast, load: Load, now: Instant): List<DayAdvice?> {
     val today = now.toLocalDateTime(forecast.timeZone).date
@@ -22,30 +23,50 @@ fun advise(forecast: Forecast, load: Load, now: Instant): List<DayAdvice?> {
 private fun adviseDay(forecast: Forecast, load: Load, now: Instant, date: LocalDate): DayAdvice? {
     val light = forecast.days.firstOrNull { it.date == date } ?: return null
     val daylight = light.daylight(forecast.timeZone)
-    val from = maxOf(daylight.start, now)
-    val hours = forecast.hours.filter { it.start < daylight.end && it.start + 1.hours > from }
-    val hasUsableTime = from < daylight.end
-    return when {
-        hasUsableTime && !covers(hours, Interval(from, daylight.end)) -> null
-
-        else -> fromBestWindow(
-            date,
-            if (hasUsableTime) windows(hours, daylight, now, load.needPoints) else emptyList(),
-            load.needPoints,
-        ) { best -> reasons(hours, daylight, Interval(minOf(from, daylight.end), daylight.end), now, best) }
-    }
+    val usable = Interval(minOf(maxOf(daylight.start, now), daylight.end), daylight.end)
+    val hours = forecast.hours.filter { it.start < daylight.end && it.start + 1.hours > usable.start }
+    val complete = usable.length == Duration.ZERO || covers(hours, usable)
+    return if (complete) dayAdvice(forecast, load, now, date, daylight, usable, hours) else null
 }
+
+@Suppress("LongParameterList")
+private fun dayAdvice(
+    forecast: Forecast,
+    load: Load,
+    now: Instant,
+    date: LocalDate,
+    daylight: Interval,
+    usable: Interval,
+    hours: List<HourlyWeather>,
+): DayAdvice {
+    val windows = if (usable.length > Duration.ZERO) windows(hours, daylight, now, load.needPoints) else emptyList()
+    val (best, dryness, verdict) = outcome(windows, load.needPoints)
+    // The window the washing goes out in; none when it isn't worth it.
+    val onTheLine = best?.takeIf { verdict != Verdict.DONT_BOTHER }
+    return DayAdvice(
+        date = date,
+        verdict = verdict,
+        hangOut = onTheLine?.hangOut,
+        bringIn = onTheLine?.bringIn,
+        dryness = dryness,
+        reasons = if (verdict == Verdict.WILL_DRY) emptyList() else reasons(hours, daylight, usable, now, best),
+        tips = onTheLine?.let { tips(hours, it, load) } ?: emptyList(),
+        indoorPlan = if (verdict == Verdict.WILL_DRY) {
+            emptyList()
+        } else {
+            // After bring-in for a partly dry load; the usable time when it isn't worth hanging out.
+            indoorPlan(forecast.hours, onTheLine?.let { Interval(it.bringIn, daylight.end) } ?: usable, load)
+        },
+    )
+}
+
+private data class Outcome(val best: Window?, val dryness: Int, val verdict: Verdict)
 
 /**
  * Rules 4 and 5: the window with the earliest bring-in among those that dry the load, else the one with the
  * most points (a tie goes to the earlier). No window at all is DONT_BOTHER at 0 %.
  */
-private fun fromBestWindow(
-    date: LocalDate,
-    windows: List<Window>,
-    need: Double,
-    reasons: (Window?) -> List<Reason>,
-): DayAdvice {
+private fun outcome(windows: List<Window>, need: Double): Outcome {
     val best = windows.filter { it.dry }.minByOrNull { it.bringIn } ?: windows.maxByOrNull { it.points }
     val dryness = when {
         best == null -> 0
@@ -60,17 +81,7 @@ private fun fromBestWindow(
         dryness >= DryingThresholds.PARTLY_DRY_FROM_PERCENT -> Verdict.PARTLY_DRY
         else -> Verdict.DONT_BOTHER
     }
-    val shown = verdict != Verdict.DONT_BOTHER
-    return DayAdvice(
-        date = date,
-        verdict = verdict,
-        hangOut = best?.hangOut.takeIf { shown },
-        bringIn = best?.bringIn.takeIf { shown },
-        dryness = dryness,
-        reasons = if (verdict == Verdict.WILL_DRY) emptyList() else reasons(best),
-        tips = emptyList(),
-        indoorPlan = emptyList(),
-    )
+    return Outcome(best, dryness, verdict)
 }
 
 /**

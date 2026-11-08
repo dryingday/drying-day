@@ -61,6 +61,16 @@ internal object DryingThresholds {
     // Rule 6: less usable time than this is short daylight.
     val SHORT_DAYLIGHT = 6.hours
 
+    // Tips: gusts from this speed, a chance of showers from this (up to the wet line), and this much strong sun.
+    const val PEG_WELL_GUST_KMH = 40.0
+    const val SHOWERS_FROM_PERCENT = 20.0
+    const val STRONG_SUN_WM2 = 700.0
+    val STRONG_SUN_FOR = 2.hours
+
+    // Indoor plan: outdoor air drier than this is worth letting in; and the indoor time when the day has none.
+    const val OPEN_WINDOW_BELOW_RH_PERCENT = 70.0
+    val INDOOR_FALLBACK = 6.hours
+
     // Rule 5: the verdict line between PARTLY_DRY and DONT_BOTHER, in percent of the load's need.
     const val PARTLY_DRY_FROM_PERCENT = 50
 }

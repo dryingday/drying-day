@@ -86,7 +86,7 @@ The day's advice uses the window with the earliest bring-in among those that rea
 
 ### Tips and indoor plan
 
-Codes only; at most three tips per day, in this order of priority:
+Codes only. Tips are for `WILL_DRY` and `PARTLY_DRY`, judged over the time on the line, from hang-out to bring-in; at most three per day, in this order of priority:
 
 | Tip | When (in the chosen window) |
 |---|---|
@@ -106,7 +106,7 @@ Indoor plan, for `PARTLY_DRY` (after bring-in) and `DONT_BOTHER`:
 | `NOT_ON_RADIATOR` (near is fine) | Always |
 | `TURN_HEAVY_ITEMS` | `HEAVY` load |
 
-The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usable time (from `now` today) for `DONT_BOTHER`; when that's empty, the next six hours of the forecast.
+The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usable time (from `now` today) for `DONT_BOTHER`; when that's empty, the six hours from its start. The mean is weighted by time. With no forecast for that time, neither `OPEN_WINDOW` nor `DEHUMIDIFIER_OR_CLOSED_ROOM` is given.
 
 ### Reference set
 
