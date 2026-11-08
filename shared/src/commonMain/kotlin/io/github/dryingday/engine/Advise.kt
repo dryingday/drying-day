@@ -50,7 +50,7 @@ private fun dayAdvice(
         bringIn = onTheLine?.bringIn,
         dryness = dryness,
         reasons = if (verdict == Verdict.WILL_DRY) emptyList() else reasons(hours, daylight, usable, now, best),
-        tips = onTheLine?.let { tips(hours, it, load) } ?: emptyList(),
+        tips = onTheLine?.let { tips(hours, it, load) }.orEmpty(),
         indoorPlan = if (verdict == Verdict.WILL_DRY) {
             emptyList()
         } else {
@@ -89,7 +89,7 @@ private fun outcome(windows: List<Window>, need: Double): Outcome {
  * is null, brought about. On the line from [hangOut], its first moment that earns points, to [bringIn],
  * earning [points].
  */
-internal class Window(
+internal data class Window(
     val start: Instant,
     val hangOut: Instant,
     val bringIn: Instant,

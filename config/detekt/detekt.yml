@@ -3,3 +3,9 @@ naming:
   FunctionNaming:
     # Composables are named like types.
     ignoreAnnotated: ['Composable']
+style:
+  UnusedImport:
+    # Off by default. ktlint's no-unused-imports doesn't run here, and ktlint 1.8.0 has marked it for
+    # removal in 2.0, so detekt checks imports instead. It needs type resolution, so only the
+    # type-resolved tasks that check runs (see build.gradle.kts) apply it.
+    active: true

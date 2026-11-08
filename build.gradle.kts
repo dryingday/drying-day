@@ -116,6 +116,20 @@ subprojects {
         source.setFrom(files("src"))
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     }
+
+    // The plain detekt task skips every rule that needs type resolution (43 of detekt's defaults, such
+    // as UnsafeCallOnNullableType and UnusedVariable, and UnusedImport). These tasks run them, on the
+    // Android compilations of shared and androidApp. iosMain is still only covered by the plain task.
+    val typeResolvedDetekt = setOf("detektMainAndroid", "detektHostTestAndroid", "detektMain", "detektTest")
+    tasks.matching { it.name == "check" }.configureEach {
+        // By name: a filtered task collection makes Gradle create every task, and one of AGP's
+        // Compose preview tasks fails when created. tasks.names lists them without creating any.
+        dependsOn(provider { typeResolvedDetekt.filter { it in tasks.names } })
+    }
+    // Generated code, such as Compose's resource accessors, isn't ours to lint.
+    tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
+        exclude { it.file.invariantSeparatorsPath.contains("/build/") }
+    }
 }
 
 allprojects {

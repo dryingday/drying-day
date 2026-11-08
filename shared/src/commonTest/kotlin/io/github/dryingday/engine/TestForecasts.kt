@@ -51,6 +51,7 @@ internal enum class Polar { NONE, DAY, NIGHT }
  * Three days from [first], every hour of them, with [weather] by local date and hour. Sunrise and sunset
  * are local clock times, the same each day, unless [polar] makes it polar day or night.
  */
+@Suppress("LongParameterList") // A test builder: every parameter has a default and is passed by name.
 internal fun forecast(
     zone: TimeZone = london,
     first: LocalDate = day0,
