@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.multiplatform)
 }
 
@@ -27,6 +28,9 @@ kotlin {
     if (providers.gradleProperty("dryingday.ios").orNull == "true") {
         iosArm64()
         iosSimulatorArm64()
+        sourceSets.iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
     }
 
     sourceSets {
@@ -37,9 +41,16 @@ kotlin {
             implementation(libs.compose.components.resources)
             // Its types are in the engine's public API.
             api(libs.kotlinx.datetime)
+            implementation(libs.ktor.client.core)
+            implementation(libs.kotlinx.serialization.json)
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.android)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }
