@@ -171,7 +171,7 @@ class OpenMeteoForecastTest {
     fun cancellingTheCallerCancelsTheCall() = runTest {
         val started = CompletableDeferred<Unit>()
         var returned = false
-        var engineCancelled = false
+        val engineCancelled = CompletableDeferred<Unit>()
         val caller =
             launch(start = CoroutineStart.UNDISPATCHED) {
                 source {
@@ -179,7 +179,7 @@ class OpenMeteoForecastTest {
                     try {
                         awaitCancellation()
                     } catch (e: CancellationException) {
-                        engineCancelled = true
+                        engineCancelled.complete(Unit)
                         throw e
                     }
                 }.forecast(somewhere)
@@ -190,8 +190,9 @@ class OpenMeteoForecastTest {
         caller.cancelAndJoin()
 
         assertTrue(caller.isCancelled)
-        assertTrue(engineCancelled)
         assertFalse(returned)
+        // The engine runs on its own dispatcher, so it can hear of the cancellation after the caller has ended.
+        engineCancelled.await()
     }
 
     @Test
