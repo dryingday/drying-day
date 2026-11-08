@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Drying Day</string>
+    <string name="attribution_weather">Weather data by %1$s (%2$s). Drying advice worked out from it by this app.</string>
+    <string name="attribution_places">Place data based on %1$s (%2$s).</string>
 </resources>
