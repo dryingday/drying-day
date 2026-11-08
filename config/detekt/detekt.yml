@@ -3,9 +3,16 @@ naming:
   FunctionNaming:
     # Composables are named like types.
     ignoreAnnotated: ['Composable']
+    # detekt's default excludes, and Compose's generated resource accessors, which the type-resolved
+    # tasks analyse along with our code so that references to them resolve.
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**',
+      '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/build/generated/compose/**']
 style:
+  MaxLineLength:
+    # Compose's generated resource accessors (see FunctionNaming).
+    excludes: ['**/build/generated/compose/**']
   UnusedImport:
-    # Off by default. ktlint's no-unused-imports doesn't run here, and ktlint 1.8.0 has marked it for
-    # removal in 2.0, so detekt checks imports instead. It needs type resolution, so only the
-    # type-resolved tasks that check runs (see build.gradle.kts) apply it.
+    # Off by default. ktlint's no-unused-imports lets unused imports through here (tested with 1.8.0),
+    # and ktlint has marked it for removal in 2.0, so detekt checks imports instead. It needs type
+    # resolution, so only the type-resolved tasks that check runs (see build.gradle.kts) apply it.
     active: true

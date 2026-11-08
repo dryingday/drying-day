@@ -89,7 +89,8 @@ private fun outcome(windows: List<Window>, need: Double): Outcome {
  * is null, brought about. On the line from [hangOut], its first moment that earns points, to [bringIn],
  * earning [points].
  */
-internal data class Window(
+@Suppress("LongParameterList") // A plain record of one window, built in one place.
+internal class Window(
     val start: Instant,
     val hangOut: Instant,
     val bringIn: Instant,

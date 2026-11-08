@@ -111,30 +111,23 @@ subprojects {
 
     extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         buildUponDefaultConfig = true
+        // Every source set, including iosMain when the iOS targets are off. Without this,
+        // the plain detekt task finds no sources in a multiplatform module.
+        source.setFrom(files("src"))
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
     }
 
-    // detekt's rules that need type resolution (43 of its defaults, such as UnsafeCallOnNullableType and
-    // UnusedVariable, and UnusedImport) only run in its per-compilation tasks, so these do the work. The
-    // plain detekt task depends on them, so `detekt` and `check` give the same result, and itself covers
-    // only what they can't reach: the iOS source sets, which have no compilation while the iOS targets
-    // are off. Named here, not discovered, so a renamed task fails the build instead of dropping out.
+    // The plain detekt task above can't resolve types, so it skips every rule that needs them: 43 of
+    // detekt's defaults (UnsafeCallOnNullableType, UnusedVariable and LongParameterList among them) and
+    // UnusedImport. check also runs detekt on each module's Android compilations, which can. The plain
+    // task still covers every file under src, including iosMain, which has no compilation while the iOS
+    // targets are off. Named per module, so a renamed task fails the build instead of dropping out.
     val typeResolvedDetekt =
         mapOf(
             "shared" to listOf("detektMainAndroid", "detektHostTestAndroid"),
             "androidApp" to listOf("detektDebug", "detektDebugUnitTest"),
-        ).getValue(name)
-    tasks.named<dev.detekt.gradle.Detekt>("detekt") {
-        setSource(files("src/iosMain", "src/iosTest"))
-        dependsOn(typeResolvedDetekt)
-    }
-    // Generated code, such as Compose's resource accessors, isn't ours to lint. Matched against this
-    // project's own build directory: a checkout can itself sit under a directory called build, as on
-    // F-Droid's build server (/home/vagrant/build/<app id>).
-    val buildDirectory = layout.buildDirectory.get().asFile
-    tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
-        exclude { it.file.startsWith(buildDirectory) }
-    }
+        )[name] ?: error("No type-resolved detekt tasks listed for :$name in the root build.gradle.kts")
+    tasks.matching { it.name == "check" }.configureEach { dependsOn(typeResolvedDetekt) }
 }
 
 allprojects {
