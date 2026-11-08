@@ -146,4 +146,4 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 | 4 | Tips and indoor plan | high (their cut-offs are thresholds) |
 | 5 | Fetch script, fixtures and generated `ReferenceForecasts.kt`. Needs PR 1's types; can run alongside PRs 2–4. | high (`scripts/`) |
 | 6a | Blind labels, the first comparison in `docs/reference-set.md`, and the two higher VPD bands it led to | high (thresholds) |
-| 6 | The maintainer's decisions in `docs/reference-set.md`, and `ReferenceSetTest` | low if no rule changes, otherwise the rule change is a separate high PR |
+| 6 | The maintainer's decisions in `docs/reference-set.md` and `decisions.json`, and `ReferenceSetTest` | high (`scripts/`: the generator writes the test's expectations) |

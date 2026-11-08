@@ -11,9 +11,10 @@ changes: the coordinates Open-Meteo echoes back are rounded to two decimal place
 - `cases.json`: the case list. Each case is a public landmark (no homes or personal places, coordinates
   to two decimals), a date, the local time the engine is asked at, and a note on why the case was chosen.
 - `<case id>.json`: Open-Meteo's response for that case, from the day before to three days after.
+- `decisions.json`: the maintainer's decision on each disagreement between the engine and a label.
 - `labels.json`: the blind labels, unedited. How they were made, and how the engine compares, is in
   [docs/reference-set.md](../../../../../docs/reference-set.md).
-- `ReferenceForecasts.kt` in `commonTest` is generated from these files. Don't edit it.
+- `ReferenceForecasts.kt` and `ReferenceExpectations.kt` in `commonTest` are generated from these files. Don't edit them.
 
 To change the set, edit `cases.json`, then run from the repository root:
 
