@@ -3,10 +3,12 @@ naming:
   FunctionNaming:
     # Composables are named like types.
     ignoreAnnotated: ['Composable']
-    # detekt's default excludes, and Compose's generated resource accessors, which the type-resolved
-    # tasks analyse along with our code so that references to them resolve.
+    # detekt's default excludes (copied: setting excludes replaces them, so recheck on a detekt upgrade),
+    # shared's androidHostTest test sources, and Compose's generated resource accessors, which the
+    # type-resolved tasks analyse along with our code so that references to them resolve.
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**',
-      '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/build/generated/compose/**']
+      '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/androidHostTest/**',
+      '**/build/generated/compose/**']
 style:
   MaxLineLength:
     # Compose's generated resource accessors (see FunctionNaming).
