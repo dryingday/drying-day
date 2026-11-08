@@ -31,6 +31,9 @@ internal data class W(
     val shortwaveRadiationWm2: Double = 800.0,
     val precipitationMm: Double = 0.0,
     val visibilityM: Double? = null,
+    val rainChancePercent: Double? = null,
+    /** Defaults to [windSpeedKmh]. */
+    val gustKmh: Double? = null,
 )
 
 // Points an hour. The grey and raw days are the spec's worked examples; sunny is kept below 1.5 kPa so
@@ -70,9 +73,9 @@ internal fun forecast(
             relativeHumidityPercent = w.relativeHumidityPercent,
             windSpeedKmh = w.windSpeedKmh,
             visibilityM = w.visibilityM,
-            precipitationProbabilityPercent = null,
+            precipitationProbabilityPercent = w.rainChancePercent,
             precipitationMm = w.precipitationMm,
-            windGustKmh = w.windSpeedKmh,
+            windGustKmh = w.gustKmh ?: w.windSpeedKmh,
             shortwaveRadiationWm2 = w.shortwaveRadiationWm2,
         )
     }.toList()
