@@ -11,6 +11,7 @@ rounds and who merges; this file doesn't repeat it, only how to work with it her
 ./gradlew check assembleDebug                      # tests, lint, ktlint, detekt, non-free check
 ./gradlew spotlessApply                            # fix formatting
 python3 -m unittest discover -s .claude/hooks      # tests for the hooks below
+python3 -m unittest discover -s scripts            # tests for the scripts
 ```
 
 iOS targets are off unless `-Pdryingday.ios=true`. They need macOS: the Kotlin compiles with

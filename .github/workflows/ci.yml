@@ -44,6 +44,12 @@ jobs:
       # Tests for the Claude Code hooks that enforce the review policy.
       - run: python3 -m unittest discover -s .claude/hooks -v
 
+      # Tests for the scripts, and the generated reference forecasts must match their saved data.
+      - run: python3 -m unittest discover -s scripts -v
+      - run: |
+          python3 scripts/fetch-reference-forecasts.py --offline
+          git diff --exit-code -- shared/src/commonTest/kotlin/io/github/dryingday/reference/
+
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
