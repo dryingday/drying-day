@@ -34,6 +34,25 @@ private const val CONNECT_TIMEOUT_MS = 10_000L
 private const val REQUEST_TIMEOUT_MS = 30_000L
 private const val COORDINATE_SCALE = 100.0
 
+/** The credits Open-Meteo's data needs, wherever it is shown. */
+internal val openMeteoAttributions =
+    listOf(
+        Attribution(
+            name = "Open-Meteo.com",
+            url = "https://open-meteo.com/",
+            licence = "CC BY 4.0",
+            licenceUrl = "https://creativecommons.org/licenses/by/4.0/",
+            covers = AttributionScope.WEATHER,
+        ),
+        Attribution(
+            name = "GeoNames",
+            url = "https://www.geonames.org/",
+            licence = "CC BY 4.0",
+            licenceUrl = "https://creativecommons.org/licenses/by/4.0/",
+            covers = AttributionScope.PLACES,
+        ),
+    )
+
 /**
  * Open-Meteo. See docs/bolts/03-weather-source.md. The client is built here, not passed in, so the timeouts and
  * the no-redirects rule apply whoever uses this; there's deliberately no logging plugin, since URLs hold coordinates.
@@ -43,23 +62,7 @@ class OpenMeteoSource(engine: HttpClientEngine) :
     ForecastSource,
     PlaceSearchSource {
     override val id = "open-meteo"
-    override val attributions =
-        listOf(
-            Attribution(
-                name = "Open-Meteo.com",
-                url = "https://open-meteo.com/",
-                licence = "CC BY 4.0",
-                licenceUrl = "https://creativecommons.org/licenses/by/4.0/",
-                covers = AttributionScope.WEATHER,
-            ),
-            Attribution(
-                name = "GeoNames",
-                url = "https://www.geonames.org/",
-                licence = "CC BY 4.0",
-                licenceUrl = "https://creativecommons.org/licenses/by/4.0/",
-                covers = AttributionScope.PLACES,
-            ),
-        )
+    override val attributions = openMeteoAttributions
 
     private val client =
         HttpClient(engine) {
