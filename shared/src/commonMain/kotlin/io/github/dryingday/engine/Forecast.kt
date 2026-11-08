@@ -46,7 +46,9 @@ data class HourlyWeather(
     val shortwaveRadiationWm2: Double,
 ) {
     init {
-        require(temperatureC.isFinite()) { "temperature must be a number" }
+        require(temperatureC in MIN_TEMPERATURE_C..MAX_TEMPERATURE_C) {
+            "temperature must be $MIN_TEMPERATURE_C to $MAX_TEMPERATURE_C °C, was $temperatureC"
+        }
         requirePercent(relativeHumidityPercent, "relative humidity")
         precipitationProbabilityPercent?.let { requirePercent(it, "precipitation probability") }
         requireNonNegative(windSpeedKmh, "wind speed")
@@ -68,6 +70,10 @@ data class DailyLight(val date: LocalDate, val sunrise: Instant, val sunset: Ins
 }
 
 private const val MAX_PERCENT = 100.0
+
+// Beyond anything recorded at the surface: a value outside is bad data, not weather.
+private const val MIN_TEMPERATURE_C = -90.0
+private const val MAX_TEMPERATURE_C = 60.0
 
 private fun requirePercent(value: Double, name: String) =
     require(value in 0.0..MAX_PERCENT) { "$name must be 0 to 100, was $value" }
