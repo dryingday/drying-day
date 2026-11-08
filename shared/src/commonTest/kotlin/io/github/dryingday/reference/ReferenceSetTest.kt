@@ -43,11 +43,11 @@ class ReferenceSetTest {
 
     @Test
     fun everyOpenDisagreementStillDisagrees() {
-        val nowAgreeing = expectations.filter { it.decision == Decision.OPEN }.mapNotNull { expected ->
-            val (case, advice) = today(expected) ?: return@mapNotNull null
+        val failures = expectations.filter { it.decision == Decision.OPEN }.mapNotNull { expected ->
+            val (case, advice) = today(expected) ?: return@mapNotNull "${expected.id} ${expected.load}: no verdict"
             if (matches(advice, expected, case)) "${expected.id} ${expected.load} now agrees: settle it" else null
         }
-        assertTrue(nowAgreeing.isEmpty(), nowAgreeing.joinToString("\n"))
+        assertTrue(failures.isEmpty(), failures.joinToString("\n"))
     }
 
     @Test
