@@ -41,7 +41,8 @@ kotlin {
             implementation(libs.compose.components.resources)
             // Its types are in the engine's public API.
             api(libs.kotlinx.datetime)
-            implementation(libs.ktor.client.core)
+            // Its engine type is in the weather source's public API.
+            api(libs.ktor.client.core)
             implementation(libs.kotlinx.serialization.json)
         }
         androidMain.dependencies {

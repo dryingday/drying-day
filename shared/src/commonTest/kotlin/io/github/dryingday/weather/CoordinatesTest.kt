@@ -35,6 +35,22 @@ class CoordinatesTest {
     }
 
     @Test
+    fun printingDoesNotShowTheValues() {
+        val coordinates = Coordinates(12.34, 56.78)
+        val texts =
+            listOf(
+                coordinates.toString(),
+                Place("Testville", null, null, coordinates).toString(),
+                SourceResult.Success(listOf(Place("Testville", null, null, coordinates))).toString(),
+            )
+
+        for (text in texts) {
+            assertFalse(text.contains("12.34"), text)
+            assertFalse(text.contains("56.78"), text)
+        }
+    }
+
+    @Test
     fun theErrorDoesNotContainTheValues() {
         val latitude = assertFailsWith<IllegalArgumentException> { Coordinates(123.45, 67.89) }
         val longitude = assertFailsWith<IllegalArgumentException> { Coordinates(12.34, 567.89) }

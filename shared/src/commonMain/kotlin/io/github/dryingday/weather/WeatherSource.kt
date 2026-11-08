@@ -32,6 +32,9 @@ data class Coordinates(val latitude: Double, val longitude: Double) {
         require(latitude in -MAX_LATITUDE..MAX_LATITUDE) { "latitude out of range" }
         require(longitude in -MAX_LONGITUDE..MAX_LONGITUDE) { "longitude out of range" }
     }
+
+    /** Leaves the values out, for the same reason. [Place] and results that hold one inherit this. */
+    override fun toString() = "Coordinates(hidden)"
 }
 
 /** A place found by name. [region] is a state, county or similar. */
@@ -59,7 +62,10 @@ sealed interface SourceResult<out T> {
 
 /** Why a source couldn't answer. */
 enum class SourceError {
-    /** Offline, DNS, TLS, a timeout, a connection lost while reading the reply, or any other exception. */
+    /**
+     * Offline, DNS, TLS, a timeout, a connection lost while reading the reply, or any other exception that
+     * isn't from decoding or mapping a complete reply.
+     */
     UNREACHABLE,
 
     /** The source answered with a status other than 2xx. */
