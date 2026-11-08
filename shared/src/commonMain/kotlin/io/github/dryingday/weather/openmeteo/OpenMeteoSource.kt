@@ -12,11 +12,10 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.round
 
 private const val FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
@@ -33,6 +32,7 @@ private const val COORDINATE_SCALE = 100.0
 /**
  * Open-Meteo. See docs/bolts/03-weather-source.md. The client is built here, not passed in, so the timeouts and
  * the no-redirects rule apply whoever uses this; there's deliberately no logging plugin, since URLs hold coordinates.
+ * Keep one for the life of the app, with its own engine: the client is never closed.
  */
 class OpenMeteoSource(engine: HttpClientEngine) : ForecastSource {
     override val id = "open-meteo"
@@ -85,17 +85,16 @@ class OpenMeteoSource(engine: HttpClientEngine) : ForecastSource {
                 parameters.forEach { (name, value) -> parameter(name, value) }
             }
         if (response.status.isSuccess()) {
-            parse(response.bodyAsText())?.let { SourceResult.Success(it) }
+            // As bytes, since JSON is UTF-8: a bad Content-Type mustn't make a complete reply look like a lost one.
+            parse(response.bodyAsBytes().decodeToString())?.let { SourceResult.Success(it) }
                 ?: SourceResult.Failure(SourceError.BAD_RESPONSE)
         } else {
             SourceResult.Failure(SourceError.SERVICE)
         }
-    } catch (_: CancellationException) {
-        // Rethrows if the caller was cancelled. Otherwise the engine gave up, which isn't a cancellation of the
-        // caller, and letting it out would silently end a caller that's still running.
-        currentCoroutineContext().ensureActive()
-        SourceResult.Failure(SourceError.UNREACHABLE)
     } catch (_: Exception) {
+        // If the caller was cancelled, that rethrows, whatever the engine reported the abort as. Any other
+        // cancellation is the request's own, such as a timeout; letting it out would silently end a running caller.
+        currentCoroutineContext().ensureActive()
         SourceResult.Failure(SourceError.UNREACHABLE)
     }
 }

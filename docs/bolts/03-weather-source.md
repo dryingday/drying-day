@@ -16,7 +16,7 @@ In `commonMain`, package `io.github.dryingday.weather`, modelled on Breezy Weath
 - `Coordinates(latitude, longitude)`, rejecting anything out of range or not finite, with a message that doesn't include the values.
 - `Place(name, region: String?, country: String?, coordinates)`.
 - `Attribution(name, url, licence, licenceUrl, covers: WEATHER | PLACES)`. Names and URLs are data; the sentences around them are string resources.
-- `SourceResult<T>`: `Success(value)` or `Failure(error)`, with `SourceError` one of `UNREACHABLE` (offline, DNS, TLS, timeout, a connection lost while reading the body, and any other exception), `SERVICE` (any non-2xx, including 3xx, 400 and 429) and `BAD_RESPONSE` (a complete 2xx body that can't be decoded or mapped). A `Failure` carries only that code: Ktor's exception messages contain the URL, and the URL contains the coordinates. `CancellationException` is rethrown; no other exception leaves the source.
+- `SourceResult<T>`: `Success(value)` or `Failure(error)`, with `SourceError` one of `UNREACHABLE` (offline, DNS, TLS, timeout, a connection lost while reading the body, and any other exception), `SERVICE` (any non-2xx, including 3xx, 400 and 429) and `BAD_RESPONSE` (a complete 2xx body that can't be decoded or mapped). A `Failure` carries only that code: Ktor's exception messages contain the URL, and the URL contains the coordinates. A cancellation of the caller is rethrown, whatever the engine reports it as. No other exception leaves the source: Ktor delivers a request timeout as a cancellation of the request, and letting that out would silently end a caller that's still running, so it's `UNREACHABLE`.
 
 Open-Meteo lives in `weather/openmeteo`.
 

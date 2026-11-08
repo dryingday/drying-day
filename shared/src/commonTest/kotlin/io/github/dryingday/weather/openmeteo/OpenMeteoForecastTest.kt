@@ -5,6 +5,7 @@ import io.github.dryingday.weather.Coordinates
 import io.github.dryingday.weather.SourceError
 import io.github.dryingday.weather.SourceResult
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.HttpTimeoutCapability
@@ -20,7 +21,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
@@ -32,6 +35,7 @@ import kotlin.test.assertTrue
 
 private const val FIRST_STAMP = 1749906000L
 private const val SECOND_STAMP = 1749909600L
+private const val PAST_THE_TIMEOUT_MS = 60_000L
 private const val GOOD_BODY =
     """{"timezone":"Etc/UTC","utc_offset_seconds":0,
     "hourly":{"time":[$FIRST_STAMP,$SECOND_STAMP],"temperature_2m":[20.0,20.0],"relative_humidity_2m":[50,50],
@@ -167,11 +171,17 @@ class OpenMeteoForecastTest {
     fun cancellingTheCallerCancelsTheCall() = runTest {
         val started = CompletableDeferred<Unit>()
         var returned = false
+        var engineCancelled = false
         val caller =
             launch(start = CoroutineStart.UNDISPATCHED) {
                 source {
                     started.complete(Unit)
-                    awaitCancellation()
+                    try {
+                        awaitCancellation()
+                    } catch (e: CancellationException) {
+                        engineCancelled = true
+                        throw e
+                    }
                 }.forecast(somewhere)
                 returned = true
             }
@@ -180,7 +190,55 @@ class OpenMeteoForecastTest {
         caller.cancelAndJoin()
 
         assertTrue(caller.isCancelled)
+        assertTrue(engineCancelled)
         assertFalse(returned)
+    }
+
+    @Test
+    fun aCancelledCallerGetsNoResultEvenIfTheEngineReportsAnIoError() = runTest {
+        val started = CompletableDeferred<Unit>()
+        var returned = false
+        val caller =
+            launch(start = CoroutineStart.UNDISPATCHED) {
+                source {
+                    started.complete(Unit)
+                    try {
+                        awaitCancellation()
+                    } catch (_: CancellationException) {
+                        throw IOException("transport closed")
+                    }
+                }.forecast(somewhere)
+                returned = true
+            }
+        started.await()
+
+        caller.cancelAndJoin()
+
+        assertFalse(returned)
+    }
+
+    @Test
+    fun aRequestTimeoutIsUnreachable() = runTest {
+        val config =
+            MockEngineConfig().apply {
+                dispatcher = StandardTestDispatcher(testScheduler)
+                addHandler {
+                    delay(PAST_THE_TIMEOUT_MS)
+                    respond(GOOD_BODY)
+                }
+            }
+
+        assertEquals(failure(SourceError.UNREACHABLE), OpenMeteoSource(MockEngine(config)).forecast(somewhere))
+    }
+
+    @Test
+    fun aMalformedContentTypeDoesNotStopACompleteReply() = runTest {
+        val result =
+            source {
+                respond(GOOD_BODY, headers = headersOf(HttpHeaders.ContentType, "not a type;;="))
+            }.forecast(somewhere)
+
+        assertIs<SourceResult.Success<Forecast>>(result)
     }
 
     @Test
