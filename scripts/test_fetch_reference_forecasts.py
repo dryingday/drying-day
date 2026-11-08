@@ -142,5 +142,79 @@ class KotlinTest(unittest.TestCase):
             ref.kotlin_doubles([math.inf])
 
 
+def label(verdict="WILL_DRY", hang="08:00", bring="11:00"):
+    return {"verdict": verdict, "hangOut": hang, "bringIn": bring, "reason": "r"}
+
+
+class ExpectationsTest(unittest.TestCase):
+    cases = [{"id": "a"}, {"id": "b"}]
+    labels = {"labels": [{"id": "a", "light": label(), "heavy": label(bring="14:00")},
+                         {"id": "b", "light": label(), "heavy": label("PARTLY_DRY", "08:00", "15:00")}]}
+
+    def test_without_decisions_every_label_stands(self):
+        out = ref.expectations(self.cases, self.labels, {"decisions": []})
+        self.assertEqual(4, len(out))
+        self.assertEqual({"AGREED"}, {e["decision"] for e in out})
+        self.assertEqual(("a", "heavy", "WILL_DRY", "08:00", "14:00"),
+                         tuple(out[1][k] for k in ("id", "load", "verdict", "hangOut", "bringIn")))
+
+    def test_a_wrong_label_is_replaced_and_an_open_one_kept_but_marked(self):
+        decisions = {"decisions": [
+            {"id": "b", "load": "heavy", "decision": "label wrong", "verdict": "DONT_BOTHER", "hangOut": None, "bringIn": None},
+            {"id": "a", "load": "light", "decision": "open"},
+        ]}
+        out = {(e["id"], e["load"]): e for e in ref.expectations(self.cases, self.labels, decisions)}
+        self.assertEqual(("LABEL_WRONG", "DONT_BOTHER", None, None),
+                         tuple(out[("b", "heavy")][k] for k in ("decision", "verdict", "hangOut", "bringIn")))
+        self.assertEqual("OPEN", out[("a", "light")]["decision"])
+
+    def test_decisions_must_match_a_label_once_and_be_well_formed(self):
+        bad = [
+            [{"id": "zzz", "load": "light", "decision": "open"}],
+            [{"id": "a", "load": "light", "decision": "open"}, {"id": "a", "load": "light", "decision": "open"}],
+            [{"id": "a", "load": "light", "decision": "maybe"}],
+            [{"id": "a", "load": "medium", "decision": "open"}],
+            [{"id": "a", "load": "light"}],
+            [{"id": "a", "load": "light", "decision": "label wrong", "verdict": "WILL_DRY", "hangOut": None, "bringIn": None}],
+        ]
+        for decisions in bad:
+            with self.assertRaises(ValueError, msg=decisions):
+                ref.expectations(self.cases, self.labels, {"decisions": decisions})
+
+    def test_every_case_needs_a_label_and_every_label_a_case(self):
+        with self.assertRaises(ValueError):
+            ref.expectations(self.cases + [{"id": "c"}], self.labels, {"decisions": []})
+        with self.assertRaises(ValueError):
+            ref.expectations(self.cases[:1], self.labels, {"decisions": []})
+
+    def test_times_are_hh_mm_and_may_be_left_out_when_there_are_none(self):
+        for bad in ("9:30", "17:54:00", "25:00"):
+            labels = {"labels": [{"id": "a", "light": label(bring=bad), "heavy": label()}]}
+            with self.assertRaises(ValueError, msg=bad):
+                ref.expectations(self.cases[:1], labels, {"decisions": []})
+        decisions = {"decisions": [{"id": "a", "load": "light", "decision": "label wrong", "verdict": "DONT_BOTHER"}]}
+        labels = {"labels": self.labels["labels"][:1]}
+        (light, _) = ref.expectations(self.cases[:1], labels, decisions)
+        self.assertEqual((None, None), (light["hangOut"], light["bringIn"]))
+
+    def test_a_wrong_label_must_differ_from_the_label(self):
+        decisions = {"decisions": [{"id": "a", "load": "light", "decision": "label wrong", **label()}]}
+        with self.assertRaises(ValueError):
+            ref.expectations(self.cases, self.labels, decisions)
+
+    def test_the_documents_decision_column_must_match(self):
+        decisions = {"decisions": [{"id": "a", "load": "light", "decision": "open"}]}
+        ref.check_document(decisions, "| `a` | light | time | x | y | z | **Open.** why |\n")
+        for doc in ("| `a` | light | time | x | y | z | **Label wrong.** why |\n", "nothing here\n",
+                    "| `a` | light | time | x | y | z | **Open.** why |\n| `b` | heavy | time | x | y | z | **Open.** |\n"):
+            with self.assertRaises(ValueError, msg=doc):
+                ref.check_document(decisions, doc)
+
+    def test_the_kotlin_names_the_load_verdict_and_decision(self):
+        out = ref.expectations(self.cases[:1], {"labels": self.labels["labels"][:1]}, {"decisions": []})
+        kotlin = ref.kotlin_expectations_file(out)
+        self.assertIn('ReferenceExpectation("a", Load.LIGHT, Verdict.WILL_DRY, "08:00", "11:00", Decision.AGREED)', kotlin)
+
+
 if __name__ == "__main__":
     unittest.main()

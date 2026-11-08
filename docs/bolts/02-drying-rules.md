@@ -115,8 +115,8 @@ The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usabl
   - a generated `ReferenceForecasts.kt` in `commonTest` holding them as engine `Forecast`s, one function per case to stay under the JVM's method size limit, since common tests can't read files.
 - About 36 cases at public landmarks (coordinates to two decimal places, no homes), chosen for spread rather than chance: maritime, continental, Mediterranean, Nordic and southern-hemisphere climates; clear, showery, foggy, windy, cold and humid days; both daylight-saving changes; one polar case. `now` is 08:00 local, plus a few cases at midday and late afternoon.
 - **Blind labels.** A fresh subagent, given only each case's hourly data in local time, sunrise and sunset, and the verdict definitions (not the engine, the rules or the thresholds), labels each case for both loads: verdict, hang-out and bring-in to the hour, and a one-line reason. Labelling can happen before the engine exists.
-- **Disagreements.** The engine runs on every case. Each disagreement goes in `docs/reference-set.md` with both answers, and the maintainer decides: the label was wrong, or the rule was. A rule change is its own high-tier PR.
-- `ReferenceSetTest` asserts every agreed case on its first day (the "today" entry): the same verdict, and hang-out and bring-in within an hour of the label. The two days after only need to be non-null.
+- **Disagreements.** The engine runs on every case. Each disagreement goes in `docs/reference-set.md` with both answers, and the maintainer decides: the label was wrong, the rule was, or it stays open. A rule change is its own high-tier PR. An open disagreement is recorded in the document and in `decisions.json`, and left out of the test's agreement check, for evidence that's better than one labeller's judgement.
+- `ReferenceSetTest` asserts every agreed case on its first day (the "today" entry): the same verdict, and hang-out and bring-in within an hour of the label, or of the maintainer's answer where the label was wrong. Every open case must still disagree, so the document stays true. The two days after only need to be non-null.
 - Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places", and the maintainer agreed ([on PR #13](https://github.com/dryingday/drying-day/pull/13#discussion_r4503700795)) to an exception to the "no real places" rule for the reference set alone. CLAUDE.md, CONTRIBUTING.md and REVIEW.md now say so.
 
 ## Out of scope
@@ -130,7 +130,7 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 - Tests show that a shower stamped 14:00 by Open-Meteo lands in the hour from 13:00 in the generator.
 - Tests show correct hang-out and bring-in times across the spring and autumn daylight-saving changes in at least two zones in different hemispheres, a sunrise or sunset that falls mid-hour, a `now` partway through the day, and polar day and night.
 - Missing hours or required fields give `null` for that day, never a verdict.
-- Every reference case has a blind label for both loads; every disagreement has the maintainer's decision in `docs/reference-set.md`; `ReferenceSetTest` passes on all agreed cases.
+- Every reference case has a blind label for both loads; every disagreement has the maintainer's decision (label wrong, rule wrong, or open) in `docs/reference-set.md`; `ReferenceSetTest` passes on all agreed and decided cases.
 - No real places outside the reference set, and in it public landmarks only, coordinates to two decimals; no homes or personal data.
 
 ## PRs
@@ -146,4 +146,4 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 | 4 | Tips and indoor plan | high (their cut-offs are thresholds) |
 | 5 | Fetch script, fixtures and generated `ReferenceForecasts.kt`. Needs PR 1's types; can run alongside PRs 2–4. | high (`scripts/`) |
 | 6a | Blind labels, the first comparison in `docs/reference-set.md`, and the two higher VPD bands it led to | high (thresholds) |
-| 6 | The maintainer's decisions in `docs/reference-set.md`, and `ReferenceSetTest` | low if no rule changes, otherwise the rule change is a separate high PR |
+| 6 | The maintainer's decisions in `docs/reference-set.md` and `decisions.json`, and `ReferenceSetTest` | high (`scripts/`: the generator writes the test's expectations) |

@@ -48,27 +48,41 @@ the hot days within the hour. Also tried, on a Python copy of the engine that ma
 
 ## Disagreements with the current rules
 
-For the maintainer to decide, one by one: the label was wrong, or the rule was (a rule change being its
-own high-tier PR). Engine times are local; dryness is the engine's.
+Each one decided by the maintainer on 8 November 2026 (in the Claude Code session, on the agent's
+recommendations): **label wrong**, so the engine's answer is what `ReferenceSetTest` expects, or **open**,
+a known disagreement the test skips. None was a rule change. The decisions are also in
+`testdata/reference/decisions.json`, which the generator turns into `ReferenceExpectations.kt`; the two
+must agree.
+
+In all: 55 case-loads agree with their label, 4 labels were wrong, and 15 disagreements are open. Of the
+open ones, one is a verdict (Wellington on 6 April, light) and 14 are times. Most of the times follow a
+pattern: heavy loads dry 1–2 hours sooner in the engine than the labeller thinks on mild or northern days
+(7 cases), and light loads about an hour later (5). The other three are Seattle on 9 March, where the
+engine waits for morning damp to clear before hanging out (both loads), and Wellington on 28 December,
+heavy, an hour later out and two hours later in after showers. That's one labeller's view of how long
+washing takes, and real line-drying observations would settle it better than another rule change.
+`ReferenceSetTest` checks that every open case still disagrees, so this list can't go stale.
+
+Engine times are local; dryness is the engine's.
 
 | Case | Load | Differs in | Engine | Label | Labeller's reason | Decision |
 |---|---|---|---|---|---|---|
-| `dublin-2025-08-18-0800` | heavy | verdict | Will dry 100 %, 08:00–17:54 | Partly dry, 08:00–18:00 | Humidity stays around 75-80%, so heavy items won't fully dry. | |
-| `edinburgh-2025-03-30-0800` | heavy | time | Will dry 100 %, 08:00–14:45 | Will dry, 08:00–16:00 | Windy and dry all day gives heavy items enough time. | |
-| `greenwich-2025-03-30-0800` | heavy | time | Will dry 100 %, 08:00–14:09 | Will dry, 08:00–16:00 | Brisk wind and very dry afternoon air finish heavy items before evening. | |
-| `greenwich-2025-05-25-0800` | heavy | time | Will dry 100 %, 11:00–14:55 | Will dry, 11:00–17:00 | Strong wind and humidity in the 30s dry heavy items through the afternoon. | |
-| `greenwich-2025-10-26-0800` | light | time | Will dry 100 %, 08:00–14:13 | Will dry, 08:00–13:00 | Cool but breezy and dry until rain arrives late afternoon. | |
-| `madrid-2025-01-04-0800` | light | verdict | Don't bother 10 % | Partly dry, 12:00–17:00 | Fog clears late and humidity stays in the 80s with no wind; light items only part dry. | |
-| `madrid-2025-02-16-0800` | light | time | Will dry 100 %, 10:00–14:53 | Will dry, 09:00–13:00 | Cold start but sunny with humidity falling to the 30s by afternoon. | |
-| `madrid-2025-07-17-0800` | light | time | Will dry 100 %, 08:00–11:17 | Will dry, 08:00–10:00 | Intense heat and very dry air dry light things almost at once. | |
-| `oslo-2025-06-21-0800` | heavy | time | Will dry 100 %, 08:00–12:40 | Will dry, 08:00–14:00 | Long sunny day with low humidity dries heavy items by early afternoon. | |
-| `rome-2025-07-09-0800` | heavy | time | Will dry 100 %, 08:00–11:53 | Will dry, 08:00–13:00 | Hot, dry and breezy all day dries heavy items by early afternoon. | |
-| `rome-2025-10-25-0800` | heavy | verdict | Will dry 100 %, 08:00–14:38 | Partly dry, 08:00–15:00 | Rain arrives mid-afternoon before heavy items can finish. | |
-| `seattle-2025-03-09-0800` | heavy | time | Partly dry 55 %, 10:00–15:00 | Partly dry, 08:00–14:00 | Cool, and rain arrives mid-afternoon before heavy items dry. | |
-| `seattle-2025-03-09-0800` | light | time | Will dry 100 %, 10:00–14:36 | Will dry, 08:00–13:00 | Cool but windy with humidity falling to the 60s before rain. | |
-| `sydney-2025-06-26-0800` | heavy | time | Will dry 100 %, 08:00–14:42 | Will dry, 08:00–16:00 | Breezy with humidity in the 40s; heavy items just make it before sunset. | |
-| `sydney-2025-10-05-0800` | light | time | Will dry 100 %, 08:00–12:04 | Will dry, 08:00–11:00 | Humid start soon gives way to warm sun and dry air. | |
-| `tromso-2025-07-18-0800` | heavy | time | Will dry 100 %, 08:00–12:15 | Will dry, 08:00–14:00 | Warm, dry and breezy all day with strong sun. | |
-| `wellington-2025-04-06-0800` | heavy | verdict | Don't bother 34 % | Partly dry, 08:00–12:00 | Showers from midday cut drying short for heavy items. | |
-| `wellington-2025-04-06-0800` | light | verdict | Partly dry 69 %, 08:00–11:00 | Will dry, 08:00–11:00 | Strong wind dries light things before showers build from late morning. | |
-| `wellington-2025-12-28-0800` | heavy | time | Partly dry 83 %, 14:00–20:56 | Partly dry, 15:00–19:00 | Only a few dry hours after the showers before evening humidity rises. | |
+| `dublin-2025-08-18-0800` | heavy | verdict | Will dry 100 %, 08:00–17:54 | Partly dry, 08:00–18:00 | Humidity stays around 75-80%, so heavy items won't fully dry. | **Label wrong.** Borderline: 74–82 % humidity in a light breeze reaches 12 points six minutes before 18:00. |
+| `edinburgh-2025-03-30-0800` | heavy | time | Will dry 100 %, 08:00–14:45 | Will dry, 08:00–16:00 | Windy and dry all day gives heavy items enough time. | **Open.** The engine dries heavy loads 1–2 h sooner than the labeller on mild or northern days; real line-drying observations should settle it. |
+| `greenwich-2025-03-30-0800` | heavy | time | Will dry 100 %, 08:00–14:09 | Will dry, 08:00–16:00 | Brisk wind and very dry afternoon air finish heavy items before evening. | **Open.** The engine dries heavy loads 1–2 h sooner than the labeller on mild or northern days; real line-drying observations should settle it. |
+| `greenwich-2025-05-25-0800` | heavy | time | Will dry 100 %, 11:00–14:55 | Will dry, 11:00–17:00 | Strong wind and humidity in the 30s dry heavy items through the afternoon. | **Open.** The engine dries heavy loads 1–2 h sooner than the labeller on mild or northern days; real line-drying observations should settle it. |
+| `greenwich-2025-10-26-0800` | light | time | Will dry 100 %, 08:00–14:13 | Will dry, 08:00–13:00 | Cool but breezy and dry until rain arrives late afternoon. | **Open.** The engine is about an hour slower than the labeller with light loads here. |
+| `madrid-2025-01-04-0800` | light | verdict | Don't bother 10 % | Partly dry, 12:00–17:00 | Fog clears late and humidity stays in the 80s with no wind; light items only part dry. | **Label wrong.** Fog until 10:00, then 82–92 % humidity at 5–8 °C in 1–3 km/h of wind: almost nothing can dry. |
+| `madrid-2025-02-16-0800` | light | time | Will dry 100 %, 10:00–14:53 | Will dry, 09:00–13:00 | Cold start but sunny with humidity falling to the 30s by afternoon. | **Open.** The engine is about an hour slower than the labeller with light loads here. |
+| `madrid-2025-07-17-0800` | light | time | Will dry 100 %, 08:00–11:17 | Will dry, 08:00–10:00 | Intense heat and very dry air dry light things almost at once. | **Open.** The engine is about an hour slower than the labeller with light loads here. |
+| `oslo-2025-06-21-0800` | heavy | time | Will dry 100 %, 08:00–12:40 | Will dry, 08:00–14:00 | Long sunny day with low humidity dries heavy items by early afternoon. | **Open.** The engine dries heavy loads 1–2 h sooner than the labeller on mild or northern days; real line-drying observations should settle it. |
+| `rome-2025-07-09-0800` | heavy | time | Will dry 100 %, 08:00–11:53 | Will dry, 08:00–13:00 | Hot, dry and breezy all day dries heavy items by early afternoon. | **Open.** The engine dries heavy loads 1–2 h sooner than the labeller on mild or northern days; real line-drying observations should settle it. |
+| `rome-2025-10-25-0800` | heavy | verdict | Will dry 100 %, 08:00–14:38 | Partly dry, 08:00–15:00 | Rain arrives mid-afternoon before heavy items can finish. | **Label wrong.** The first rain is 0.2 mm at 15:00, after the engine's 14:38 bring-in. |
+| `seattle-2025-03-09-0800` | heavy | time | Partly dry 55 %, 10:00–15:00 | Partly dry, 08:00–14:00 | Cool, and rain arrives mid-afternoon before heavy items dry. | **Open.** The engine hangs out at 10:00 after morning damp; the label says 08:00. |
+| `seattle-2025-03-09-0800` | light | time | Will dry 100 %, 10:00–14:36 | Will dry, 08:00–13:00 | Cool but windy with humidity falling to the 60s before rain. | **Open.** The engine hangs out at 10:00 after morning damp; the label says 08:00. |
+| `sydney-2025-06-26-0800` | heavy | time | Will dry 100 %, 08:00–14:42 | Will dry, 08:00–16:00 | Breezy with humidity in the 40s; heavy items just make it before sunset. | **Open.** The engine dries heavy loads 1–2 h sooner than the labeller on mild or northern days; real line-drying observations should settle it. |
+| `sydney-2025-10-05-0800` | light | time | Will dry 100 %, 08:00–12:04 | Will dry, 08:00–11:00 | Humid start soon gives way to warm sun and dry air. | **Open.** The engine is about an hour slower than the labeller with light loads here. |
+| `tromso-2025-07-18-0800` | heavy | time | Will dry 100 %, 08:00–12:15 | Will dry, 08:00–14:00 | Warm, dry and breezy all day with strong sun. | **Open.** The engine dries heavy loads 1–2 h sooner than the labeller on mild or northern days; real line-drying observations should settle it. |
+| `wellington-2025-04-06-0800` | heavy | verdict | Don't bother 34 % | Partly dry, 08:00–12:00 | Showers from midday cut drying short for heavy items. | **Label wrong.** Three hours at 66–72 % in a 25 km/h wind before rain don't get towels half dry. |
+| `wellington-2025-04-06-0800` | light | verdict | Partly dry 69 %, 08:00–11:00 | Will dry, 08:00–11:00 | Strong wind dries light things before showers build from late morning. | **Open.** Both bring it in at 11:00; whether three breezy hours at 66–72 % dry shirts is a judgement call. |
+| `wellington-2025-12-28-0800` | heavy | time | Partly dry 83 %, 14:00–20:56 | Partly dry, 15:00–19:00 | Only a few dry hours after the showers before evening humidity rises. | **Open.** Hang-out 14:00 against 15:00 and bring-in 20:56 against 19:00 after showers. |
