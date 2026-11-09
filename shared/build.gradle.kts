@@ -43,6 +43,8 @@ kotlin {
             api(libs.kotlinx.datetime)
             // Its engine type is in the weather source's public API.
             api(libs.ktor.client.core)
+            // Its Settings type is in the place store's public API.
+            api(libs.multiplatform.settings)
             implementation(libs.kotlinx.serialization.json)
         }
         androidMain.dependencies {
@@ -52,6 +54,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.multiplatform.settings.test)
         }
     }
 }

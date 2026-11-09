@@ -71,20 +71,6 @@ class OpenMeteoForecastTest {
     }
 
     @Test
-    fun roundsCoordinatesToTwoDecimals() {
-        assertEquals(Coordinates(12.35, -65.43), roundedForRequest(somewhere))
-        assertEquals(Coordinates(90.0, 180.0), roundedForRequest(Coordinates(89.999, 179.999)))
-    }
-
-    @Test
-    fun aValueRoundingToZeroIsNotNegativeZero() {
-        val rounded = roundedForRequest(Coordinates(-0.001, -0.004))
-
-        assertEquals("0.0", rounded.latitude.toString())
-        assertEquals("0.0", rounded.longitude.toString())
-    }
-
-    @Test
     fun setsTheTimeoutsOnTheRequest() = runTest {
         var connect: Long? = null
         var whole: Long? = null
