@@ -5,7 +5,6 @@ import io.github.dryingday.weather.Coordinates
 import io.github.dryingday.weather.Place
 import io.github.dryingday.weather.rounded
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 private const val KEY = "places"
@@ -33,8 +32,6 @@ private class StoredPlace(
  * docs/bolts/04-location.md.
  */
 class PlaceStore(private val settings: Settings) {
-    private val json = Json { encodeDefaults = true }
-
     var places: List<SavedPlace> = emptyList()
         private set
 
@@ -84,7 +81,7 @@ class PlaceStore(private val settings: Settings) {
 
     private fun save() {
         val state = StoredState(VERSION, places.map { it.toStored() }, current?.let { places.indexOf(it) })
-        settings.putString(KEY, json.encodeToString(state))
+        settings.putString(KEY, Json.encodeToString(state))
     }
 
     private fun load() {
@@ -95,11 +92,10 @@ class PlaceStore(private val settings: Settings) {
         current = kept.getOrNull(state.current ?: -1) ?: places.firstOrNull()
     }
 
-    // Never throws, and nothing from the value goes in a message: it holds coordinates.
+    // A value that won't decode is no places, and nothing from it goes in a message: it holds coordinates.
+    // SerializationException is an IllegalArgumentException.
     private fun decode(): StoredState? = try {
-        settings.getStringOrNull(KEY)?.let { json.decodeFromString<StoredState>(it) }
-    } catch (_: SerializationException) {
-        null
+        settings.getStringOrNull(KEY)?.let { Json.decodeFromString<StoredState>(it) }
     } catch (_: IllegalArgumentException) {
         null
     }

@@ -66,6 +66,18 @@ class PlaceStoreTest {
     }
 
     @Test
+    fun finerCoordinatesInAStoredValueAreRoundedOnLoadAndNotWrittenBack() {
+        val finer = MapSettings(KEY to state(entry("device", 30.1234, -40.3412)))
+
+        val again = PlaceStore(finer)
+        again.select(again.places.single())
+
+        assertEquals(SavedPlace.Device(Coordinates(30.12, -40.34)), again.current)
+        val text = checkNotNull(finer.getStringOrNull(KEY))
+        assertFalse("30.1234" in text || "40.3412" in text, text)
+    }
+
+    @Test
     fun aNewFixReplacesTheDevicePlaceInPlaceAndMakesItCurrent() {
         store.addSearched(testville)
         store.setDevice(atlantic)
