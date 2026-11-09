@@ -5,6 +5,9 @@
     <!-- The forecast and place search, from the weather source only. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- One approximate fix, when the user taps the button. Never fine or background location. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
