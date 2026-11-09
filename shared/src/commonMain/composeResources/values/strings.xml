@@ -3,4 +3,14 @@
     <string name="app_name">Drying Day</string>
     <string name="attribution_weather">Weather data by %1$s (%2$s). Drying advice worked out from it by this app.</string>
     <string name="attribution_places">Place data based on %1$s (%2$s).</string>
+    <string name="first_run_title">Where is your washing line?</string>
+    <string name="first_run_privacy">The place you choose is kept on this device. The weather source is sent only rough coordinates, or the name you searched for.</string>
+    <string name="first_run_privacy_location">If you use your approximate location, your phone's own location service, which you chose to turn on, may be run by the phone's maker or Google.</string>
+    <string name="first_run_use_location">Use my approximate location</string>
+    <string name="first_run_locating">Finding your location…</string>
+    <string name="first_run_search">Search for a place</string>
+    <string name="first_run_permission_denied">Location permission is off. Search instead, or allow it in Settings.</string>
+    <string name="first_run_open_settings">Open Settings</string>
+    <string name="first_run_location_off">Location is off on this device. Search instead, or turn it on and try again.</string>
+    <string name="first_run_no_fix">Couldn't get a location. Search instead, or try again.</string>
 </resources>
