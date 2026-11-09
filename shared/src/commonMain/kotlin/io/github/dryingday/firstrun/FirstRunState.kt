@@ -58,7 +58,9 @@ class FirstRunState(
         }
     }
 
+    /** Clears the message, which would be out of date if the user allows the permission there. */
     fun openSettings() {
+        problem = null
         location?.openAppSettings()
     }
 }

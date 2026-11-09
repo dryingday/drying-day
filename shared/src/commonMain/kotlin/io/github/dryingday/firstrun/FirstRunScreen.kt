@@ -45,7 +45,6 @@ import org.jetbrains.compose.resources.stringResource
 
 private val DARK_BACKGROUND = Color(0xFF121212)
 private val DARK_BUTTON_TEXT = Color(0xFF0B1B33)
-private const val WAITING_ALPHA = 0.6f
 
 /**
  * Shown while there is no current place. The location fix starts only from a tap, in the screen's own scope, so
@@ -111,7 +110,7 @@ private fun ChoiceButton(label: String, dark: Boolean, enabled: Boolean, onClick
         Modifier.fillMaxWidth()
             .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(if (enabled) fill else fill.copy(alpha = WAITING_ALPHA))
+            .background(fill)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,

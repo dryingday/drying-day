@@ -168,6 +168,15 @@ class FirstRunStateTest {
     }
 
     @Test
+    fun openingSettingsClearsThePermissionMessage() = runTest {
+        locateWith(DeviceLocationResult.PermissionDenied)
+
+        state.openSettings()
+
+        assertNull(state.problem)
+    }
+
+    @Test
     fun withoutALocationTheChoiceIsNotOfferedAndNothingHappens() = runTest {
         val bare = FirstRunState(null, store) { done++ }
 

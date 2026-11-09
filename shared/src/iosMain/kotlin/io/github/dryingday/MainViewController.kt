@@ -11,6 +11,7 @@ import platform.UIKit.UIViewController
  * `CADisableMinimumFrameDurationOnPhone` set to true, or Compose stops the app at launch.
  * There is no device location on iOS yet, so the first-run screen offers search only.
  */
-fun mainViewController(): UIViewController = ComposeUIViewController {
-    App(PlaceStore(NSUserDefaultsSettings(NSUserDefaults.standardUserDefaults)), deviceLocation = null)
+fun mainViewController(): UIViewController {
+    val placeStore = PlaceStore(NSUserDefaultsSettings(NSUserDefaults.standardUserDefaults))
+    return ComposeUIViewController { App(placeStore, deviceLocation = null) }
 }
