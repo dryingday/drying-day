@@ -1,6 +1,7 @@
 package io.github.dryingday
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,9 +30,11 @@ class MainActivity : ComponentActivity() {
         val answer = CompletableDeferred<Boolean>()
         permissionAnswer?.complete(false)
         permissionAnswer = answer
-        permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-        try {
-            return answer.await()
+        return try {
+            permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            answer.await()
+        } catch (_: ActivityNotFoundException) {
+            false // No permission screen on this device, so the system can't show the dialog.
         } finally {
             if (permissionAnswer === answer) permissionAnswer = null
         }

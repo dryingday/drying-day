@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
-import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
@@ -27,7 +26,6 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 
 /**
@@ -42,18 +40,16 @@ class AndroidDeviceLocation(
 ) : DeviceLocation {
     // Lazy: the activity builds this before it is attached to a Context, when getSystemService would fail.
     private val manager by lazy { context.getSystemService(LocationManager::class.java) }
-    private val mainExecutor = Executor { Handler(Looper.getMainLooper()).post(it) }
 
-    override suspend fun locate(): DeviceLocationResult {
+    override suspend fun locate(): DeviceLocationResult = withContext(Dispatchers.Main) {
         val granted = context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-        if (granted != PackageManager.PERMISSION_GRANTED && !requestPermission()) {
-            return DeviceLocationResult.PermissionDenied
-        }
-        return withContext(Dispatchers.Main) {
-            when {
-                !isLocationOn() -> DeviceLocationResult.LocationOff
-                else -> fixWhileStarted()
-            }
+        when {
+            granted != PackageManager.PERMISSION_GRANTED && !requestPermission() ->
+                DeviceLocationResult.PermissionDenied
+
+            !isLocationOn() -> DeviceLocationResult.LocationOff
+
+            else -> fixWhileStarted()
         }
     }
 
@@ -133,7 +129,14 @@ class AndroidDeviceLocation(
                     }
                     for (provider in providers) {
                         if (!continuation.isActive) break
-                        cancels += request(provider, answer)
+                        // Before API 30 a listener can report its provider disabled more than once.
+                        var answered = false
+                        cancels += request(provider) { location ->
+                            if (!answered) {
+                                answered = true
+                                answer(location)
+                            }
+                        }
                     }
                 }
             }
@@ -152,7 +155,7 @@ class AndroidDeviceLocation(
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val signal = CancellationSignal()
-                manager.getCurrentLocation(provider, signal, mainExecutor) { answer(it) }
+                manager.getCurrentLocation(provider, signal, context.mainExecutor) { answer(it) }
                 signal::cancel
             } else {
                 val listener = object : LocationListener {
@@ -178,7 +181,6 @@ class AndroidDeviceLocation(
     }
 
     private fun lastKnown(providers: List<String>): Coordinates? {
-        val nowMillis = SystemClock.elapsedRealtimeNanos() / NANOS_PER_MILLI
         val candidates = providers.mapNotNull { provider ->
             val location = try {
                 manager.getLastKnownLocation(provider)
@@ -187,6 +189,8 @@ class AndroidDeviceLocation(
             } catch (_: IllegalArgumentException) {
                 null
             }
+            // The clock is read after the location, so a fix that has just landed can't look like it's from the future.
+            val nowMillis = SystemClock.elapsedRealtimeNanos() / NANOS_PER_MILLI
             val coordinates = location?.let(::coordinatesOf)
             coordinates?.let { it to nowMillis - location.elapsedRealtimeNanos / NANOS_PER_MILLI }
         }

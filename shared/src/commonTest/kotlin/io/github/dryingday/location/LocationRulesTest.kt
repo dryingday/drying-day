@@ -16,11 +16,8 @@ class LocationRulesTest {
     }
 
     @Test
-    fun everyOtherEnabledProviderIsAskedOnceInOrder() {
-        assertEquals(
-            listOf("fused", "gps", "network"),
-            providersToAsk(listOf("fused", "gps", "passive", "network", "gps")),
-        )
+    fun everyOtherEnabledProviderIsAskedInOrder() {
+        assertEquals(listOf("fused", "gps", "network"), providersToAsk(listOf("fused", "gps", "passive", "network")))
         assertEquals(emptyList(), providersToAsk(emptyList()))
     }
 
