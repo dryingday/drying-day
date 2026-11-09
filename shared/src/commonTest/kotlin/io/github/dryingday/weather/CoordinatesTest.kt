@@ -65,4 +65,18 @@ class CoordinatesTest {
         assertFalse(checkNotNull(longitude.message).contains("12.34"))
         assertFalse(checkNotNull(longitude.message).contains("567.89"))
     }
+
+    @Test
+    fun roundsToTwoDecimals() {
+        assertEquals(Coordinates(12.35, -65.43), Coordinates(12.3456, -65.4321).rounded())
+        assertEquals(Coordinates(90.0, 180.0), Coordinates(89.999, 179.999).rounded())
+    }
+
+    @Test
+    fun aValueRoundingToZeroIsNotNegativeZero() {
+        val rounded = Coordinates(-0.001, -0.004).rounded()
+
+        assertEquals("0.0", rounded.latitude.toString())
+        assertEquals("0.0", rounded.longitude.toString())
+    }
 }

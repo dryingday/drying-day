@@ -9,6 +9,7 @@ import io.github.dryingday.weather.Place
 import io.github.dryingday.weather.PlaceSearchSource
 import io.github.dryingday.weather.SourceError
 import io.github.dryingday.weather.SourceResult
+import io.github.dryingday.weather.rounded
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
@@ -18,7 +19,6 @@ import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlin.math.round
 
 private const val FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 private const val SEARCH_URL = "https://geocoding-api.open-meteo.com/v1/search"
@@ -32,7 +32,6 @@ private const val MIN_QUERY_LENGTH = 2 // The API returns nothing for one charac
 private const val PLACE_RESULTS = 10
 private const val CONNECT_TIMEOUT_MS = 10_000L
 private const val REQUEST_TIMEOUT_MS = 30_000L
-private const val COORDINATE_SCALE = 100.0
 
 /** The credits Open-Meteo's data needs, wherever it is shown. */
 internal val openMeteoAttributions =
@@ -75,7 +74,7 @@ class OpenMeteoSource(engine: HttpClientEngine) :
         }
 
     override suspend fun forecast(at: Coordinates): SourceResult<Forecast> {
-        val rounded = roundedForRequest(at)
+        val rounded = at.rounded()
         val parameters =
             listOf(
                 "latitude" to rounded.latitude,
@@ -128,9 +127,3 @@ class OpenMeteoSource(engine: HttpClientEngine) :
         SourceResult.Failure(SourceError.UNREACHABLE)
     }
 }
-
-/** About a kilometre, and never more precise, whatever the caller has. Adding 0.0 turns -0.0 into 0.0. */
-internal fun roundedForRequest(at: Coordinates) = Coordinates(
-    latitude = round(at.latitude * COORDINATE_SCALE) / COORDINATE_SCALE + 0.0,
-    longitude = round(at.longitude * COORDINATE_SCALE) / COORDINATE_SCALE + 0.0,
-)
