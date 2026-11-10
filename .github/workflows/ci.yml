@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
   merge_group:
   workflow_dispatch:
@@ -39,7 +40,7 @@ jobs:
           cache-provider: basic
 
       # --continue reports every failing check in one run, not just the first.
-      - run: ./gradlew --continue check assembleDebug
+      - run: ./gradlew --continue check assembleDebug assembleRelease
 
       # Tests for the Claude Code hooks that enforce the review policy.
       - run: python3 -m unittest discover -s .claude/hooks -v
@@ -49,6 +50,29 @@ jobs:
       - run: |
           python3 scripts/fetch-reference-forecasts.py --offline
           git diff --exit-code -- shared/src/commonTest/kotlin/io/github/dryingday/reference/
+
+      # Pushes only: the unsigned release APK from a clean clone of the commit, built with the
+      # command F-Droid and scripts/release.py use, so neither this workspace nor the Gradle cache
+      # can stand in for a clean build. Nothing is signed or published here.
+      - name: Build the unsigned release APK in a clean clone
+        if: github.event_name == 'push'
+        run: |
+          git clone --quiet "$GITHUB_WORKSPACE" "$RUNNER_TEMP/release"
+          cd "$RUNNER_TEMP/release"
+          git checkout --quiet "$GITHUB_SHA"
+          ./gradlew --no-build-cache assembleRelease
+          cd androidApp/build/outputs/apk/release
+          sha256sum androidApp-release-unsigned.apk | tee androidApp-release-unsigned.apk.sha256
+
+      - if: github.event_name == 'push'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-unsigned-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/release/androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
+            ${{ runner.temp }}/release/androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk.sha256
+          retention-days: 90
+          if-no-files-found: error
 
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
