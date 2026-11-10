@@ -2,12 +2,13 @@
 """The agent's only way to act through the maintainer's GitHub account.
 
     maintainer.py merge N                  merge PR N, if docs/review-policy.md allows it
-    maintainer.py approve N --reason TEXT  approve a risk:low PR touching no protected path
+    maintainer.py approve N --reason TEXT  approve a risk:low or risk:medium PR touching no protected path
     maintainer.py apply-ruleset            apply .github/rulesets/main.json as merged on main
 
 Each command checks the policy itself (merge_gate.decide) on the PR as GitHub has it now:
   - merges are pinned to the commit that was checked (--match-head-commit);
-  - approvals always start with AGENT_APPROVAL_PREFIX, so they never count as the maintainer's;
+  - approvals always start with AGENT_MARKER and name the tier, so they never count as the
+    maintainer's;
   - the ruleset is taken from origin/main, never from the working tree.
 The merge gate hook refuses any other way of doing these things.
 """
@@ -21,9 +22,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from merge_gate import (  # noqa: E402
-    AGENT_APPROVAL_PREFIX,
     MAINTAINER,
     RULESET_FILE,
+    agent_approval_body,
+    agent_tier,
     codeowners_on_main,
     decide,
     fetch_pr,
@@ -62,7 +64,7 @@ def approve(number, reason, cwd):
     if not d.allow:
         fail(d.reason)
     print(d.reason)
-    body = f"{AGENT_APPROVAL_PREFIX} {reason.strip()}"
+    body = agent_approval_body(agent_tier(pr), reason)
     # Through the API so the approval is pinned to the commit that was checked.
     gh(["api", "-X", "POST", f"repos/{repo_name(cwd)}/pulls/{number}/reviews",
         "-f", "event=APPROVE", "-f", f"commit_id={pr.head}", "-f", f"body={body}"], cwd, as_maintainer=True)

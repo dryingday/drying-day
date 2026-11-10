@@ -38,7 +38,9 @@ For each PR:
 4. Review round 2: a fresh subagent reviews the diff against the bolt spec, skipping style.
 5. Review round 3, for network, location, permissions and release changes: `/security-review`.
 6. Fix confirmed findings only; record each finding and what was done in the PR description. Re-run checks.
-7. Risk tier assigned and the PR merged or flagged per [review-policy.md](review-policy.md).
+7. Risk tier assigned and the PR merged or flagged per [review-policy.md](review-policy.md). The agent merges low and medium PRs; the maintainer is asked only for decisions, which mostly means the bolt's spec.
+
+A spec names each protected change the bolt needs precisely enough to be checked against a diff: hosts and the data sent, permissions and manifest attributes, dependencies by their coordinates, threshold values. What the spec names, the implementing PRs can ship without another approval. Protected paths (build scripts, CI, the guardrails, the specs themselves) go in their own small PRs, apart from the feature.
 
 ## Bolts
 
