@@ -11,6 +11,7 @@ import io.github.dryingday.weather.ForecastSource
 import io.github.dryingday.weather.SourceError
 import io.github.dryingday.weather.SourceResult
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -91,6 +92,8 @@ class ForecastState(
         if (value == onScreen) return
         onScreen = value
         if (value) {
+            now = clock.now()
+            recompute()
             tickJob = scope.launch { tickEveryMinute() }
         } else {
             tickJob?.cancel()
@@ -102,7 +105,8 @@ class ForecastState(
 
     /** The Refresh button: ignores both waits, and does nothing while a fetch runs or with no place. */
     fun refresh() {
-        if (fetchJob == null) startFetch()
+        now = clock.now()
+        if (fetchJob == null) startFetch() else recompute()
     }
 
     private suspend fun tickEveryMinute() {
@@ -129,25 +133,31 @@ class ForecastState(
 
     private fun startFetch() {
         val coordinates = place ?: return
-        fetchJob = scope.launch {
-            val result = source.forecast(coordinates)
-            ensureActive()
-            val done = clock.now()
-            now = done
-            when (result) {
-                is SourceResult.Success -> {
-                    cache.put(coordinates, done, result.value)
-                    lastError = null
-                }
+        // Lazy, so fetchJob is set before the body can finish on an eager dispatcher.
+        val job = scope.launch(start = CoroutineStart.LAZY) {
+            try {
+                val result = source.forecast(coordinates)
+                ensureActive()
+                val done = clock.now()
+                now = done
+                when (result) {
+                    is SourceResult.Success -> {
+                        cache.put(coordinates, done, result.value)
+                        lastError = null
+                    }
 
-                is SourceResult.Failure -> {
-                    lastError = result.error
-                    retryNotBefore = done + AUTO_RETRY_AFTER
+                    is SourceResult.Failure -> {
+                        lastError = result.error
+                        retryNotBefore = done + AUTO_RETRY_AFTER
+                    }
                 }
+            } finally {
+                if (fetchJob === coroutineContext[Job]) fetchJob = null
+                recompute()
             }
-            fetchJob = null
-            recompute()
         }
+        fetchJob = job
+        job.start()
         recompute()
     }
 

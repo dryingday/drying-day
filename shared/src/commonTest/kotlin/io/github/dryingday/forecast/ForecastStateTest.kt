@@ -16,7 +16,11 @@ import io.github.dryingday.weather.SourceError
 import io.github.dryingday.weather.SourceResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -24,6 +28,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
@@ -66,13 +71,20 @@ private class FakeSource : ForecastSource {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-private class Harness(private val test: TestScope, val settings: MapSettings = MapSettings()) {
+private class Harness(
+    private val test: TestScope,
+    val settings: MapSettings = MapSettings(),
+    scope: CoroutineScope = test.backgroundScope,
+) {
     val source = FakeSource()
     val cache = ForecastCache(MapSettings())
+
+    /** Moves the clock without moving the scheduler, as setting the device's clock does. */
+    var skew: Duration = Duration.ZERO
     val clock = object : Clock {
-        override fun now() = start + test.testScheduler.currentTime.milliseconds
+        override fun now() = start + test.testScheduler.currentTime.milliseconds + skew
     }
-    val state = ForecastState(source, cache, settings, clock, test.backgroundScope)
+    val state = ForecastState(source, cache, settings, clock, scope)
 
     fun cached(age: Duration, at: Coordinates = here) = cache.put(at, clock.now() - age, theForecast)
 
@@ -227,6 +239,19 @@ class ForecastStateTest {
         assertEquals(1, h.source.calls.size)
 
         h.pass(1.minutes)
+        assertEquals(2, h.source.calls.size)
+    }
+
+    @Test
+    fun aWaitLongerThanFifteenMinutesMeansTheClockWentBackAndDoesNotHoldFetches() = runTest {
+        val h = Harness(this)
+        h.source.result = SourceResult.Failure(SourceError.UNREACHABLE)
+        h.open()
+        assertEquals(1, h.source.calls.size)
+
+        h.skew = (-2).hours
+        h.pass(1.minutes)
+
         assertEquals(2, h.source.calls.size)
     }
 
@@ -396,5 +421,32 @@ class ForecastStateTest {
         assertEquals(advise(theForecast, Load.LIGHT, h.clock.now()), h.showing.days)
         assertNotEquals(emptyList(), heavy)
         assertEquals(1, h.source.calls.size)
+    }
+
+    @Suppress("InjectDispatcher") // The point: a scope that runs launched work at once.
+    @Test
+    fun anEagerDispatcherDoesNotLeaveTheFetchLookingBusy() = runTest {
+        val scope = CoroutineScope(Job() + Dispatchers.Unconfined)
+        val h = Harness(this, scope = scope)
+        h.state.setPlace(here)
+
+        h.state.refresh()
+        assertFalse(h.showing.refreshing)
+        h.state.refresh()
+
+        assertEquals(2, h.source.calls.size)
+        scope.cancel()
+    }
+
+    @Test
+    fun comingBackOnScreenRerunsTheAdviceAtOnce() = runTest {
+        val h = Harness(this)
+        h.open()
+        h.state.setOnScreen(false)
+
+        h.skew = 25.hours
+        h.state.setOnScreen(true)
+
+        assertIs<ForecastStatus.OutOfDate>(h.state.status)
     }
 }
