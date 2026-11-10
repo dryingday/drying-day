@@ -34,6 +34,11 @@ sealed interface SearchStatus {
 
 const val MIN_QUERY_LENGTH = 2
 
+private const val LANGUAGE_CODE_LENGTH = 2
+
+/** The code if it is two letters, as the source asks, otherwise null so the source uses its default. */
+fun twoLetterLanguage(code: String): String? = code.takeIf { it.length == LANGUAGE_CODE_LENGTH }
+
 /**
  * The place search. Text is sent only from [submit], never as it's typed. [scope] belongs to the screen, so leaving
  * it cancels a search in flight. [onChosen] runs after a place has been saved and made current.

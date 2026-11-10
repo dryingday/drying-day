@@ -189,4 +189,11 @@ class PlaceSearchStateTest {
         assertEquals("Seaville, Oceania", describe(Place("Seaville", null, "Oceania", seaPlace.coordinates)))
         assertEquals("Seaville", describe(Place("Seaville", null, null, seaPlace.coordinates)))
     }
+
+    @Test
+    fun onlyTwoLetterLanguagesAreSent() {
+        assertEquals("en", twoLetterLanguage("en"))
+        assertEquals(null, twoLetterLanguage("fil"))
+        assertEquals(null, twoLetterLanguage(""))
+    }
 }

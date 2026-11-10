@@ -21,6 +21,7 @@ import io.github.dryingday.location.DeviceLocation
 import io.github.dryingday.places.PlaceStore
 import io.github.dryingday.search.PlaceSearchScreen
 import io.github.dryingday.search.PlaceSearchState
+import io.github.dryingday.search.twoLetterLanguage
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.app_name
 import io.github.dryingday.weather.PlaceSearchSource
@@ -47,7 +48,7 @@ fun App(
     } else if (searching) {
         backHandler(true) { searching = false }
         val scope = rememberCoroutineScope()
-        val language = Locale.current.language
+        val language = twoLetterLanguage(Locale.current.language)
         val state = remember(placeStore, searchSource, language) {
             PlaceSearchState(searchSource, placeStore, language, scope) {
                 searching = false
