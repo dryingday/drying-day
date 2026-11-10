@@ -171,7 +171,7 @@ class PlaceSearchStateTest {
 
     @Test
     fun leavingTheScreenCancelsTheSearchAndSavesNothing() = runTest {
-        val screen = CoroutineScope(Job(backgroundScope.coroutineContext[Job]))
+        val screen = CoroutineScope(backgroundScope.coroutineContext + Job())
         val state = PlaceSearchState(source, store, "en", screen) { chosen++ }
         state.updateQuery("Sea")
         state.submit()
