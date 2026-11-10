@@ -1,5 +1,11 @@
 <!-- Bolt N, PR N: link the bolt spec in docs/bolts/ if there is one. -->
 
+## Decisions for the maintainer
+
+<!-- High tier only: one to three questions the maintainer can answer without reading the diff,
+each with your recommendation. Approving answers yes. If there's no question, one sentence on
+what this is and why it's on a protected path. Low and medium: "None: merged by the agent." -->
+
 ## What
 
 <!-- What changed and why, in a few bullets. Name versions and where they were checked. -->
@@ -20,4 +26,6 @@ or deferred (and where). -->
 
 ## Risk tier
 
-<!-- low, medium or high under docs/review-policy.md, with a one-line reason. -->
+<!-- low, medium or high under docs/review-policy.md, with the tier reviewer's one-line reason.
+For each protected change, the spec line that covers it. For each check the tier reviewer
+returned, where under Evidence it was settled. -->

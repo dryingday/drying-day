@@ -22,15 +22,21 @@ the Command Line Tools alone, but linking and running tests need Xcode.
 Follow "How work is done" in [docs/PLAN.md](docs/PLAN.md) and the policy. In practice:
 
 - One branch per PR, `bolt/NN-short-name`, from an up-to-date `main`. Tests first.
-- Open it from the agent's account as a draft, with `frangipanes` as reviewer once it's ready.
+- Keep protected paths out of feature PRs: a build script line, a CI change or a spec edit goes
+  in its own small PR, or the whole feature becomes high.
+- Open it from the agent's account as a draft, and mark it ready once the rounds are clean.
 - Review rounds in fresh contexts: `/code-review`, the `spec-reviewer` subagent, and
   `/security-review` where the policy asks. Mind the policy's three-round limit.
-- The `tier-reviewer` subagent sets the tier; apply the `risk:*` label (one only).
+- The `tier-reviewer` subagent sets the tier; apply the `risk:*` label (one only). Settle the
+  checks it returns with evidence, then run it again. Don't hand a check to the maintainer.
 - Fill in `.github/pull_request_template.md`, with evidence from the current commit.
 - Watch the PR. Act on comments, reply, and resolve the threads: the ruleset won't merge with
   open ones. When the maintainer approves the current commit, merge it. Approve and merge a
-  `risk:low` PR yourself only when it meets every condition the policy's Tiers table and
-  "Approvals cover one commit" section set; `maintainer.py` checks some of them, not all.
+  `risk:low` or `risk:medium` PR yourself, without asking for the maintainer's review, only
+  when it meets every condition the policy's Tiers table and "Approvals cover one commit"
+  section set; `maintainer.py` checks some of them, not all.
+- A high PR opens with the decisions it asks of the maintainer, as the policy's "What the
+  maintainer is asked" sets out. Request `frangipanes` as reviewer on high PRs only.
 
 ## GitHub accounts
 

@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 MAINTAINER = "frangipanes"
 BOT_GH_CONFIG = os.path.expanduser("~/.config/gh-drying-bot")
 AGENT_MARKER = "Approved by the agent"  # any approval starting like this is the agent's
-AGENT_APPROVAL_PREFIX = AGENT_MARKER + ": risk:low under docs/review-policy.md."
+AGENT_TIERS = ("risk:low", "risk:medium")  # the tiers the agent approves and merges itself
 RULESET_FILE = ".github/rulesets/main.json"
 
 
@@ -193,27 +193,49 @@ def maintainer_approved_head(pr):
     return state == "APPROVED"
 
 
-def is_low(pr):
-    """Labelled risk:low and no higher tier: the highest label wins."""
-    return "risk:low" in pr.labels and not ({"risk:medium", "risk:high"} & pr.labels)
+def maintainer_requested_changes(pr):
+    """The maintainer's latest review of their own, on any commit, asks for changes."""
+    state = None
+    for r in pr.reviews:
+        if r["user"] == MAINTAINER and r["state"] in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+            if not (r.get("body") or "").startswith(AGENT_MARKER):
+                state = r["state"]
+    return state == "CHANGES_REQUESTED"
+
+
+def agent_tier(pr):
+    """The PR's tier if the agent may approve and merge at it: exactly one risk:* label, and
+    that one low or medium. Two risk labels, an unknown one or none means the maintainer."""
+    risk = [label for label in pr.labels if label.startswith("risk:")]
+    return risk[0] if len(risk) == 1 and risk[0] in AGENT_TIERS else None
+
+
+def agent_approval_body(tier, reason):
+    return f"{AGENT_MARKER}: {tier} under docs/review-policy.md. {reason.strip()}"
 
 
 def decide(action, pr, patterns):
     protected = [f for f in pr.files if is_protected(f, patterns)]
+    tier = agent_tier(pr)
     where = f"PR #{pr.number}"
-    why_not_low = (f"touches protected paths ({', '.join(protected[:5])})" if protected
-                   else "isn't labelled risk:low alone")
+    if protected:
+        why_not = f"touches protected paths ({', '.join(protected[:5])})"
+    elif tier is None:
+        why_not = "isn't labelled risk:low or risk:medium alone"
+    else:
+        why_not = "has changes requested by the maintainer"
+    agent_may = tier is not None and not protected and not maintainer_requested_changes(pr)
     if action == "merge":
         if maintainer_approved_head(pr):
             return Decision(True, f"{where}: the maintainer approved the current commit.")
-        if is_low(pr) and not protected:
-            return Decision(True, f"{where}: risk:low and no protected paths.")
-        return Decision(False, f"{where} {why_not_low} and the maintainer hasn't approved its current commit. "
+        if agent_may:
+            return Decision(True, f"{where}: {tier} and no protected paths.")
+        return Decision(False, f"{where} {why_not} and the maintainer hasn't approved its current commit. "
                                "Wait for their approval on GitHub.")
     if action == "approve":
-        if is_low(pr) and not protected:
-            return Decision(True, f"{where}: risk:low and no protected paths.")
-        return Decision(False, f"{where} {why_not_low}. Only the maintainer can approve it.")
+        if agent_may:
+            return Decision(True, f"{where}: {tier} and no protected paths.")
+        return Decision(False, f"{where} {why_not}. Only the maintainer can approve it.")
     return Decision(False, f"Unknown action {action}.")
 
 

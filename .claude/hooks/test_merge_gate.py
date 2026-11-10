@@ -2,7 +2,18 @@
 
 import unittest
 
-from merge_gate import AGENT_APPROVAL_PREFIX, Pr, classify, decide, is_protected, parse_codeowners
+import os
+
+from merge_gate import (
+    AGENT_MARKER,
+    Pr,
+    agent_approval_body,
+    agent_tier,
+    classify,
+    decide,
+    is_protected,
+    parse_codeowners,
+)
 
 CODEOWNERS = """
 # comment
@@ -176,6 +187,52 @@ class Classify(unittest.TestCase):
                 self.assertIsNone(classify(command))
 
 
+class RealCodeowners(unittest.TestCase):
+    """The repository's own CODEOWNERS: the guardrails and specs are protected, and the files
+    the policy leaves to an approved spec are not."""
+
+    @classmethod
+    def setUpClass(cls):
+        root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+        with open(os.path.join(root, ".github", "CODEOWNERS")) as f:
+            cls.patterns = parse_codeowners(f.read())
+
+    def test_guardrails_build_scripts_and_specs_protected(self):
+        for path in [
+            ".github/CODEOWNERS",
+            ".github/workflows/ci.yml",
+            ".claude/hooks/merge_gate.py",
+            ".claude/agents/tier-reviewer.md",
+            "CLAUDE.md",
+            "REVIEW.md",
+            "docs/review-policy.md",
+            "docs/bolts/04-location.md",
+            "build.gradle.kts",
+            "shared/build.gradle.kts",
+            "settings.gradle.kts",
+            "gradle.properties",
+            "gradle/wrapper/gradle-wrapper.properties",
+            "gradle/wrapper/gradle-wrapper.jar",
+            "scripts/update-verification-metadata.py",
+            "config/detekt/detekt.yml",
+            "LICENSE",
+        ]:
+            with self.subTest(path=path):
+                self.assertTrue(is_protected(path, self.patterns))
+
+    def test_spec_gated_files_and_product_code_not_protected(self):
+        for path in [
+            "gradle/libs.versions.toml",
+            "gradle/verification-metadata.xml",
+            "androidApp/src/main/AndroidManifest.xml",
+            "docs/PLAN.md",
+            "docs/reference-set.md",
+            "shared/src/commonMain/kotlin/io/github/dryingday/App.kt",
+        ]:
+            with self.subTest(path=path):
+                self.assertFalse(is_protected(path, self.patterns))
+
+
 class Decisions(unittest.TestCase):
     def test_merge_allowed_after_maintainer_approval_of_head(self):
         self.assertTrue(decide("merge", pr(files=[".github/x.yml"], reviews=[review()]), PATTERNS).allow)
@@ -184,41 +241,64 @@ class Decisions(unittest.TestCase):
         self.assertFalse(decide("merge", pr(files=[".github/x.yml"], reviews=[review(commit="old0000")]), PATTERNS).allow)
 
     def test_agent_approval_does_not_count_as_maintainers(self):
-        agent = review(body=AGENT_APPROVAL_PREFIX + " reason")
-        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[agent]), PATTERNS).allow)
+        for tier in ("risk:low", "risk:medium"):
+            agent = review(body=agent_approval_body(tier, "reason"))
+            self.assertTrue(agent["body"].startswith(AGENT_MARKER))
+            self.assertFalse(decide("merge", pr(labels=["risk:high"], reviews=[agent]), PATTERNS).allow)
+
+    def test_agent_approval_names_its_tier_and_reason(self):
+        body = agent_approval_body("risk:medium", " Within the bolt 4 spec ")
+        self.assertEqual(body, "Approved by the agent: risk:medium under docs/review-policy.md. Within the bolt 4 spec")
 
     def test_later_changes_requested_cancels_approval(self):
         reviews = [review(), review(state="CHANGES_REQUESTED")]
-        self.assertFalse(decide("merge", pr(reviews=reviews), PATTERNS).allow)
+        self.assertFalse(decide("merge", pr(labels=["risk:high"], reviews=reviews), PATTERNS).allow)
 
-    def test_low_risk_unprotected_merge_allowed(self):
-        self.assertTrue(decide("merge", pr(labels=["risk:low"]), PATTERNS).allow)
+    def test_changes_requested_blocks_an_agent_tier_too(self):
+        for tier in ("risk:low", "risk:medium"):
+            blocked = pr(labels=[tier], reviews=[review(state="CHANGES_REQUESTED")])
+            self.assertFalse(decide("merge", blocked, PATTERNS).allow)
+            self.assertFalse(decide("approve", blocked, PATTERNS).allow)
 
-    def test_low_risk_label_on_protected_path_denied(self):
-        self.assertFalse(decide("merge", pr(labels=["risk:low"], files=["build.gradle"]), PATTERNS).allow)
+    def test_low_and_medium_unprotected_allowed(self):
+        for tier in ("risk:low", "risk:medium"):
+            for action in ("merge", "approve"):
+                with self.subTest(tier=tier, action=action):
+                    self.assertTrue(decide(action, pr(labels=[tier]), PATTERNS).allow)
 
-    def test_highest_risk_label_wins(self):
-        self.assertFalse(decide("merge", pr(labels=["risk:low", "risk:high"]), PATTERNS).allow)
-        self.assertFalse(decide("approve", pr(labels=["risk:low", "risk:medium"]), PATTERNS).allow)
+    def test_low_and_medium_on_a_protected_path_denied(self):
+        for tier in ("risk:low", "risk:medium"):
+            for action in ("merge", "approve"):
+                with self.subTest(tier=tier, action=action):
+                    self.assertFalse(decide(action, pr(labels=[tier], files=["build.gradle"]), PATTERNS).allow)
+                    self.assertFalse(decide(action, pr(labels=[tier], files=["a.md", "gradlew"]), PATTERNS).allow)
 
-    def test_medium_without_approval_denied(self):
-        self.assertFalse(decide("merge", pr(labels=["risk:medium"]), PATTERNS).allow)
+    def test_high_without_approval_denied(self):
+        self.assertFalse(decide("merge", pr(labels=["risk:high"]), PATTERNS).allow)
+        self.assertFalse(decide("approve", pr(labels=["risk:high"]), PATTERNS).allow)
+
+    def test_more_than_one_risk_label_denied(self):
+        for labels in (["risk:low", "risk:high"], ["risk:low", "risk:medium"], ["risk:medium", "risk:high"],
+                       ["risk:medium", "risk:unknown"]):
+            with self.subTest(labels=labels):
+                self.assertIsNone(agent_tier(pr(labels=labels)))
+                self.assertFalse(decide("merge", pr(labels=labels), PATTERNS).allow)
+                self.assertFalse(decide("approve", pr(labels=labels), PATTERNS).allow)
+
+    def test_other_labels_do_not_matter(self):
+        self.assertEqual(agent_tier(pr(labels=["risk:medium", "bolt:4"])), "risk:medium")
 
     def test_unlabelled_without_approval_denied(self):
         self.assertFalse(decide("merge", pr(), PATTERNS).allow)
-
-    def test_agent_approval_allowed_only_for_low_unprotected(self):
-        self.assertTrue(decide("approve", pr(labels=["risk:low"]), PATTERNS).allow)
-        self.assertFalse(decide("approve", pr(labels=["risk:low"], files=["gradlew"]), PATTERNS).allow)
-        self.assertFalse(decide("approve", pr(labels=["risk:medium"]), PATTERNS).allow)
+        self.assertFalse(decide("approve", pr(), PATTERNS).allow)
 
     def test_any_approval_starting_with_the_agent_marker_is_the_agents(self):
         agent = review(body="Approved by the agent: something else")
-        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[agent]), PATTERNS).allow)
+        self.assertFalse(decide("merge", pr(labels=["risk:high"], reviews=[agent]), PATTERNS).allow)
 
     def test_bot_reviews_never_count(self):
         bot = review(user="frangipanes-bot")
-        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=[bot]), PATTERNS).allow)
+        self.assertFalse(decide("merge", pr(labels=["risk:high"], reviews=[bot]), PATTERNS).allow)
 
 
 if __name__ == "__main__":

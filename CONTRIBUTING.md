@@ -51,7 +51,7 @@ and F-Droid's build server keep working, and Kotlin/Native for both Mac architec
 - Keep each PR small, about ten minutes to review.
 - Fill in the [PR template](.github/pull_request_template.md).
 - CI ("Check and assemble") must pass, and the branch must be up to date with `main`.
-- Some paths are protected (build files, CI, manifests, the review rules); see
+- Some paths are protected (build files, CI, the bolt specs, the review rules); see
   [docs/review-policy.md](docs/review-policy.md). Changes to them need the maintainer's approval.
 
 Much of the work here is done by an AI agent under that policy, which is why the PR template asks

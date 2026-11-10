@@ -4,8 +4,9 @@
 # CI, PR templates, rulesets and this file
 /.github/                @frangipanes
 
-# Dependencies, plugins, the wrapper and dependency verification.
-# Signing and version changes live in *.gradle.kts for now.
+# Build scripts, plugins and the wrapper. Signing and version changes live in *.gradle.kts
+# for now. gradle/libs.versions.toml and gradle/verification-metadata.xml aren't listed: the
+# policy treats a change to them as a protected change, covered only by an approved spec.
 # Groovy scripts and included builds too: Gradle prefers build.gradle over build.gradle.kts.
 *.gradle.kts             @frangipanes
 *.gradle                 @frangipanes
@@ -14,7 +15,7 @@
 /gradlew                 @frangipanes
 /gradlew.bat             @frangipanes
 gradle.properties        @frangipanes
-/gradle/                 @frangipanes
+/gradle/wrapper/         @frangipanes
 /scripts/                @frangipanes
 
 # Lint and formatting rules, including module lint configs and baselines
@@ -23,14 +24,15 @@ gradle.properties        @frangipanes
 lint.xml                 @frangipanes
 *baseline*.xml           @frangipanes
 
-# Permissions
-AndroidManifest.xml      @frangipanes
-
 # The guardrails themselves
 /.claude/                @frangipanes
 /CLAUDE.md               @frangipanes
 /REVIEW.md               @frangipanes
 /docs/review-policy.md   @frangipanes
+
+# Bolt specs: the maintainer's approval of a spec is what lets the agent ship the protected
+# changes it names (docs/review-policy.md, "What an approved spec covers")
+/docs/bolts/             @frangipanes
 
 # Licence, signing, release and store changelogs
 /LICENSE                 @frangipanes
