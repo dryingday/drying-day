@@ -4,12 +4,14 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import com.russhwolf.settings.SharedPreferencesSettings
 import io.github.dryingday.location.AndroidDeviceLocation
 import io.github.dryingday.location.DeviceLocation
 import io.github.dryingday.places.PlaceStore
+import io.github.dryingday.weather.openmeteo.sharedOpenMeteoSource
 import kotlinx.coroutines.CompletableDeferred
 
 class MainActivity : ComponentActivity() {
@@ -27,7 +29,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // Private to the app, and left out of backups by the manifest.
         val placeStore = PlaceStore(SharedPreferencesSettings(getSharedPreferences("places", MODE_PRIVATE)))
-        setContent { App(placeStore, deviceLocation) }
+        setContent {
+            App(placeStore, sharedOpenMeteoSource, deviceLocation) { enabled, onBack -> BackHandler(enabled, onBack) }
+        }
     }
 
     private suspend fun requestCoarseLocation(): Boolean {

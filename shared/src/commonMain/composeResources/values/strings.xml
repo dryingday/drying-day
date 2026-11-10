@@ -13,4 +13,14 @@
     <string name="first_run_open_settings">Open Settings</string>
     <string name="first_run_location_off">Location is off on this device. Search instead, or turn it on and try again.</string>
     <string name="first_run_no_fix">Couldn't get a location. Search instead, or try again.</string>
+    <string name="search_title">Search for a place</string>
+    <string name="search_label">Place name</string>
+    <string name="search_button">Search</string>
+    <string name="search_searching">Searching…</string>
+    <string name="search_none">No places found. Try another name.</string>
+    <string name="search_too_short">Type at least two characters to search.</string>
+    <string name="search_unreachable">Couldn't reach the place search. Check your connection and try again.</string>
+    <string name="search_service">The place search had a problem. Try again in a moment.</string>
+    <string name="search_try_again">Try again</string>
+    <string name="search_back">Back</string>
 </resources>
