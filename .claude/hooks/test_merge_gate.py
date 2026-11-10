@@ -262,6 +262,20 @@ class Decisions(unittest.TestCase):
             self.assertFalse(decide("merge", blocked, PATTERNS).allow)
             self.assertFalse(decide("approve", blocked, PATTERNS).allow)
 
+    def test_changes_requested_on_an_older_commit_still_blocks(self):
+        stale = pr(labels=["risk:medium"], reviews=[review(state="CHANGES_REQUESTED", commit="old0000")])
+        self.assertFalse(decide("merge", stale, PATTERNS).allow)
+
+    def test_changes_requested_is_cleared_by_dismissal_or_a_later_approval(self):
+        for later in (review(state="DISMISSED", commit="old0000"), review(commit="old0000")):
+            cleared = pr(labels=["risk:medium"],
+                         reviews=[review(state="CHANGES_REQUESTED", commit="old0000"), later])
+            self.assertTrue(decide("merge", cleared, PATTERNS).allow)
+
+    def test_the_agents_own_approval_does_not_clear_changes_requested(self):
+        reviews = [review(state="CHANGES_REQUESTED"), review(body=agent_approval_body("risk:medium", "x"))]
+        self.assertFalse(decide("merge", pr(labels=["risk:medium"], reviews=reviews), PATTERNS).allow)
+
     def test_low_and_medium_unprotected_allowed(self):
         for tier in ("risk:low", "risk:medium"):
             for action in ("merge", "approve"):
