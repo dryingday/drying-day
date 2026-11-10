@@ -57,7 +57,6 @@ import io.github.dryingday.shared.resources.load_heavy_hint
 import io.github.dryingday.shared.resources.load_light
 import io.github.dryingday.shared.resources.load_light_hint
 import io.github.dryingday.weather.Attribution
-import io.github.dryingday.weather.AttributionScope
 import io.github.dryingday.weather.SourceAttributions
 import kotlinx.datetime.TimeZone
 import org.jetbrains.compose.resources.StringResource
@@ -114,7 +113,7 @@ fun MainScreen(
                 is ForecastStatus.OutOfDate -> OutOfDate(status, state, body)
             }
             if (state.status !is ForecastStatus.Showing) LoadSwitch(state, body)
-            SourceAttributions(attributions.filter { it.covers == AttributionScope.WEATHER }, color = text)
+            SourceAttributions(attributions, color = text)
         }
     }
 }
