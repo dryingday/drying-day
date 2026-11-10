@@ -9,7 +9,10 @@ import io.github.dryingday.weather.PlaceSearchSource
 import io.github.dryingday.weather.SourceError
 import io.github.dryingday.weather.SourceResult
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -164,6 +167,20 @@ class PlaceSearchStateTest {
         state.choose(seaPlace)
         assertEquals(Coordinates(30.12, -40.34), store.current?.coordinates)
         assertEquals(1, chosen)
+    }
+
+    @Test
+    fun leavingTheScreenCancelsTheSearchAndSavesNothing() = runTest {
+        val screen = CoroutineScope(Job(backgroundScope.coroutineContext[Job]))
+        val state = PlaceSearchState(source, store, "en", screen) { chosen++ }
+        state.updateQuery("Sea")
+        state.submit()
+        runCurrent()
+        screen.cancel()
+        runCurrent()
+        assertEquals(1, source.cancelled)
+        assertEquals(null, store.current)
+        assertEquals(0, chosen)
     }
 
     @Test
