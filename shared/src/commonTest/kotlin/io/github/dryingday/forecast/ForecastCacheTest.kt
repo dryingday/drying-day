@@ -115,12 +115,10 @@ class ForecastCacheTest {
 
     @Test
     fun aDeviceAndASearchedPlaceWithTheSameCoordinatesShareOneEntryThatOutlivesEither() {
-        // PlacesState passes the coordinates of the places left, a set, so the shared pair is one value.
+        // The device place and the searched place both round to `here`; removing one leaves the other.
         cache.put(here, fetched, sunny)
-        val saved = setOf(Coordinates(30.12, -40.34), here)
-        assertEquals(1, saved.size)
 
-        cache.retain(saved)
+        cache.retain(setOf(Coordinates(30.1234, -40.3412)))
 
         assertNotNull(reloaded().get(here))
     }
