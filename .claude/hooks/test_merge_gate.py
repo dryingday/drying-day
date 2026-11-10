@@ -30,6 +30,8 @@ AndroidManifest.xml      @frangipanes
 /docs/review-policy.md   @frangipanes
 """
 PATTERNS = parse_codeowners(CODEOWNERS)
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".github", "CODEOWNERS")) as _f:
+    REAL = parse_codeowners(_f.read())  # the repository's own, where the spec-gated files aren't listed
 HEAD = "abc1234"
 
 
@@ -272,6 +274,25 @@ class Decisions(unittest.TestCase):
                 with self.subTest(tier=tier, action=action):
                     self.assertFalse(decide(action, pr(labels=[tier], files=["build.gradle"]), PATTERNS).allow)
                     self.assertFalse(decide(action, pr(labels=[tier], files=["a.md", "gradlew"]), PATTERNS).allow)
+
+    def test_spec_gated_files_need_medium_not_low(self):
+        for path in ("gradle/libs.versions.toml", "gradle/verification-metadata.xml",
+                     "androidApp/src/main/AndroidManifest.xml", "shared/src/androidMain/AndroidManifest.xml"):
+            for action in ("merge", "approve"):
+                with self.subTest(path=path, action=action):
+                    low = decide(action, pr(labels=["risk:low"], files=["docs/notes.md", path]), REAL)
+                    self.assertFalse(low.allow)
+                    self.assertIn("protected change", low.reason)
+                    self.assertTrue(decide(action, pr(labels=["risk:medium"], files=[path]), REAL).allow)
+
+    def test_spec_gated_matches_whole_names_only(self):
+        for path in ("docs/AndroidManifest.xml.md", "notes/gradle/libs.versions.toml", "MyAndroidManifest.xml"):
+            with self.subTest(path=path):
+                self.assertTrue(decide("merge", pr(labels=["risk:low"], files=[path]), REAL).allow)
+
+    def test_maintainer_approval_still_lands_a_low_pr_on_a_spec_gated_file(self):
+        approved = pr(labels=["risk:low"], files=["gradle/libs.versions.toml"], reviews=[review()])
+        self.assertTrue(decide("merge", approved, REAL).allow)
 
     def test_high_without_approval_denied(self):
         self.assertFalse(decide("merge", pr(labels=["risk:high"]), PATTERNS).allow)

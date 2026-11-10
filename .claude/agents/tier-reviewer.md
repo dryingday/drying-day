@@ -43,6 +43,9 @@ comment, label, approve or merge.
    - The spec doesn't name it, names it only loosely, or the diff goes further: not covered.
      High.
    - Deleted or weakened tests, and loosened lint rules or checks, are never covered. High.
+     That includes switching off or widening dependency verification in
+     `gradle/verification-metadata.xml`, and a lint tool's version in the catalogue.
+   - A PR holding any protected change is never low, covered or not.
 3. **Tier.** Otherwise pick low or medium from the policy's table. If you can't tell which, read
    more of the code until you can; medium if it changes what the app does, low if it can't.
 4. **Checks.** While reading you'll have doubts that are facts: is this moved expression the

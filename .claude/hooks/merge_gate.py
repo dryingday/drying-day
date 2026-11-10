@@ -27,6 +27,9 @@ BOT_GH_CONFIG = os.path.expanduser("~/.config/gh-drying-bot")
 AGENT_MARKER = "Approved by the agent"  # any approval starting like this is the agent's
 AGENT_TIERS = ("risk:low", "risk:medium")  # the tiers the agent approves and merges itself
 RULESET_FILE = ".github/rulesets/main.json"
+# Not protected paths, but any change to them is a protected change under the policy, which is
+# never low: at best medium, when an approved spec covers it.
+SPEC_GATED = re.compile(r"^(?:gradle/libs\.versions\.toml|gradle/verification-metadata\.xml|(?:.*/)?AndroidManifest\.xml)$")
 
 
 @dataclass
@@ -216,15 +219,19 @@ def agent_approval_body(tier, reason):
 
 def decide(action, pr, patterns):
     protected = [f for f in pr.files if is_protected(f, patterns)]
+    gated = [f for f in pr.files if SPEC_GATED.match(f)]
     tier = agent_tier(pr)
+    too_low = bool(gated) and tier != "risk:medium"
     where = f"PR #{pr.number}"
     if protected:
         why_not = f"touches protected paths ({', '.join(protected[:5])})"
     elif tier is None:
         why_not = "isn't labelled risk:low or risk:medium alone"
+    elif too_low:
+        why_not = f"is labelled {tier} but holds a protected change ({', '.join(gated[:5])})"
     else:
         why_not = "has changes requested by the maintainer"
-    agent_may = tier is not None and not protected and not maintainer_requested_changes(pr)
+    agent_may = tier is not None and not protected and not too_low and not maintainer_requested_changes(pr)
     if action == "merge":
         if maintainer_approved_head(pr):
             return Decision(True, f"{where}: the maintainer approved the current commit.")

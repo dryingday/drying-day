@@ -16,7 +16,7 @@ The article has three tiers: low (no human), medium (one person) and high (two p
 
 | Tier | What | Who merges |
 |---|---|---|
-| **Low** | Docs and copy, tests and fixtures only, refactors with no behaviour change, store listing text, additive changes behind a flag that is off by default | The agent approves and merges, once CI is green, every review round is clean, and the branch is up to date with `main`. Never for a PR that touches a protected path. Listed in the bolt summary. |
+| **Low** | Docs and copy, tests and fixtures only, refactors with no behaviour change, store listing text, additive changes behind a flag that is off by default. Never a protected change, covered or not | The agent approves and merges, once CI is green, every review round is clean, and the branch is up to date with `main`. Never for a PR that touches a protected path. Listed in the bolt summary. |
 | **Medium** | Product changes: verdict wording, UI, forecast handling, non-threshold rule changes, and protected changes that an approved spec covers (below) | As low, and the spec reviewer has confirmed that the PR holds no protected change beyond its spec. Listed in the bolt summary with a line on what it changed. |
 | **High** | Protected paths, protected changes that no approved spec covers, and anything the escalation check finds needs a decision | The maintainer approves; the agent then merges. The PR opens with the decisions it asks for. |
 
@@ -56,9 +56,11 @@ A bolt spec on `main` got there with the maintainer's approval, because `docs/bo
 
 A spec that says only "handles location" or "adds a settings library" covers nothing: the PR is high, or the spec is tightened first. Anything the diff does beyond what the spec names is not covered. Read the spec as it is on `origin/main`, never as the PR's branch has it.
 
-Two protected changes are never covered by a spec: deleting or weakening tests, and loosening a lint rule or check. They're always high.
+Two protected changes are never covered by a spec: deleting or weakening tests, and loosening a lint rule or check. They're always high. That includes switching off or widening dependency verification in `gradle/verification-metadata.xml` (`verify-metadata`, trusted artifacts or keys), and changing the version of a lint tool in the catalogue.
 
-The files in the third and fourth protected changes above are not protected paths, so GitHub doesn't ask for the maintainer on them. The tier reviewer and the spec reviewer are what hold this rule, each reading the diff against the spec on its own.
+**What this buys for dependencies is narrow.** A new dependency needs a line in a module's build script, which is a protected path, so adding one is always a high PR: its own small one, with the catalogue entry and the verification metadata. What a spec covers without the maintainer is a version change to a dependency it names.
+
+The catalogue, the verification metadata and the manifests are not protected paths, so GitHub doesn't ask for the maintainer on them. The tier reviewer and the spec reviewer are what hold this rule, each reading the diff against the spec on its own. `maintainer.py` adds one fixed check: a PR touching any of those files is never low.
 
 ## Who sets the tier
 
@@ -103,7 +105,7 @@ An approval covers the commit it was given on. If the agent pushes after the mai
   - approving and merging a low or medium PR. The approval reads "Approved by the agent: risk:medium under docs/review-policy.md" (or `risk:low`) with the tier reviewer's reason, so it can be told apart from the maintainer's;
   - applying `.github/rulesets/main.json` to GitHub, only as merged with the maintainer's approval.
 
-  GitHub can't tell these actions from the maintainer's own, so the agent takes all three through one script, `.claude/hooks/maintainer.py`. It merges only if the maintainer approved the PR's current commit, or the PR carries exactly one risk label, `risk:low` or `risk:medium`, touches no protected path, and has no changes requested by the maintainer; it pins the merge to that commit. It approves only that second kind of PR, with the marked text. It applies the ruleset only as merged on `main`. Approvals starting "Approved by the agent" never count as the maintainer's.
+  GitHub can't tell these actions from the maintainer's own, so the agent takes all three through one script, `.claude/hooks/maintainer.py`. It merges only if the maintainer approved the PR's current commit, or the PR carries exactly one risk label, `risk:low` or `risk:medium`, touches no protected path, and has no changes requested by the maintainer; a PR touching the version catalogue, the verification metadata or a manifest has to be `risk:medium`. It pins the merge to that commit. It approves only that second kind of PR, with the marked text. It applies the ruleset only as merged on `main`. Approvals starting "Approved by the agent" never count as the maintainer's.
 
   The script checks labels, paths and reviews. It can't check that the label is right, that the review rounds ran, or that a spec covers a protected change: those rest on the reviewers and on the record in the PR description.
 - **Ruleset on `main`:** kept in `.github/rulesets/main.json` and applied by the maintainer's account. Changes by PR only, squash merges; one approval, and code owner approval for protected paths; the CI check "Check and assemble" required; branch up to date; review threads resolved; approvals dismissed on new pushes; no force pushes or deletion; no bypass, so the maintainer's own protected-path changes go through a PR from the agent's account.
