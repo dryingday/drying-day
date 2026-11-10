@@ -1,6 +1,7 @@
 package io.github.dryingday.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -77,7 +78,10 @@ fun PlaceSearchScreen(state: PlaceSearchState, attributions: List<Attribution>, 
                 cursorBrush = SolidColor(text),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { state.submit() }),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .border(1.dp, text, RoundedCornerShape(8.dp))
+                    .padding(12.dp),
             )
             SearchButton(dark) { state.submit() }
             when (val status = state.status) {

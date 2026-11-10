@@ -23,4 +23,11 @@
     <string name="search_service">The place search had a problem. Try again in a moment.</string>
     <string name="search_try_again">Try again</string>
     <string name="search_back">Back</string>
+    <string name="approximate_location">Approximate location</string>
+    <string name="places_title">Saved places</string>
+    <string name="places_back">Back</string>
+    <string name="places_current">Current</string>
+    <string name="places_remove">Remove</string>
+    <string name="placeholder_current_place">Current place: %1$s</string>
+    <string name="placeholder_places">Saved places</string>
 </resources>

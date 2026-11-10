@@ -54,7 +54,6 @@ private val DARK_BUTTON_TEXT = Color(0xFF0B1B33)
 fun FirstRunScreen(state: FirstRunState, onSearch: () -> Unit) {
     val dark = isSystemInDarkTheme()
     val text = if (dark) Color(0xFFE6E6E6) else Color(0xFF1B1B1B)
-    val scope = rememberCoroutineScope()
     val body = TextStyle(color = text, fontSize = 16.sp)
 
     Box(Modifier.fillMaxSize().background(if (dark) DARK_BACKGROUND else Color.White)) {
@@ -67,33 +66,45 @@ fun FirstRunScreen(state: FirstRunState, onSearch: () -> Unit) {
                 style = TextStyle(color = text, fontSize = 24.sp, fontWeight = FontWeight.Bold),
             )
             BasicText(stringResource(Res.string.first_run_privacy), style = body)
-            if (state.canUseLocation) {
-                BasicText(stringResource(Res.string.first_run_privacy_location), style = body)
-                ChoiceButton(
-                    stringResource(
-                        if (state.waiting) Res.string.first_run_locating else Res.string.first_run_use_location,
-                    ),
-                    dark,
-                    enabled = !state.waiting,
-                ) { scope.launch { state.useLocation() } }
-            }
-            val message = state.problem?.let(::messageFor)
-            if (message != null) {
-                BasicText(stringResource(message), style = body)
-                if (state.problem == LocationProblem.PermissionDenied) {
-                    Box(
-                        Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = state::openSettings),
-                        contentAlignment = Alignment.CenterStart,
-                    ) {
-                        BasicText(
-                            stringResource(Res.string.first_run_open_settings),
-                            style = body.copy(textDecoration = TextDecoration.Underline),
-                        )
-                    }
+            LocationChoices(state, dark, body, onSearch)
+        }
+    }
+}
+
+/**
+ * The two ways to add a place, with the location button's waiting state and failure messages. Shared by first run and
+ * the places screen. The fix runs in the screen's own scope, so leaving the screen cancels it.
+ */
+@Composable
+internal fun LocationChoices(state: FirstRunState, dark: Boolean, body: TextStyle, onSearch: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (state.canUseLocation) {
+            BasicText(stringResource(Res.string.first_run_privacy_location), style = body)
+            ChoiceButton(
+                stringResource(
+                    if (state.waiting) Res.string.first_run_locating else Res.string.first_run_use_location,
+                ),
+                dark,
+                enabled = !state.waiting,
+            ) { scope.launch { state.useLocation() } }
+        }
+        val message = state.problem?.let(::messageFor)
+        if (message != null) {
+            BasicText(stringResource(message), style = body)
+            if (state.problem == LocationProblem.PermissionDenied) {
+                Box(
+                    Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = state::openSettings),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    BasicText(
+                        stringResource(Res.string.first_run_open_settings),
+                        style = body.copy(textDecoration = TextDecoration.Underline),
+                    )
                 }
             }
-            ChoiceButton(stringResource(Res.string.first_run_search), dark, enabled = true, onClick = onSearch)
         }
+        ChoiceButton(stringResource(Res.string.first_run_search), dark, enabled = true, onClick = onSearch)
     }
 }
 
