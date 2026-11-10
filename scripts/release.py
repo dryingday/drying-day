@@ -76,7 +76,7 @@ def require_same_hash(hashes: dict[str, str]) -> None:
 
 
 def certificate_sha256(verify_output: str) -> str:
-    found = re.search(r"certificate SHA-256 digest: ([0-9A-Fa-f]+)\s*$", verify_output, re.MULTILINE)
+    found = re.search(r"certificate SHA-256 digest: ([0-9A-Fa-f]{64})\b", verify_output)
     if not found:
         raise ReleaseError("no certificate SHA-256 in apksigner's output")
     return found.group(1).lower()
@@ -153,6 +153,7 @@ def download_ci_apk(commit: str, branch: str, into: Path) -> Path:
             break
         if time.time() > deadline:
             raise ReleaseError("CI didn't finish within 30 minutes")
+        print("Waiting for CI's push run on this commit...", flush=True)
         time.sleep(30)
     run(["gh", "run", "download", str(runs[0]["databaseId"]), "--name", artifact_name(commit), "--dir", into])
     return into / "androidApp-release-unsigned.apk"
@@ -183,7 +184,8 @@ def main(argv=None) -> int:
     parser.add_argument("--keystore", type=Path)
     parser.add_argument("--alias")
     parser.add_argument("--dry-run", metavar="COMMIT", help="a commit on origin/main: no tag, throwaway key, no publishing")
-    default_tools = Path(os.environ.get("ANDROID_HOME", "")) / "build-tools" / "34.0.0"
+    sdk = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+    default_tools = Path(sdk) / "build-tools" / "34.0.0" if sdk else None
     parser.add_argument("--build-tools", type=Path, default=default_tools)
     args = parser.parse_args(argv)
 
@@ -192,6 +194,8 @@ def main(argv=None) -> int:
         parser.error("give a version, or --dry-run COMMIT, not both or neither")
     if not dry and not (args.keystore and args.alias):
         parser.error("--keystore and --alias are required")
+    if args.build_tools is None:
+        raise ReleaseError("set ANDROID_HOME (or ANDROID_SDK_ROOT), or pass --build-tools")
     apksigner = args.build_tools / "apksigner"
     if not apksigner.exists():
         raise ReleaseError(f"{apksigner} not found: install build-tools 34.0.0 with sdkmanager, or pass --build-tools")
@@ -204,11 +208,12 @@ def main(argv=None) -> int:
     run(["git", "fetch", "--quiet", "--tags", "origin", "main"])
     if dry:
         commit = run(["git", "rev-parse", args.dry_run]).strip()
-        run(["git", "merge-base", "--is-ancestor", commit, "origin/main"])
         branch = "main"
     else:
         commit = resolve_tag(origin, args.version)
         branch = tag_name(args.version)
+    if subprocess.run(["git", "merge-base", "--is-ancestor", commit, "origin/main"]).returncode != 0:
+        raise ReleaseError(f"{commit} isn't on origin/main: release only what was reviewed and merged")
     print(f"Commit {commit}")
 
     version, code = read_version(run(["git", "show", f"{commit}:{BUILD_FILE}"]))
@@ -218,6 +223,7 @@ def main(argv=None) -> int:
         run(["git", "cat-file", "-e", f"{commit}:{changelog_path(code)}"])
 
     work = Path(tempfile.mkdtemp(prefix="drying-day-release-"))
+    keep = False
     try:
         # Two clones whose paths have different lengths: a path that leaks into the build shows up as a diff.
         apk_one = clone_and_build(origin, commit, work, "a")
@@ -240,6 +246,7 @@ def main(argv=None) -> int:
             keystore, alias, password = args.keystore, args.alias, None
         signed = work / apk_name(version)
         sign(apksigner, keystore, alias, apk_one, signed, password)
+        run([zipalign, "-c", "-P", "16", "-v", "4", signed])
         certs = run([apksigner, "verify", "--print-certs", signed])
         run(["apksigcopier", "compare", signed, "--unsigned", apk_one])
         print(f"Certificate SHA-256 (for the F-Droid recipe): {certificate_sha256(certs)}")
@@ -250,14 +257,18 @@ def main(argv=None) -> int:
             return 0
         sha_file = work / sha_name(version)
         sha_file.write_text(sha256_line(sha256_file(signed), apk_name(version)))
+        keep = True  # signed: if publishing fails, the signed APK is still here to upload by hand
+        print(f"Signed APK and its hash are in {work} until publishing succeeds.")
         notes = work / "notes.txt"
         notes.write_text(run(["git", "show", f"{commit}:{changelog_path(code)}"]))
         run(["gh", "release", "create", tag_name(version), signed, sha_file, "--verify-tag",
              "--title", f"Drying Day {version}", "--notes-file", notes])
         print(f"Published {tag_name(version)}.")
+        keep = False
         return 0
     finally:
-        shutil.rmtree(work, ignore_errors=True)
+        if not keep:
+            shutil.rmtree(work, ignore_errors=True)
 
 
 if __name__ == "__main__":

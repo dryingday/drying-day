@@ -50,8 +50,9 @@ class PureFunctionsTest(unittest.TestCase):
         self.assertIn("mac2", str(cm.exception))
 
     def test_reads_the_certificate_fingerprint(self):
-        out = "Signer #1 certificate DN: CN=Drying Day\nSigner #1 certificate SHA-256 digest: AB:cd\nSigner #1 certificate SHA-256 digest: ab12cd\n"
-        self.assertEqual("ab12cd", rel.certificate_sha256(out))
+        digest = "AB" * 32
+        out = f"Signer #1 certificate DN: CN=Drying Day\nSigner #1 certificate SHA-256 digest: {digest}\nWARNING: x\n"
+        self.assertEqual(digest.lower(), rel.certificate_sha256(out))
 
 
 class SigningPasswordTest(unittest.TestCase):
@@ -94,7 +95,7 @@ class FastlaneLimitsTest(unittest.TestCase):
     def test_changelogs(self):
         for path in (self.ROOT / "changelogs").glob("*.txt"):
             self.assertTrue(path.stem.isdigit(), path.name)
-            self.assertLessEqual(len(path.read_text()), 500, path.name)
+            self.assertLessEqual(len(path.read_bytes()), 500, path.name)
 
     def test_screenshots_are_numbered_pngs(self):
         for path in (self.ROOT / "images/phoneScreenshots").glob("*"):

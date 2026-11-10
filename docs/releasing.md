@@ -72,12 +72,14 @@ hashes). Versions at that commit:
 | JDK | Temurin 21.0.13+9 | Temurin 21.0.13+9 (`actions/setup-java`) |
 | Gradle | 9.9.0 | 9.9.0 |
 | Android Gradle plugin | 9.5.1 | 9.5.1 |
-| SDK platform | android-37.0 (`compileSdk` 37) | the runner image's |
-| Build-tools used by AGP | 36.0.0 | the runner image's (not named in the log) |
-| OS | macOS 15 (Darwin 24.6) | `ubuntu-26.04` |
+| SDK platform | android-37.0 rev 2 (`compileSdk` 37) | android-37.0 rev 2, from the image's installed list |
+| Build-tools used by AGP | 36.0.0 | 36.0.0 is among the image's (listed below); the log doesn't name the one AGP picked |
+| OS | macOS 15 (Darwin 24.6) | `ubuntu-26.04`, image version 20261101.186.1 |
 
-The runner image's SDK revisions are not recorded, because the build log doesn't print them. Because the hashes
-matched, any difference between them did not change the bytes. If a later build differs, compare these first.
+CI's SDK revisions are from the runner image's [included software list](https://github.com/actions/runner-images/blob/ubuntu26/20261101.186/images/ubuntu/Ubuntu2604-Readme.md)
+(read 2026-11-10): build-tools 37.0.0, 36.0.0, 36.1.0, 35.0.0, 35.0.1 and 34.0.0, and platform-tools 37.0.1.
+The build log doesn't print which build-tools AGP used on CI; the hashes match, so any difference didn't change the bytes.
+If a later build differs, compare these first.
 
 ## When F-Droid reports a mismatch
 
