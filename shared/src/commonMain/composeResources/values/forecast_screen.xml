@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="verdict_will_dry">Will dry</string>
+    <string name="verdict_partly_dry">Partly dry, finish indoors</string>
+    <string name="verdict_dont_bother">Don't bother, dry indoors</string>
+    <string name="verdict_day_over">Too late to dry outside today</string>
+    <string name="verdict_short_will_dry">Will dry</string>
+    <string name="verdict_short_partly_dry">Partly</string>
+    <string name="verdict_short_dont_bother">Don't bother</string>
+    <string name="verdict_short_none">–</string>
+    <string name="day_today">Today</string>
+    <string name="day_tomorrow">Tomorrow</string>
+    <string name="forecast_times">Hang out at %1$s. Bring in by %2$s.</string>
+    <string name="forecast_dryness">About %1$s dry by then.</string>
+    <string name="forecast_times_local">Times are local to the place.</string>
+    <string name="forecast_held_back">Held back by</string>
+    <string name="forecast_tips">Tips</string>
+    <string name="forecast_indoors_partly">When you bring it in</string>
+    <string name="forecast_indoors">Indoors</string>
+    <string name="forecast_day_missing">There isn't enough forecast for this day yet.</string>
+    <string name="forecast_updated">Updated %1$s</string>
+    <string name="forecast_updated_earlier">Updated yesterday, %1$s</string>
+    <string name="forecast_updating">Updating…</string>
+    <string name="forecast_refresh">Refresh</string>
+    <string name="forecast_try_again">Try again</string>
+    <string name="forecast_loading">Getting the forecast…</string>
+    <string name="forecast_out_of_date">The last forecast is more than a day old.</string>
+    <string name="load_light">Light load</string>
+    <string name="load_heavy">Heavy load</string>
+    <string name="load_light_hint">Shirts, underwear, thin cotton, synthetics</string>
+    <string name="load_heavy_hint">Towels, jeans, bedding, hoodies. Mixed loads too</string>
+</resources>
