@@ -28,6 +28,4 @@
     <string name="places_back">Back</string>
     <string name="places_current">Current</string>
     <string name="places_remove">Remove</string>
-    <string name="placeholder_current_place">Current place: %1$s</string>
-    <string name="placeholder_places">Saved places</string>
 </resources>
