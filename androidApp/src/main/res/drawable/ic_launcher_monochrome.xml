@@ -7,5 +7,5 @@
     <!-- The line, the T-shirt and the pegs, as one shape. -->
     <path
         android:fillColor="#FF000000"
-        android:pathData="M27,35h54v2h-54z MM40,38 L48,38 Q54,44 60,38 L68,38 L80,48 L73,55 L68,52 L68,78 L40,78 L40,52 L35,55 L28,48 Z M40,32h5v10h-5z M63,32h5v10h-5z" />
+        android:pathData="M27,35h54v2h-54z M40,38 L48,38 Q54,44 60,38 L68,38 L80,48 L73,55 L68,52 L68,78 L40,78 L40,52 L35,55 L28,48 Z M40,32h5v10h-5z M63,32h5v10h-5z" />
 </vector>
