@@ -3,6 +3,7 @@ package io.github.dryingday
 import androidx.compose.ui.window.ComposeUIViewController
 import com.russhwolf.settings.NSUserDefaultsSettings
 import io.github.dryingday.places.PlaceStore
+import io.github.dryingday.weather.openmeteo.sharedOpenMeteoSource
 import platform.Foundation.NSUserDefaults
 import platform.UIKit.UIViewController
 
@@ -13,5 +14,5 @@ import platform.UIKit.UIViewController
  */
 fun mainViewController(): UIViewController {
     val placeStore = PlaceStore(NSUserDefaultsSettings(NSUserDefaults.standardUserDefaults))
-    return ComposeUIViewController { App(placeStore, deviceLocation = null) }
+    return ComposeUIViewController { App(placeStore, sharedOpenMeteoSource, deviceLocation = null) }
 }

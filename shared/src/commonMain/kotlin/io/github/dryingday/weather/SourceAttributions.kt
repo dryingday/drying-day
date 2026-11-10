@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import io.github.dryingday.shared.resources.Res
@@ -22,7 +24,11 @@ private val linkStyles = TextLinkStyles(style = SpanStyle(textDecoration = TextD
  * A tap goes to the browser through [LinkAnnotation.Url], which does nothing if the device has no browser.
  */
 @Composable
-fun SourceAttributions(attributions: List<Attribution>, modifier: Modifier = Modifier) {
+fun SourceAttributions(
+    attributions: List<Attribution>,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+) {
     Column(modifier) {
         for (attribution in attributions) {
             val sentence =
@@ -30,7 +36,10 @@ fun SourceAttributions(attributions: List<Attribution>, modifier: Modifier = Mod
                     AttributionScope.WEATHER -> Res.string.attribution_weather
                     AttributionScope.PLACES -> Res.string.attribution_places
                 }
-            BasicText(attributionText(stringResource(sentence, attribution.name, attribution.licence), attribution))
+            BasicText(
+                attributionText(stringResource(sentence, attribution.name, attribution.licence), attribution),
+                style = TextStyle(color = color),
+            )
         }
     }
 }
