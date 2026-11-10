@@ -1,71 +1,71 @@
 package io.github.dryingday
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.russhwolf.settings.Settings
 import io.github.dryingday.firstrun.FirstRunScreen
 import io.github.dryingday.firstrun.FirstRunState
+import io.github.dryingday.forecast.DayPicker
+import io.github.dryingday.forecast.ForecastCache
+import io.github.dryingday.forecast.ForecastState
+import io.github.dryingday.forecast.ForecastStatus
+import io.github.dryingday.forecast.MainScreen
+import io.github.dryingday.forecast.TimeFormat
 import io.github.dryingday.location.DeviceLocation
 import io.github.dryingday.places.PlaceStore
 import io.github.dryingday.places.PlacesScreen
 import io.github.dryingday.places.PlacesState
-import io.github.dryingday.places.SavedPlace
-import io.github.dryingday.places.placeLabel
 import io.github.dryingday.search.PlaceSearchScreen
 import io.github.dryingday.search.PlaceSearchState
 import io.github.dryingday.search.twoLetterLanguage
-import io.github.dryingday.shared.resources.Res
-import io.github.dryingday.shared.resources.app_name
-import io.github.dryingday.shared.resources.placeholder_current_place
-import io.github.dryingday.shared.resources.placeholder_places
+import io.github.dryingday.weather.Coordinates
+import io.github.dryingday.weather.ForecastSource
 import io.github.dryingday.weather.PlaceSearchSource
-import io.github.dryingday.weather.SourceAttributions
-import io.github.dryingday.weather.openmeteo.openMeteoAttributions
-import org.jetbrains.compose.resources.stringResource
-
-private val DARK_BACKGROUND = Color(0xFF121212)
+import kotlin.time.Clock
 
 private enum class Screen { Main, Places, Search }
 
 /**
- * First run while there is no current place, otherwise the placeholder screen until the main screen arrives in
- * bolt 5, with the places screen and the search reached from it. [deviceLocation] is null where the device can't be
- * asked. [backHandler] runs onBack for the system back gesture while enabled, and does nothing where the platform
- * has none.
+ * First run while there is no current place, otherwise the main screen, with the places screen and the search
+ * reached from it. [deviceLocation] is null where the device can't be asked. [backHandler] runs onBack for the
+ * system back gesture while enabled, and does nothing where the platform has none. [forecastSettings] holds the
+ * forecast cache and [settings] the load; [visible] is whether the app is on screen at all (on Android, at least
+ * STARTED). [formatTime] writes a time in the device's 12- or 24-hour format. See docs/bolts/05-main-screen.md.
  */
 @Composable
+@Suppress("LongParameterList") // The platform wrappers pass each in by name.
 fun App(
     placeStore: PlaceStore,
     searchSource: PlaceSearchSource,
+    forecastSource: ForecastSource,
     deviceLocation: DeviceLocation?,
+    forecastSettings: Settings,
+    settings: Settings,
+    clock: Clock,
+    formatTime: TimeFormat,
+    visible: Boolean,
     backHandler: @Composable (enabled: Boolean, onBack: () -> Unit) -> Unit = { _, _ -> },
 ) {
-    val places = remember(placeStore) { PlacesState(placeStore) }
+    val forecastCache = remember(forecastSettings) { ForecastCache(forecastSettings) }
+    val places = remember(placeStore, forecastCache) { PlacesState(placeStore, forecastCache) }
+    // Forecasts of places no longer saved go at launch, in case a crash left one behind.
+    LaunchedEffect(places) { places.refresh() }
+    val current = places.current
+    val forecast = rememberForecast(forecastSource, forecastCache, settings, clock, current?.coordinates)
+    var selectedDay by remember { mutableIntStateOf(0) }
+    val today = (forecast.status as? ForecastStatus.Showing)?.today
+    LaunchedEffect(today) { selectedDay = 0 }
     val adding = remember(placeStore, deviceLocation) { FirstRunState(deviceLocation, placeStore, places::refresh) }
     var screen by remember { mutableStateOf(Screen.Main) }
+    val onScreen = visible && screen == Screen.Main && current != null
+    LaunchedEffect(onScreen) { forecast.setOnScreen(onScreen) }
     // Where search was opened from: the places screen, or first run / the placeholder.
     var searchFromPlaces by remember { mutableStateOf(false) }
     val closeSearch = {
@@ -104,34 +104,28 @@ fun App(
             screen = Screen.Search
         }) { screen = Screen.Main }
     } else {
-        Placeholder(places.current, onPlaces = { screen = Screen.Places })
+        MainScreen(
+            place = checkNotNull(current),
+            state = forecast,
+            days = DayPicker(selectedDay) { selectedDay = it },
+            attributions = forecastSource.attributions,
+            formatTime = formatTime,
+            onPlaces = { screen = Screen.Places },
+        )
     }
 }
 
+/** The forecast state, held above the screens so it survives going to the places screen and back. */
 @Composable
-private fun Placeholder(current: SavedPlace?, onPlaces: () -> Unit) {
-    val dark = isSystemInDarkTheme()
-    val style = TextStyle(color = if (dark) Color(0xFFE6E6E6) else Color(0xFF1B1B1B), fontSize = 16.sp)
-    Box(Modifier.fillMaxSize().background(if (dark) DARK_BACKGROUND else Color.White)) {
-        Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-            BasicText(stringResource(Res.string.app_name), style = style)
-            if (current != null) {
-                BasicText(stringResource(Res.string.placeholder_current_place, placeLabel(current)), style = style)
-            }
-            Box(
-                Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onPlaces).padding(16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                BasicText(
-                    stringResource(Res.string.placeholder_places),
-                    style = style.copy(textDecoration = TextDecoration.Underline),
-                )
-            }
-        }
-        SourceAttributions(
-            openMeteoAttributions,
-            Modifier.align(Alignment.BottomCenter).safeDrawingPadding().padding(16.dp),
-            color = style.color,
-        )
-    }
+private fun rememberForecast(
+    source: ForecastSource,
+    cache: ForecastCache,
+    settings: Settings,
+    clock: Clock,
+    place: Coordinates?,
+): ForecastState {
+    val scope = rememberCoroutineScope()
+    val state = remember(source, cache, settings, clock) { ForecastState(source, cache, settings, clock, scope) }
+    LaunchedEffect(place) { state.setPlace(place) }
+    return state
 }

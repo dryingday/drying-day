@@ -56,9 +56,12 @@ class ForecastState(
     var load: Load by mutableStateOf(readLoad())
         private set
 
+    /** The time the advice was last worked out for: the clock at the last tick, fetch or return to the screen. */
+    var now: Instant by mutableStateOf(clock.now())
+        private set
+
     private var place: Coordinates? = null
     private var onScreen = false
-    private var now: Instant = clock.now()
     private var lastError: SourceError? = null
     private var retryNotBefore: Instant? = null
     private var fetchJob: Job? = null
