@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
+  <!-- Source of the launcher icon. Keep it in step with the three vectors in
+       androidApp/src/main/res/drawable/ic_launcher_*.xml. Everything that matters sits inside
+       the 66 dp safe circle centred on (54, 54). -->
+  <rect width="108" height="108" fill="#1565C0"/>
+  <circle cx="66" cy="34" r="9" fill="#FFD54F"/>
+  <path d="M28,36 L80,36" fill="none" stroke="#CFD8DC" stroke-width="2" stroke-linecap="round"/>
+  <path d="M40,38 L48,38 Q54,44 60,38 L68,38 L80,48 L73,55 L68,52 L68,78 L40,78 L40,52 L35,55 L28,48 Z" fill="#FFFFFF"/>
+  <rect x="40" y="32" width="5" height="10" rx="1" fill="#F4511E"/>
+  <rect x="63" y="32" width="5" height="10" rx="1" fill="#F4511E"/>
+</svg>
