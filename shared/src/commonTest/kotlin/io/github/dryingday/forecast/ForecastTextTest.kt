@@ -130,11 +130,11 @@ class ForecastTextTest {
     }
 
     @Test
-    fun timesAcrossTheClocksGoingForwardShowTheNewClock() {
+    fun aWindowAcrossTheClocksGoingForwardShowsEachEndOnItsOwnClock() {
         // 01:00 UTC on 2025-03-30 is when London skips from 01:00 to 02:00.
-        val window = checkNotNull(advice(Verdict.WILL_DRY, "2025-03-30T00:59:30Z", "2025-03-30T01:30:59Z").window())
+        val window = checkNotNull(advice(Verdict.WILL_DRY, "2025-03-30T00:29:30Z", "2025-03-30T01:30:59Z").window())
 
-        assertEquals("02:00", twentyFourHourFormat(window.hangOut, london))
+        assertEquals("00:30", twentyFourHourFormat(window.hangOut, london))
         assertEquals("02:30", twentyFourHourFormat(window.bringIn, london))
     }
 
@@ -173,8 +173,9 @@ class ForecastTextTest {
 
         assertFalse(timesAreLocalToPlace(london, london, summer))
         assertTrue(timesAreLocalToPlace(london, kathmandu, summer))
-        // A different zone with the same offset at the time doesn't count.
+        // Different offsets in summer: BST against UTC.
         assertTrue(timesAreLocalToPlace(london, utc, summer))
+        // The same offset in winter, in a different zone, doesn't count.
         assertFalse(timesAreLocalToPlace(london, utc, winter))
     }
 

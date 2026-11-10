@@ -3,7 +3,6 @@ package io.github.dryingday.forecast
 import io.github.dryingday.engine.DayAdvice
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.format.char
 import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toLocalDateTime
@@ -52,10 +51,8 @@ private fun Instant.roundedUp(): Instant {
 private const val SECONDS_PER_MINUTE = 60L
 
 /** "Times are local to the place" shows when the device's UTC offset at [now] differs from the forecast zone's. */
-internal fun timesAreLocalToPlace(forecastZone: TimeZone, deviceZone: TimeZone, now: Instant): Boolean {
-    val a: UtcOffset = forecastZone.offsetAt(now)
-    return a != deviceZone.offsetAt(now)
-}
+internal fun timesAreLocalToPlace(forecastZone: TimeZone, deviceZone: TimeZone, now: Instant): Boolean =
+    forecastZone.offsetAt(now) != deviceZone.offsetAt(now)
 
 /** How "Updated" reads: with a day when the fetch was on an earlier local date, plain for an unknown age. */
 class UpdatedLabel(val earlierDate: Boolean, val time: String)
