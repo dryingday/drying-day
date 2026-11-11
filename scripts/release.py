@@ -233,7 +233,7 @@ def main(argv=None) -> int:
         ci_apk = download_ci_apk(commit, branch, work / "ci")
         ci_recorded = parse_sha256_line((ci_apk.parent / "androidApp-release-unsigned.apk.sha256").read_text())
         hashes = {"CI .sha256 file": ci_recorded, "CI APK": sha256_file(ci_apk),
-                  "Mac build 1": sha256_file(apk_one), "Mac build 2": sha256_file(apk_two)}
+                  "Local build 1": sha256_file(apk_one), "Local build 2": sha256_file(apk_two)}
         for name, digest in hashes.items():
             print(f"  {digest}  {name}")
         require_same_hash(hashes)

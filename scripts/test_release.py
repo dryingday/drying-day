@@ -44,10 +44,10 @@ class PureFunctionsTest(unittest.TestCase):
         self.assertEqual("ab12", rel.parse_sha256_line("ab12  androidApp-release-unsigned.apk\n"))
 
     def test_hashes_must_all_match(self):
-        rel.require_same_hash({"ci": "a", "mac1": "a", "mac2": "a"})
+        rel.require_same_hash({"ci": "a", "local1": "a", "local2": "a"})
         with self.assertRaises(rel.ReleaseError) as cm:
-            rel.require_same_hash({"ci": "a", "mac1": "a", "mac2": "b"})
-        self.assertIn("mac2", str(cm.exception))
+            rel.require_same_hash({"ci": "a", "local1": "a", "local2": "b"})
+        self.assertIn("local2", str(cm.exception))
 
     def test_reads_the_certificate_fingerprint(self):
         digest = "AB" * 32

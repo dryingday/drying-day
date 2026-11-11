@@ -2,27 +2,23 @@
 
 How a version of Drying Day is built, signed and published. The design is in
 [docs/bolts/06-release.md](bolts/06-release.md). In short: Gradle only builds an **unsigned** APK. The
-maintainer signs a copy on their Mac, after checking that it is byte for byte what CI and F-Droid
+maintainer signs a copy on their machine, after checking that it is byte for byte what CI and F-Droid
 build. The agent never sees the key or its password.
 
 ## The signing key (once)
 
-One key, kept by the maintainer outside the repository: a PKCS #12 keystore, RSA 4096, valid 30 years
-(Android wants at least 25, so an update can't outlive the key). The certificate names no one, because it
-is public inside every APK.
-
-```
-keytool -genkeypair -keystore ~/drying-day-release.p12 -storetype PKCS12 -alias drying-day \
-  -keyalg RSA -keysize 4096 -validity 10950 -dname "CN=Drying Day"
-```
+One key, kept by the maintainer outside the repository, in a PKCS #12 keystore made with `keytool`. Give the
+key a long validity (Android's guidance is at least 25 years, so an update can't outlive the key) and the
+certificate the subject `CN=Drying Day` and nothing else: it is public inside every APK, so it names no one.
+The algorithm and key size are the maintainer's choice and aren't recorded here.
 
 `keytool` asks for the password. Use a long one from a password manager.
 
-**Back the keystore up off the Mac, today.** Losing it means no update can ever reach an installed copy,
+**Back the keystore up off the machine, today.** Losing it means no update can ever reach an installed copy,
 from GitHub or from F-Droid. Never put the keystore or its password in the repository, in CI, in an
 environment variable or in a chat with the agent.
 
-## Tools on the Mac
+## Tools on the maintainer's machine
 
 - **Build-tools 34.0.0**, for `apksigner`: `sdkmanager "build-tools;34.0.0"`. F-Droid copies the signature
   with `apksigcopier`, and [its page](https://f-droid.org/docs/Reproducible_Builds/) says an `apksigner`
@@ -31,7 +27,7 @@ environment variable or in a chat with the agent.
 - **A build-tools of 35 or later**, only for `zipalign -c -P 16` (34.0.0's `zipalign` has no `-P`). The
   script takes `zipalign` from the newest build-tools it finds next to the one it is given.
 - **`apksigcopier`**: 1.1.1 on PyPI when this was written (from PyPI's metadata, 2026-11-10). Install it
-  into a virtual environment, because macOS's Python refuses `pip install` system-wide (PEP 668):
+  into a virtual environment, because the system Python may refuse a system-wide `pip install` (PEP 668):
   `python3 -m venv ~/.venvs/sc && ~/.venvs/sc/bin/pip install apksigcopier`, and put its `bin` on `PATH`.
 - `gh`, logged in as the maintainer, and Temurin 21.
 
@@ -49,8 +45,8 @@ None of these is part of the build or CI.
    python3 scripts/release.py 1.0.0 --keystore ~/drying-day-release.p12 --alias drying-day
    ```
 
-   It checks the tag, the version and the changelog; builds twice on the Mac, at two paths of different
-   lengths; waits for CI's artifact; and stops unless CI's APK, its `.sha256` file and both Mac builds have one
+   It checks the tag, the version and the changelog; builds twice locally, at two paths of different
+   lengths; waits for CI's artifact; and stops unless CI's APK, its `.sha256` file and both local builds have one
    SHA-256. It then checks alignment, asks for the keystore password (with `getpass`, and passes it to
    `apksigner` on its standard input), signs, verifies with `apksigner` and `apksigcopier compare`, prints the
    certificate's SHA-256 fingerprint for the F-Droid recipe, and creates the GitHub release with
@@ -64,22 +60,21 @@ commit on `origin/main`. It signs with a throwaway key, stops before publishing 
 
 ## What the builds ran with
 
-The unsigned APKs from CI and from the Mac were identical for `5586d96` (see the bolt 6 PR 3 description for the
-hashes). Versions at that commit:
+CI's unsigned APK and two local builds, from clones at different paths, were identical for `5586d96` (the hashes are in
+the bolt 6 PR 3 description). CI's side, at that commit:
 
-| | Mac | CI |
-|---|---|---|
-| JDK | Temurin 21.0.13+9 | Temurin 21.0.13+9 (`actions/setup-java`) |
-| Gradle | 9.9.0 | 9.9.0 |
-| Android Gradle plugin | 9.5.1 | 9.5.1 |
-| SDK platform | android-37.0 rev 2 (`compileSdk` 37) | android-37.0 rev 2, from the image's installed list |
-| Build-tools used by AGP | 36.0.0 | 36.0.0 is among the image's (listed below); the log doesn't name the one AGP picked |
-| OS | macOS 15 (Darwin 24.6) | `ubuntu-26.04`, image version 20261101.186.1 |
+| | CI |
+|---|---|
+| JDK | Temurin 21.0.13+9 (`actions/setup-java`) |
+| Gradle | 9.9.0 |
+| Android Gradle plugin | 9.5.1 |
+| SDK platform | android-37.0 rev 2 (`compileSdk` 37), from the image's installed list |
+| Build-tools | the runner image has 37.0.0, 36.0.0, 36.1.0, 35.0.0, 35.0.1 and 34.0.0; the log doesn't name the one AGP picked |
+| OS | `ubuntu-26.04`, image version 20261101.186.1 |
 
-CI's SDK revisions are from the runner image's [included software list](https://github.com/actions/runner-images/blob/ubuntu26/20261101.186/images/ubuntu/Ubuntu2604-Readme.md)
-(read 2026-11-10): build-tools 37.0.0, 36.0.0, 36.1.0, 35.0.0, 35.0.1 and 34.0.0, and platform-tools 37.0.1.
-The build log doesn't print which build-tools AGP used on CI; the hashes match, so any difference didn't change the bytes.
-If a later build differs, compare these first.
+The SDK revisions are from the runner image's [included software list](https://github.com/actions/runner-images/blob/ubuntu26/20261101.186/images/ubuntu/Ubuntu2604-Readme.md)
+(read 2026-11-10). A local build should use the same JDK distribution and major version, Gradle and AGP (the
+wrapper and the version catalogue pin the last two). If a later build differs from CI's, compare these first.
 
 ## When F-Droid reports a mismatch
 
