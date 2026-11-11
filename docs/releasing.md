@@ -7,10 +7,14 @@ build. The agent never sees the key or its password.
 
 ## The signing key (once)
 
-One key, kept by the maintainer outside the repository, in a PKCS #12 keystore made with `keytool`. Give the
-key a long validity (Android's guidance is at least 25 years, so an update can't outlive the key) and the
-certificate the subject `CN=Drying Day` and nothing else: it is public inside every APK, so it names no one.
-The algorithm and key size are the maintainer's choice and aren't recorded here.
+One key, kept by the maintainer outside the repository: a PKCS #12 keystore, RSA 4096, valid 30 years
+(Android wants at least 25, so an update can't outlive the key). The certificate names no one, because it
+is public inside every APK.
+
+```
+keytool -genkeypair -keystore ~/drying-day-release.p12 -storetype PKCS12 -alias drying-day \
+  -keyalg RSA -keysize 4096 -validity 10950 -dname "CN=Drying Day"
+```
 
 `keytool` asks for the password. Use a long one from a password manager.
 
