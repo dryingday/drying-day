@@ -16,7 +16,7 @@ Open-Meteo sees your phone's IP address, as any server you connect to does, and 
 ## When
 
 - A search is sent only when you submit it.
-- The forecast is fetched at most about once an hour while the app is open, plus when you tap Refresh. Never in the background: the app does nothing when it isn't on screen.
+- The forecast is fetched at most about once an hour while the app is open, plus when you tap Refresh. Never in the background: the app makes no requests when it isn't on screen.
 
 ## Location
 
