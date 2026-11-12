@@ -6,7 +6,7 @@ Drying Day reads the forecast for your drying window and gives a clear verdict (
 
 Free and open source, no account, no tracking. Android first, built with Kotlin Multiplatform.
 
-Status: early development. See [docs/PLAN.md](docs/PLAN.md).
+Status: version 1.0.0, from the [GitHub releases](https://github.com/dryingday/drying-day/releases). See [docs/PLAN.md](docs/PLAN.md).
 
 Weather data by [Open-Meteo](https://open-meteo.com/) (CC BY 4.0). [Privacy policy](PRIVACY.md): no account, no tracking; only rough coordinates or a place search go to Open-Meteo.
 
