@@ -8,7 +8,7 @@ Free and open source, no account, no tracking. Android first, built with Kotlin 
 
 Status: early development. See [docs/PLAN.md](docs/PLAN.md).
 
-Weather data by [Open-Meteo](https://open-meteo.com/) (CC BY 4.0).
+Weather data by [Open-Meteo](https://open-meteo.com/) (CC BY 4.0). [Privacy policy](PRIVACY.md): no account, no tracking; only rough coordinates or a place search go to Open-Meteo.
 
 ## Building
 
