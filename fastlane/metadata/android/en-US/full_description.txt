@@ -1,0 +1,27 @@
+Will the washing dry on the line today? Drying Day gives you a clear answer first, then the details.
+
+<b>A verdict for today and the next two days</b>
+• Will dry
+• Partly dry, finish indoors
+• Don't bother, dry indoors
+
+<b>Worked out for your load</b>
+Switch between a light load (shirts, underwear, thin cotton, synthetics) and a heavy one (towels, jeans, bedding, hoodies). Thick things need much better conditions, and the verdict follows.
+
+<b>Times, tips and an indoor plan</b>
+When to hang the washing out and when to bring it in, what is holding the day back (rain, damp air, little wind), a few hanging tips for the conditions, and an indoor plan when outdoors won't finish the job.
+
+<b>Works from the last forecast</b>
+The forecast is kept on your device, so you still see it, with its age, when you have no signal.
+
+<b>Private by design</b>
+• No account, no ads, no analytics, no tracking, no crash reporting
+• Your approximate location is read only when you tap the button, once, and saved as a place; or search for a place by name
+• Only two things leave your phone: rough coordinates (rounded to about a kilometre) to get the forecast, and, if you search, the name you typed and your language. Both go to Open-Meteo, over HTTPS
+• The app never runs in the background
+
+Free software, GPL-3.0-or-later.
+
+Weather data by Open-Meteo.com (CC BY 4.0). Place data based on GeoNames (CC BY 4.0).
+
+Privacy policy: https://github.com/dryingday/drying-day/blob/main/PRIVACY.md
