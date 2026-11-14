@@ -99,6 +99,7 @@ class ReasonsTest {
         // 10 °C at 67 % is 0.405 kPa: 1 point an hour with a 10 km/h breeze, 11 of 12 for a heavy load by 19:00.
         val f = forecast(sunset = 19 to 0) { _, _ -> W(10.0, 67.0, 10.0, 0.0) }
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.SHORT_DAYLIGHT), reasons(f))
+        assertEquals(emptyList(), table(f))
     }
 
     @Test
@@ -119,6 +120,7 @@ class ReasonsTest {
         // Sunset 18:00, so the window is 08–18. Exactly half still is not most; six hours of ten is.
         val half = forecast(sunset = 18 to 0) { _, h -> if (h < 13) stillGrey else grey }
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.STILL_AIR), reasons(half))
+        assertEquals(emptyList(), table(half))
         val most = forecast(sunset = 18 to 0) { _, h -> if (h < 14) stillGrey else grey }
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.STILL_AIR), reasons(most))
     }
@@ -129,6 +131,7 @@ class ReasonsTest {
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.SHORT_DAYLIGHT), reasons(fiveHours))
         val sixHours = forecast(sunrise = 8 to 0, sunset = 14 to 0) { _, _ -> grey }
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.SHORT_DAYLIGHT), reasons(sixHours))
+        assertEquals(emptyList(), table(sixHours))
         // Today it counts from now.
         assertEquals(listOf(Reason.SHORT_DAYLIGHT), reasons(forecast { _, _ -> grey }, now = at(day0, 15 to 0)).second)
     }
@@ -182,7 +185,7 @@ class ReasonsTest {
     private fun day(sunset: Pair<Int, Int>, vararg parts: Pair<Int, W>) =
         forecast(sunset = sunset, weather = layout(*parts))
 
-    private fun table(f: Forecast, load: Load = Load.HEAVY, now: kotlin.time.Instant = at(day0, 8 to 0)) =
+    private fun table(f: Forecast, load: Load = Load.HEAVY, now: kotlin.time.Instant = at(day0, 8 to 0, f.timeZone)) =
         assertNotNull(tableReasons(f, load, now).first())
 
     @Test
@@ -224,6 +227,7 @@ class ReasonsTest {
         // COLD 4 h = 0.67, DAMP_AIR 4 h = 0.67, STILL_AIR 2 h = 0.33, SHORT_DAYLIGHT 0.5. 6.4 of 12 points.
         val f = day(20 to 0, 4 to damp, 4 to cold, 2 to still, 2 to fair)
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.COLD), reasons(f))
+        assertEquals(emptyList(), table(f))
     }
 
     @Test
@@ -231,6 +235,7 @@ class ReasonsTest {
         // DAMP_AIR 4 h = 0.67, STILL_AIR 4 h = 0.67, COLD 2 h = 0.33, SHORT_DAYLIGHT 0.5. 8.8 of 12 points.
         val f = day(20 to 0, 4 to still, 4 to damp, 2 to cold, 2 to fair)
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.DAMP_AIR), reasons(f))
+        assertEquals(emptyList(), table(f))
     }
 
     @Test
@@ -239,6 +244,7 @@ class ReasonsTest {
         // COLD and DAMP_AIR 2 h = 0.33. 9.6 of 12 points.
         val f = day(20 to 0, 3 to still, 2 to cold, 2 to damp, 5 to fair)
         assertEquals(Verdict.PARTLY_DRY to listOf(Reason.STILL_AIR), reasons(f))
+        assertEquals(emptyList(), table(f))
     }
 
     @Test

@@ -1,7 +1,7 @@
 package io.github.dryingday.engine
 
 import io.github.dryingday.engine.DryingThresholds.COLD_BELOW_C
-import io.github.dryingday.engine.DryingThresholds.MOST_SHARE_DIVISOR
+import io.github.dryingday.engine.DryingThresholds.MOST_SHARE_FACTOR
 import io.github.dryingday.engine.DryingThresholds.SHORT_DAYLIGHT
 import io.github.dryingday.engine.DryingThresholds.SLOW_VPD_KPA
 import io.github.dryingday.engine.DryingThresholds.STILL_AIR_BELOW_FACTOR
@@ -93,7 +93,7 @@ private class JudgedDay(
 
     // The share of the judged time that meets the condition, divided by the share that is "most".
     private fun share(span: Long, condition: (HourlyWeather) -> Boolean) =
-        Fraction(hours.timeIn(judged, condition).inWholeMilliseconds * MOST_SHARE_DIVISOR, span)
+        Fraction(hours.timeIn(judged, condition).inWholeMilliseconds * MOST_SHARE_FACTOR, span)
 
     private fun heldBack(kind: HourKind) = window?.endedBy == kind || before.any { it.kind() == kind }
 

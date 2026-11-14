@@ -61,8 +61,9 @@ internal object DryingThresholds {
     // Rule 6: less usable time than this is short daylight.
     val SHORT_DAYLIGHT = 6.hours
 
-    // Rule 7: a share of time is divided by one half, the share that is "most", to be a closeness.
-    const val MOST_SHARE_DIVISOR = 2L
+    // Rules 6 and 7: "most" is more than half, so twice the time must exceed the span; rule 7 divides a share
+    // by one half, which is the same factor.
+    const val MOST_SHARE_FACTOR = 2
 
     // Tips: at most this many a day.
     const val MAX_TIPS = 3
