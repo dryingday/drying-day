@@ -51,9 +51,9 @@ A `ForecastCache` holds, for each saved place, the last forecast fetched for it:
 
 #### How old it can be
 
-A forecast's age is `now` − its fetch time. A fetch time after `now` (the clock was set back) is an **unknown age**: the forecast is shown, it's refetched as soon as the rules above allow, "Updated" gives the plain time with no day, and it doesn't become `OutOfDate` until a fetch replaces it.
+A forecast's age is `now` − its fetch time. A fetch time after `now` (the clock was set back) is an **unknown age**: the forecast is shown, it's refetched as soon as the rules above allow, "Updated" gives the time and zone with no day, and it doesn't become `OutOfDate` until a fetch replaces it.
 
-- **Shown with its age, always.** The main screen says when the forecast it's showing was fetched: "Updated 09:40", or "Updated yesterday, 21:10" when that was an earlier local date, in the device's time format (below).
+- **Shown with its age, always.** The main screen says when the forecast it's showing was fetched: "Updated today 09:40 UTC+1", "Updated yesterday 21:10 UTC+1", or "Updated Wednesday 21:10 UTC+1" for any date two or more days back, in the forecast's zone and the device's time format (below). A failed fetch leaves this time alone: it is when the forecast shown was last fetched. A failed Refresh when a forecast is cached, including one too old to show, also shows a short message at the bottom, in the same words as the error under the forecast, for a few seconds. It is a live region, built on foundation only, with no Material dependency.
 - **Not used at an age of `FORECAST_TOO_OLD` = 24 hours or more.** An older forecast gives no advice at all: the screen says the forecast is out of date and offers Refresh. A day-old forecast is a poor basis for a bring-in time, and the response's `past_days=1, forecast_days=5` would otherwise let the engine answer from it for days.
 - Days the cached forecast doesn't cover are `null` from the engine, and shown as such (below). The engine already refuses to guess.
 
@@ -98,7 +98,7 @@ sealed interface ForecastStatus {
 
 ### The load
 
-A switch with two choices, **Light load** and **Heavy load**, each with a line saying what it means, from bolt 2's `Load`: "Shirts, underwear, thin cotton, synthetics" and "Towels, jeans, bedding, hoodies. Mixed loads too".
+A switch with two choices, **Light load** and **Heavy load**, each with a line saying what it means, from bolt 2's `Load`: "Shirts, underwear, thin cotton, synthetics." and "Towels, jeans, bedding, hoodies. Mixed loads too."
 
 - **The default is `HEAVY`.** A mixed load is heavy, most loads are mixed, and a heavy load's verdict is the cautious one: if it says the washing will dry, a light load will too.
 - **The choice is remembered** across launches, as `"LIGHT"` or `"HEAVY"` under the key `load` in a private preferences file, `settings`. Any other stored value counts as the default.
@@ -113,14 +113,14 @@ From the top:
 1. **The place**: its name as bolt 4 shows it ("Approximate location" for a device fix), tappable, opening the places screen.
 2. **The days**: three tabs, **Today**, **Tomorrow** and the weekday of `today` + 2 days ("Thursday"), from `Showing.today`, so a `null` day is labelled too, each with its verdict in short (Will dry, Partly, Don't bother, or a dash for a `null` day). Today is selected on launch, and again when `Showing.today` changes. The selection survives rotation (`configChanges` from bolt 4 already keeps the composition).
 3. **The selected day**, in this order:
-   - **The verdict**, large: **Will dry**, **Partly dry, finish indoors**, or **Don't bother, dry indoors**, as `docs/PLAN.md` words them. When today's only reason is `DAY_OVER`, the headline is **Too late to dry outside today** instead, and there's no "Held back by".
+   - **The verdict**, large: **Will dry**, **Partly dry, finish indoors**, or **Don't bother, dry indoors**, as `docs/PLAN.md` words them. When today's only reason is `DAY_OVER`, the headline is **Too late to dry outside today** instead, and there's no "Why".
    - **The times**, for `WILL_DRY` and `PARTLY_DRY`: "Hang out at 10:15. Bring in by 14:30." For `PARTLY_DRY`, then: "About 70 % dry by then." The percentage is `dryness`.
-   - **Held back by**, for `PARTLY_DRY` and `DONT_BOTHER`: the reasons, one line each, in the engine's order.
+   - **Why**, for `PARTLY_DRY` and `DONT_BOTHER`: the reasons, one line each, in the engine's order.
    - **Tips**, for `WILL_DRY` and `PARTLY_DRY`: the engine's tips, one line each.
    - **Indoors**, for `PARTLY_DRY` ("When you bring it in") and `DONT_BOTHER`: the indoor plan, one line each.
    - A `null` day: "There isn't enough forecast for this day yet." Nothing else.
 4. **The load switch.**
-5. **The forecast's status**: "Updated 09:40", "Updating…" while a fetch runs, and the error below it if the last fetch failed. A Refresh button, which shows the waiting state and can't be tapped twice.
+5. **The forecast's status**: "Updated today 09:40 UTC+1", "Updating…" while a fetch runs, and the error below it if the last fetch failed. A Refresh button, which shows the waiting state and can't be tapped twice.
 6. **The credit**: the full `SourceAttributions` from bolt 3, next to the forecast, as Open-Meteo's terms ask. It stays visible, or one scroll away at large font sizes, in every state that shows the forecast.
 
 Without a usable forecast the screen shows the place, the load switch, the credit, and in place of the days:
@@ -137,38 +137,38 @@ All of it in string resources. The copy, to start from:
 
 | Code | Text |
 |---|---|
-| `RAIN` | Rain gets in the way |
-| `FOG` | Fog or mist |
-| `COLD` | Cold, damp air dries slowly |
-| `DAMP_AIR` | The air is too damp |
-| `STILL_AIR` | Not much wind |
-| `SHORT_DAYLIGHT` | Not enough daylight |
-| `DAY_OVER` | Today's daylight is over |
-| `PEG_WELL` | Gusty: peg everything well |
-| `SHOWERS_POSSIBLE` | Showers are possible: keep an eye on the sky |
-| `HEAVY_ITEMS` | Pockets out, hang heavy things by the hems, and turn them halfway |
-| `SPACE_OUT` | Little wind: leave space between items |
-| `DARKS_INSIDE_OUT` | Strong sun: turn darks inside out so they don't fade |
-| `AIRER_SPACED` | Use an airer, with space between items |
-| `OPEN_WINDOW` | Open a window: the air outside is dry enough to help |
-| `DEHUMIDIFIER_OR_CLOSED_ROOM` | Keep windows shut. Use a dehumidifier, or a small room with the door closed |
-| `NOT_ON_RADIATOR` | Not on a radiator. Near one is fine |
-| `TURN_HEAVY_ITEMS` | Turn heavy items now and then |
+| `RAIN` | Rain gets in the way. |
+| `FOG` | Fog or mist. |
+| `COLD` | Cold, damp air dries slowly. |
+| `DAMP_AIR` | The air is too damp. |
+| `STILL_AIR` | Not much wind. |
+| `SHORT_DAYLIGHT` | Not enough daylight. |
+| `DAY_OVER` | Today's daylight is over. |
+| `PEG_WELL` | Peg everything well, as it's gusty. |
+| `SHOWERS_POSSIBLE` | Keep an eye on the sky, as showers are possible. |
+| `HEAVY_ITEMS` | Pockets out, hang heavy things by the hems, and turn them halfway. |
+| `SPACE_OUT` | Leave space between items, as there's little wind. |
+| `DARKS_INSIDE_OUT` | Turn darks inside out, as strong sun fades them. |
+| `AIRER_SPACED` | Use an airer, with space between items. |
+| `OPEN_WINDOW` | Open a window, as the air outside is dry enough to help. |
+| `DEHUMIDIFIER_OR_CLOSED_ROOM` | Keep windows shut. Use a dehumidifier, or a small room with the door closed. |
+| `NOT_ON_RADIATOR` | Not on a radiator. Near one is fine. |
+| `TURN_HEAVY_ITEMS` | Turn heavy items now and then. |
 
 | Error | With no forecast to show | Under a forecast that's shown |
 |---|---|---|
-| `UNREACHABLE` | Couldn't reach the weather service. Check your connection and try again. | Couldn't update: no connection. |
-| `SERVICE` | The weather service had a problem. Try again in a moment. | Couldn't update: the weather service had a problem. |
-| `BAD_RESPONSE` | The forecast couldn't be read. Try again later. | Couldn't update: the forecast couldn't be read. |
+| `UNREACHABLE` | Couldn't reach the weather service. Check your connection and try again. | Couldn't reach the weather service to update the forecast. |
+| `SERVICE` | The weather service had a problem. Try again in a moment. | Couldn't update, as the weather service had a problem. |
+| `BAD_RESPONSE` | The weather service sent something this app can't read. Try again later. | Couldn't update, as the weather service sent something this app can't read. |
 
 Each enum maps to its string with an exhaustive `when`, so a new code doesn't compile without text. Weekday names are string resources too, one per `DayOfWeek`.
 
 #### Times
 
-- **In the forecast's zone**, never the device's: the place's clock is the one the washing line keeps. The device's zone is read once a minute only to compare: when its UTC offset at `now` differs from the forecast zone's, the screen adds "Times are local to the place." under the times.
+- **In the forecast's zone**, never the device's: the place's clock is the one the washing line keeps. The device's zone is read once a minute only to compare: when its UTC offset at `now` differs from the forecast zone's, the screen adds "Times are in the place's own time zone." under the times.
 - **In the device's time format**: 12- or 24-hour as the user set it. `App` takes `formatTime: (Instant, TimeZone) -> String`. On Android, `MainActivity` passes one built on `android.text.format.DateFormat.getTimeFormat(context)` with its zone set to the forecast's. The iOS wrapper and tests pass a common 24-hour `HH:mm` formatter built with kotlinx-datetime's format builder.
 - **To the minute**, as the engine gives them: the hang-out's seconds rounded up and the bring-in's down, so the times shown never fall before sunrise or `now`, or after rain or sunset. They aren't rounded to a quarter hour: rounding a `WILL_DRY` bring-in down would tell people to take in washing that isn't dry yet, rounding it up could cross the start of rain, and `DayAdvice` doesn't say which end it is. `dryness` is for the engine's bring-in, under a minute after the one shown. The two can't round into the same minute in practice: an hour earns at most 5 points (3 × 1.5 + 0.5) and a day with times needs at least 3, so its window is at least 36 minutes. If they ever did, both are shown as the hang-out's minute rounded down, with a test.
-- The "Updated" time is the same format, in the forecast's zone.
+- The "Updated" time is the same format, in the forecast's zone, with that zone's UTC offset at the fetch time after it (`UTC`, `UTC+1`, `UTC-4`, `UTC+5:45`), because common code has no zone abbreviations. "Today", "yesterday" and the weekday are counted by local date in the forecast's zone.
 
 ### Wiring
 
@@ -195,7 +195,7 @@ Release work, the icon and store screenshots (bolt 6). Translations beyond Engli
 - `./gradlew check` passes with no network. The Kotlin compiles for iOS with `-Pdryingday.ios=true`.
 - `ForecastCache` tests, over `MapSettings`: `retain` dropping entries no saved place has, and removing one of a device and a searched place that share coordinates keeping their entry; round trip of a `Forecast` equal to the original, including nullable fields and a zone with a daylight-saving rule; one entry per set of coordinates, replaced by a newer fetch; corrupt JSON, another version, an unknown zone and an invalid hour each without an exception escaping, and the last dropping only its own entry. A test shows the stored JSON's keys are exactly the fields listed under "What's kept".
 - `ForecastState` tests, with a fake source and the test clock: each fetch trigger (no cache, 1 hour on each side, fetch time after `now`, coming on screen, back from the places screen, new current place, the minute tick); the 15-minute wait after a failed automatic attempt and after a failed Refresh, on each side, Refresh ignoring it and a new place clearing it; no fetch while not on screen; cancellation on going to the background, on leaving the main screen and on a change of place, with nothing stored; a fetch time after `now` shown as `Showing` with the plain time, and not `OutOfDate`; a failure keeping the cached forecast and setting `lastError`, and a success clearing it; 24 hours on each side of `OutOfDate`; each status; the minute tick moving today past a bring-in, past sunset and past midnight in the forecast's zone; the load default, its round trip and an unknown stored value.
-- Text tests: every reason, tip, indoor step, error and weekday has a string, through the exhaustive mappings; the `DAY_OVER` headline; times to the minute with the hang-out's seconds rounded up and the bring-in's down, at a quarter-hour zone offset (UTC+05:45) and across a daylight-saving change; the weekday label of a `null` third day; a `DONT_BOTHER` day with only `DAY_OVER` showing its headline, no "Held back by" and its indoor steps; the "Times are local" rule on each side.
+- Text tests: every reason, tip, indoor step, error and weekday has a string, through the exhaustive mappings; the `DAY_OVER` headline; times to the minute with the hang-out's seconds rounded up and the bring-in's down, at a quarter-hour zone offset (UTC+05:45) and across a daylight-saving change; the weekday label of a `null` third day; a `DONT_BOTHER` day with only `DAY_OVER` showing its headline, no "Why" and its indoor steps; the "Times are in the place's own time zone" rule on each side.
 - A search recorded in the PR finds no `Log` or `println` in the app's own Kotlin.
 - No real places in tests or fixtures, beyond the reference set's.
 - On the emulator (API 36), recorded in the PR with screenshots: the main screen for a will-dry, a partly-dry and a don't-bother day, in light and dark; switching load; switching day; rotation keeping the day; Refresh; aeroplane mode showing the cached forecast with its age and the error, and first launch offline showing the error with Try again; the clock moved forward 25 hours with the network off showing out of date with the no-connection error (with the network on, TLS may fail on the skewed clock, so that isn't the check); the time `advise` takes, against the 16 ms line; 200 % font scale with no clipping; TalkBack reading the verdict and the selected tab. The forecast for an emulator fix comes from the live API, so its verdict is whatever the day brings: the PR says which of the three it showed live, and shows the others with fixture forecasts through a fake source in a local patch that isn't committed.

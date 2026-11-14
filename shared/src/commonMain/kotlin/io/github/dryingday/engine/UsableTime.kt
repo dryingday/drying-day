@@ -27,7 +27,7 @@ internal fun List<HourlyWeather>.timeIn(span: Interval, condition: (HourlyWeathe
 
 /** Whether the hours that meet [condition] last more than half of [span]: "most of the time". */
 internal fun List<HourlyWeather>.mostOf(span: Interval, condition: (HourlyWeather) -> Boolean): Boolean =
-    timeIn(span, condition) * 2 > span.length
+    timeIn(span, condition) * DryingThresholds.MOST_SHARE_FACTOR > span.length
 
 /** Rule 1: the part of this hour that lies in [daylight] and after [now]. */
 internal fun HourlyWeather.usableTime(daylight: Interval, now: Instant): Duration {

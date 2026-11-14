@@ -84,6 +84,28 @@ The day's advice uses the window with the earliest bring-in among those that rea
 
 "Most" is more than half, by time, over the whole window: its drying time before hang-out counts too. Each hour is one kind, wet before fog before dew, so a foggy, humid hour is `FOG`. With no window at all, the "most of the window" reasons are judged over the day's usable time instead. Polar night, which has no daylight, is `SHORT_DAYLIGHT`.
 
+**7. The weakest factor, when no reason applies.** Conditions can be mediocre on every count with none crossing its threshold: a `PARTLY_DRY` day at about 60 % dry with no reason, and a screen that shows no "Why". When the table above gives an empty list for a `PARTLY_DRY` or `DONT_BOTHER` day, the engine adds the one reason whose factor came closest to its threshold. No threshold changes. The table's own list is never altered: this applies only to an empty one.
+
+- **When it applies.** `PARTLY_DRY` and `DONT_BOTHER` days whose list from the table is empty. Never `WILL_DRY`, which has no reasons. Never when `DAY_OVER` applies, because `DAY_OVER` is always listed alone and the list is never empty then. `DONT_BOTHER` gets it, as bolt 5's "Why" shows for both verdicts, and an empty list can happen there in two ways: a window earns under half the load's need without any reason crossing its threshold (for example a heavy load on a 12-hour day with one sunny hour, 5 cold, slow hours and 6 warm, slow ones, with wind under 5 km/h in fewer than half the hours, as `STILL_AIR` would apply otherwise), or there is no window and the day's usable time splits exactly half and half between cold, slow hours and warm, slow hours, and neither is "more than half".
+- **The span.** The same one the table judges: the whole chosen window, or the day's usable time when there's no window.
+- **The measure.** A closeness to each candidate's own threshold, which is 1 at the threshold. Each is at most 1 here, because the reason didn't apply.
+
+  | Candidate | Closeness |
+  |---|---|
+  | `COLD` | The share of the span's time below 0.4 kPa VPD at under 10 °C, divided by 0.5 |
+  | `DAMP_AIR` | The share of the span's time below 0.4 kPa VPD at 10 °C or more, divided by 0.5 |
+  | `STILL_AIR` | The share of the span's time with a wind factor below 1, divided by 0.5 |
+  | `SHORT_DAYLIGHT` | 6 hours divided by the day's usable time |
+
+  Shares are by time, with partial hours pro rata, as in the table. For `DAMP_AIR` only the time share counts, as an empty list has no dew hour in or before the span.
+- **Not candidates.** `RAIN` and `FOG`: an empty list means no wet or foggy hour came before or ended the window, and each is judged on a single hour rather than a share of the span. A near miss (a 35 % chance, 1 200 m of visibility) is on a different scale from the other four. Bolt 2's `SHOWERS_POSSIBLE` tip already covers 20 to 39 %. `DAY_OVER` is never added.
+- **The pick.** The highest closeness wins. A tie goes to the first in the table's order (`COLD`, `DAMP_AIR`, `STILL_AIR`, `SHORT_DAYLIGHT`). Exactly one reason is added, and the list then has one entry. The comparison is exact: `Duration` values compared with integer arithmetic (cross-multiplied), with no floating point, because rounding would blur a tie.
+- **No window.** The measure works as it does with a window, over the usable time. The list is empty without a window only in the half-and-half split above. Usable time is never zero when the list is empty, as no usable time means `SHORT_DAYLIGHT` or `DAY_OVER` applies. Nothing divides by zero.
+- **Why `SHORT_DAYLIGHT` is a candidate.** With a window and an empty list, the window ended at sunset, because a wet, foggy or dew hour ending it would have given `RAIN`, `FOG` or `DAMP_AIR`. Daylight ran out first. Its closeness is `6 h / usable`: 0.67 on a 9-hour day, 0.5 on a 12-hour day. On a long day it wins only when every share is small.
+- **The screen** shows it as any other reason: the same string, the same line. `DayAdvice` gains no field.
+
+For a feel: a 10-hour day with 20 % of its time cold and slow has `COLD` at 0.4 and `SHORT_DAYLIGHT` at 0.6, and shows "Not enough daylight." The same day with 35 % cold, slow time has `COLD` at 0.7, and shows "Cold, damp air dries slowly."
+
 ### Tips and indoor plan
 
 Codes only. Tips are for `WILL_DRY` and `PARTLY_DRY`, judged over the time on the line, from hang-out to bring-in; at most three per day, in this order of priority:
@@ -116,6 +138,7 @@ The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usabl
 - About 36 cases at public landmarks (coordinates to two decimal places, no homes), chosen for spread rather than chance: maritime, continental, Mediterranean, Nordic and southern-hemisphere climates; clear, showery, foggy, windy, cold and humid days; both daylight-saving changes; one polar case. `now` is 08:00 local, plus a few cases at midday and late afternoon.
 - **Blind labels.** A fresh subagent, given only each case's hourly data in local time, sunrise and sunset, and the verdict definitions (not the engine, the rules or the thresholds), labels each case for both loads: verdict, hang-out and bring-in to the hour, and a one-line reason. Labelling can happen before the engine exists.
 - **Disagreements.** The engine runs on every case. Each disagreement goes in `docs/reference-set.md` with both answers, and the maintainer decides: the label was wrong, the rule was, or it stays open. A rule change is its own high-tier PR. An open disagreement is recorded in the document and in `decisions.json`, and left out of the test's agreement check, for evidence that's better than one labeller's judgement.
+- **Reasons and the reference set.** The blind labels have a verdict and times, and a free-text reason that no test reads. Rule 7 therefore changes no labelled day. Checked on 2026-11-14 by listing the engine's days with an empty list: of 84 entries that aren't `WILL_DRY`, three are empty, all on the second or third day of a case, which have no labels: one day of one case and two days of another, all heavy loads in winter. Each of the three would get `SHORT_DAYLIGHT` (about 10 hours usable), by closeness measured over the usable time. The PR that carries out rule 7 runs the same listing, records any change in `docs/reference-set.md`, and doesn't weaken a test to make one pass.
 - `ReferenceSetTest` asserts every agreed case on its first day (the "today" entry): the same verdict, and hang-out and bring-in within an hour of the label, or of the maintainer's answer where the label was wrong. Every open case must still disagree, so the document stays true. The two days after only need to be non-null.
 - Real coordinates are needed for real forecasts. PLAN.md allows "neutral, well-known places", and the maintainer agreed ([on PR #13](https://github.com/dryingday/drying-day/pull/13#discussion_r4503700795)) to an exception to the "no real places" rule for the reference set alone. CLAUDE.md, CONTRIBUTING.md and REVIEW.md now say so.
 
@@ -131,6 +154,14 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 - Tests show correct hang-out and bring-in times across the spring and autumn daylight-saving changes in at least two zones in different hemispheres, a sunrise or sunset that falls mid-hour, a `now` partway through the day, and polar day and night.
 - Missing hours or required fields give `null` for that day, never a verdict.
 - Every reference case has a blind label for both loads; every disagreement has the maintainer's decision (label wrong, rule wrong, or open) in `docs/reference-set.md`; `ReferenceSetTest` passes on all agreed and decided cases.
+- Rule 7 has tests in `ReasonsTest`, each building a `PARTLY_DRY` or `DONT_BOTHER` day and asserting the verdict as well as the list:
+  - Each candidate wins alone: `COLD`, `DAMP_AIR`, `STILL_AIR` and `SHORT_DAYLIGHT`, each on a day where its closeness is the highest and below 1, with the other three given in a comment.
+  - Each tie goes to the earlier reason: `COLD` over `DAMP_AIR`, `DAMP_AIR` over `STILL_AIR`, `STILL_AIR` over `SHORT_DAYLIGHT` (a 12-hour day, at 0.5, against a quarter of the time in still air).
+  - An empty-list `DONT_BOTHER` day with a window, and one with no window (6 of 12 usable hours cold and slow, 6 warm and slow, with wind under 5 km/h in fewer than half the hours, as `STILL_AIR` would apply otherwise), which names `COLD` by the tie-break.
+  - Exactly half the span cold and slow gets `COLD` from rule 7, and one more hour of it gets `COLD` from the table: the list is the same, the route differs.
+  - A day with `now` partway through, to judge `SHORT_DAYLIGHT` on the usable time from `now`, and a sunset mid-hour, to count the shares by time.
+  - Days with a non-empty list from the table are unchanged: every existing `ReasonsTest` case with a non-empty table list passes as written. Three assertions expect an empty list for a `PARTLY_DRY` day, which is the case rule 7 fills: `justAboveTheSlowLineIsNeitherColdNorDamp` (now `SHORT_DAYLIGHT`, 11 usable hours), the exactly-half assertion in `stillAirIsMoreThanHalfTheWindow` (now `STILL_AIR`, closeness 1) and the six-hours assertion in `shortDaylightIsUnderSixUsableHours` (now `SHORT_DAYLIGHT`, closeness 1). Each keeps its verdict and changes its expected list to that reason. None is weakened: each still asserts the verdict and now also asserts the exact reason. A test over the reference set also checks that rule 7 changes no day whose table list is non-empty, that `WILL_DRY` stays empty and that `DAY_OVER` stays alone.
+  - No `PARTLY_DRY` or `DONT_BOTHER` day in the reference set ends with an empty list.
 - No real places outside the reference set, and in it public landmarks only, coordinates to two decimals; no homes or personal data.
 
 ## PRs
@@ -147,3 +178,4 @@ Fetching live forecasts and mapping Open-Meteo responses (bolt 3). Text, string 
 | 5 | Fetch script, fixtures and generated `ReferenceForecasts.kt`. Needs PR 1's types; can run alongside PRs 2–4. | high (`scripts/`) |
 | 6a | Blind labels, the first comparison in `docs/reference-set.md`, and the two higher VPD bands it led to | high (thresholds) |
 | 6 | The maintainer's decisions in `docs/reference-set.md` and `decisions.json`, and `ReferenceSetTest` | high (`scripts/`: the generator writes the test's expectations) |
+| 7 | Rule 7: the weakest factor when no reason applies | medium (this spec covers it, and no threshold changes) |

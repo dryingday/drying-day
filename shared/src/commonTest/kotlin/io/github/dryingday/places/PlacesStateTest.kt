@@ -40,6 +40,34 @@ class PlacesStateTest {
     }
 
     @Test
+    fun tappingAPlaceThatIsNotCurrentMakesItCurrentAndDoesNotOpenTheAdvice() {
+        store.addSearched(seaville)
+        store.addSearched(deepsea)
+        state.refresh()
+        val other = state.places.first { it != state.current }
+        var opened = 0
+
+        state.tap(other) { opened++ }
+
+        assertEquals(other, state.current)
+        assertEquals(0, opened)
+    }
+
+    @Test
+    fun tappingTheCurrentPlaceOpensTheAdviceAndKeepsItCurrent() {
+        store.addSearched(seaville)
+        store.addSearched(deepsea)
+        state.refresh()
+        val before = state.current
+        var opened = 0
+
+        state.tap(checkNotNull(before)) { opened++ }
+
+        assertEquals(1, opened)
+        assertEquals(before, state.current)
+    }
+
+    @Test
     fun removingCurrentFallsBackToFirstThenToNothing() {
         store.addSearched(seaville)
         store.addSearched(deepsea)

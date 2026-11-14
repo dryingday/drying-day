@@ -33,7 +33,9 @@ import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.approximate_location
 import io.github.dryingday.shared.resources.places_back
 import io.github.dryingday.shared.resources.places_current
+import io.github.dryingday.shared.resources.places_open_advice
 import io.github.dryingday.shared.resources.places_remove
+import io.github.dryingday.shared.resources.places_select
 import io.github.dryingday.shared.resources.places_title
 import io.github.dryingday.weather.Attribution
 import io.github.dryingday.weather.AttributionScope
@@ -49,8 +51,9 @@ fun placeLabel(place: SavedPlace): String = when (place) {
 }
 
 /**
- * The saved places, with the current one marked. Tap a row to select it. [adding] is the same two ways to add a
- * place as first run, and the screen stays put after either unless [onSearch] opens the search.
+ * The saved places, with the current one marked. Tap a row to make it current, or the current one to see its
+ * drying advice. [adding] is the same two ways to add a place as first run, and the screen stays put after
+ * either unless [onSearch] opens the search.
  */
 @Composable
 fun PlacesScreen(
@@ -78,7 +81,7 @@ fun PlacesScreen(
                 style = TextStyle(color = text, fontSize = 24.sp, fontWeight = FontWeight.Bold),
             )
             for (place in state.places) {
-                PlaceRow(place, place == state.current, body, onSelect = { state.select(place) }) {
+                PlaceRow(place, place == state.current, body, onSelect = { state.tap(place, onBack) }) {
                     state.remove(place)
                 }
             }
@@ -98,7 +101,13 @@ private fun PlaceRow(
 ) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(
-            Modifier.weight(1f).heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onSelect),
+            Modifier.weight(1f).heightIn(min = 48.dp).clickable(
+                onClickLabel = stringResource(
+                    if (isCurrent) Res.string.places_open_advice else Res.string.places_select,
+                ),
+                role = Role.Button,
+                onClick = onSelect,
+            ),
             verticalArrangement = Arrangement.Center,
         ) {
             BasicText(placeLabel(place), style = if (isCurrent) body.copy(fontWeight = FontWeight.Bold) else body)

@@ -180,25 +180,51 @@ class ForecastTextTest {
     }
 
     @Test
-    fun updatedSaysTheDayOnlyWhenTheFetchWasOnAnEarlierLocalDate() {
-        val now = Instant.parse("2025-06-14T09:00:00Z")
+    fun updatedSaysTodayYesterdayOrTheWeekdayInThePlacesZone() {
+        val now = Instant.parse("2025-06-14T09:00:00Z") // A Saturday.
 
         val today = updatedLabel(Instant.parse("2025-06-14T08:40:00Z"), now, utc, twentyFourHourFormat)
-        assertFalse(today.earlierDate)
+        assertEquals(UpdatedDay.TODAY, today.day)
         assertEquals("08:40", today.time)
 
         val yesterday = updatedLabel(Instant.parse("2025-06-13T21:10:00Z"), now, utc, twentyFourHourFormat)
-        assertTrue(yesterday.earlierDate)
+        assertEquals(UpdatedDay.YESTERDAY, yesterday.day)
         assertEquals("21:10", yesterday.time)
+
+        val older = updatedLabel(Instant.parse("2025-06-11T21:10:00Z"), now, utc, twentyFourHourFormat)
+        assertEquals(UpdatedDay.WEEKDAY, older.day)
+        assertEquals(DayOfWeek.WEDNESDAY, older.weekday)
     }
 
     @Test
-    fun updatedWithAFetchTimeAfterNowIsPlain() {
+    fun theDayIsCountedInThePlacesZoneNotUtc() {
+        // 23:30 in Kathmandu (UTC+05:45) on the 14th is 17:45 UTC; now is 00:30 there on the 15th.
+        val fetched = Instant.parse("2025-06-14T17:45:00Z")
+        val now = Instant.parse("2025-06-14T18:45:00Z")
+
+        val label = updatedLabel(fetched, now, kathmandu, twentyFourHourFormat)
+
+        assertEquals(UpdatedDay.YESTERDAY, label.day)
+        assertEquals("23:30", label.time)
+    }
+
+    @Test
+    fun updatedNamesTheZoneAsAnOffset() {
+        val now = Instant.parse("2025-06-14T12:00:00Z")
+
+        assertEquals("UTC", updatedLabel(now, now, utc, twentyFourHourFormat).zone)
+        assertEquals("UTC+1", updatedLabel(now, now, london, twentyFourHourFormat).zone)
+        assertEquals("UTC+5:45", updatedLabel(now, now, kathmandu, twentyFourHourFormat).zone)
+        assertEquals("UTC-4", updatedLabel(now, now, TimeZone.of("America/New_York"), twentyFourHourFormat).zone)
+    }
+
+    @Test
+    fun updatedWithAFetchTimeAfterNowHasNoDay() {
         val now = Instant.parse("2025-06-14T23:50:00Z")
 
         val label = updatedLabel(Instant.parse("2025-06-15T00:10:00Z"), now, utc, twentyFourHourFormat)
 
-        assertFalse(label.earlierDate)
+        assertEquals(UpdatedDay.UNKNOWN, label.day)
         assertEquals("00:10", label.time)
     }
 

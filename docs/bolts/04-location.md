@@ -13,7 +13,7 @@ With no current place, the app opens on a screen offering two choices, and nothi
 - **Use my approximate location**
 - **Search for a place**
 
-The screen says, in a sentence, what happens to the answer: the place is kept on this device, and the app sends the weather source only rough coordinates or the name searched for. It doesn't promise more than the app controls: the phone's own location service, which the user has chosen to turn on, may be run by the phone's maker or Google. There is no default and no skip.
+The screen says, in a few short sentences, what happens to the answer: the place stays on this device, and the app sends Open-Meteo, the weather service, only the place's rough coordinates and the user's searches, with the phone's language going only with a search. It doesn't promise more than the app controls: the phone's location service finds an approximate location, and the phone's maker or Google may run that service, which the app doesn't control. There is no default and no skip.
 
 Success goes on to the placeholder screen.
 

@@ -12,14 +12,16 @@
     <string name="day_tomorrow">Tomorrow</string>
     <string name="forecast_times">Hang out at %1$s. Bring in by %2$s.</string>
     <string name="forecast_dryness">About %1$s dry by then.</string>
-    <string name="forecast_times_local">Times are local to the place.</string>
-    <string name="forecast_held_back">Held back by</string>
+    <string name="forecast_times_local">Times are in the place's own time zone.</string>
+    <string name="forecast_held_back">Why</string>
     <string name="forecast_tips">Tips</string>
     <string name="forecast_indoors_partly">When you bring it in</string>
     <string name="forecast_indoors">Indoors</string>
     <string name="forecast_day_missing">There isn't enough forecast for this day yet.</string>
-    <string name="forecast_updated">Updated %1$s</string>
-    <string name="forecast_updated_earlier">Updated yesterday, %1$s</string>
+    <string name="forecast_updated">Updated %1$s %2$s</string>
+    <string name="forecast_updated_today">Updated today %1$s %2$s</string>
+    <string name="forecast_updated_yesterday">Updated yesterday %1$s %2$s</string>
+    <string name="forecast_updated_weekday">Updated %1$s %2$s %3$s</string>
     <string name="forecast_updating">Updating…</string>
     <string name="forecast_refresh">Refresh</string>
     <string name="forecast_try_again">Try again</string>
@@ -27,6 +29,6 @@
     <string name="forecast_out_of_date">The last forecast is more than a day old.</string>
     <string name="load_light">Light load</string>
     <string name="load_heavy">Heavy load</string>
-    <string name="load_light_hint">Shirts, underwear, thin cotton, synthetics</string>
-    <string name="load_heavy_hint">Towels, jeans, bedding, hoodies. Mixed loads too</string>
+    <string name="load_light_hint">Shirts, underwear, thin cotton, synthetics.</string>
+    <string name="load_heavy_hint">Towels, jeans, bedding, hoodies. Mixed loads too.</string>
 </resources>

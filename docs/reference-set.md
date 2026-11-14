@@ -86,3 +86,23 @@ Engine times are local; dryness is the engine's.
 | `wellington-2025-04-06-0800` | heavy | verdict | Don't bother 34 % | Partly dry, 08:00–12:00 | Showers from midday cut drying short for heavy items. | **Label wrong.** Three hours at 66–72 % in a 25 km/h wind before rain don't get towels half dry. |
 | `wellington-2025-04-06-0800` | light | verdict | Partly dry 69 %, 08:00–11:00 | Will dry, 08:00–11:00 | Strong wind dries light things before showers build from late morning. | **Open.** Both bring it in at 11:00; whether three breezy hours at 66–72 % dry shirts is a judgement call. |
 | `wellington-2025-12-28-0800` | heavy | time | Partly dry 83 %, 14:00–20:56 | Partly dry, 15:00–19:00 | Only a few dry hours after the showers before evening humidity rises. | **Open.** Hang-out 14:00 against 15:00 and bring-in 20:56 against 19:00 after showers. |
+
+## Rule 7: days with no reason
+
+Rule 7 names the weakest factor when the reasons table gives an empty list. The blind labels have a
+verdict and times only, and no test reads their free-text reason, so rule 7 changes no labelled day.
+
+On 14 November 2026 the same listing as the spec's was run on the engine with rule 7 in place: every
+`PARTLY_DRY` or `DONT_BOTHER` day of every case and both loads whose list from the table is empty. Of the 84
+days that are not `WILL_DRY`, three have an empty table list. All three are on the second or third day of a case, which have
+no labels, and all are heavy loads in winter. Each now gets `SHORT_DAYLIGHT` (about 10 hours usable):
+
+| Case | Load | Day | Verdict | Dryness | Reason now |
+|---|---|---|---|---|---|
+| `madrid-2025-02-16-0800` | heavy | the day after | `PARTLY_DRY` | 86 % | `SHORT_DAYLIGHT` |
+| `sydney-2025-06-26-0800` | heavy | tomorrow | `PARTLY_DRY` | 76 % | `SHORT_DAYLIGHT` |
+| `sydney-2025-06-26-0800` | heavy | the day after | `PARTLY_DRY` | 64 % | `SHORT_DAYLIGHT` |
+
+No verdict, hang-out, bring-in or dryness changes. `ReferenceSetTest` checks that no `PARTLY_DRY` or
+`DONT_BOTHER` day ends with an empty list, that rule 7 leaves a non-empty table list as it was, that
+`WILL_DRY` stays empty and that `DAY_OVER` stays alone.
