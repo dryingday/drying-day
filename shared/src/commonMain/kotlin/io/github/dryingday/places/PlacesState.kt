@@ -28,6 +28,11 @@ class PlacesState(private val store: PlaceStore, private val forecasts: Forecast
         refresh()
     }
 
+    /** A tap on a row: the current place opens the drying advice through [openAdvice], any other becomes current. */
+    fun tap(place: SavedPlace, openAdvice: () -> Unit) {
+        if (place == current) openAdvice() else select(place)
+    }
+
     /** Removing the last place leaves no current place, which brings first run back. */
     fun remove(place: SavedPlace) {
         store.remove(place)
