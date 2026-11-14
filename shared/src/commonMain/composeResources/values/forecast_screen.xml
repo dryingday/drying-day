@@ -29,6 +29,6 @@
     <string name="forecast_out_of_date">The last forecast is more than a day old.</string>
     <string name="load_light">Light load</string>
     <string name="load_heavy">Heavy load</string>
-    <string name="load_light_hint">Shirts, underwear, thin cotton, synthetics</string>
-    <string name="load_heavy_hint">Towels, jeans, bedding, hoodies. Mixed loads too</string>
+    <string name="load_light_hint">Shirts, underwear, thin cotton, synthetics.</string>
+    <string name="load_heavy_hint">Towels, jeans, bedding, hoodies. Mixed loads too.</string>
 </resources>
