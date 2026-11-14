@@ -314,6 +314,95 @@ class ForecastStateTest {
     }
 
     @Test
+    fun aFailedRefreshKeepsTheTimeOfTheLastSuccessfulFetch() = runTest {
+        val h = Harness(this)
+        h.open()
+        val fetchedAt = h.showing.fetchedAt
+        h.source.result = SourceResult.Failure(SourceError.UNREACHABLE)
+
+        h.pass(7.minutes)
+        h.state.refresh()
+        h.runCurrent()
+
+        assertEquals(fetchedAt, h.showing.fetchedAt)
+        assertEquals(fetchedAt, h.cache.get(here)?.fetchedAt)
+        assertEquals(SourceError.UNREACHABLE, h.showing.lastError)
+        assertEquals(start + 7.minutes, h.state.now)
+    }
+
+    @Test
+    fun aFailedRefreshRaisesOneNoticeAndDismissingClearsIt() = runTest {
+        val h = Harness(this)
+        h.cached(10.minutes)
+        h.open()
+        assertNull(h.state.refreshNotice)
+        h.source.result = SourceResult.Failure(SourceError.SERVICE)
+
+        h.state.refresh()
+        h.runCurrent()
+
+        assertEquals(SourceError.SERVICE, h.state.refreshNotice?.error)
+        h.state.dismissRefreshNotice()
+        assertNull(h.state.refreshNotice)
+    }
+
+    @Test
+    fun anAutomaticFailureRaisesNoNotice() = runTest {
+        val h = Harness(this)
+        h.cached(2.hours)
+        h.source.result = SourceResult.Failure(SourceError.UNREACHABLE)
+
+        h.open()
+
+        assertEquals(SourceError.UNREACHABLE, h.showing.lastError)
+        assertNull(h.state.refreshNotice)
+    }
+
+    @Test
+    fun aFailedRefreshWithNoForecastToKeepRaisesNoNotice() = runTest {
+        val h = Harness(this)
+        h.source.result = SourceResult.Failure(SourceError.UNREACHABLE)
+        h.open()
+
+        h.state.refresh()
+        h.runCurrent()
+
+        assertNull(h.state.refreshNotice)
+    }
+
+    @Test
+    fun aSuccessfulRefreshRaisesNoNoticeAndClearsOldOnes() = runTest {
+        val h = Harness(this)
+        h.cached(10.minutes)
+        h.open()
+        h.source.result = SourceResult.Failure(SourceError.UNREACHABLE)
+        h.state.refresh()
+        h.runCurrent()
+        assertNotNull(h.state.refreshNotice)
+
+        h.source.result = SourceResult.Success(theForecast)
+        h.state.refresh()
+        h.runCurrent()
+
+        assertNull(h.state.refreshNotice)
+    }
+
+    @Test
+    fun twoFailedRefreshesRaiseTwoDistinctNotices() = runTest {
+        val h = Harness(this)
+        h.cached(10.minutes)
+        h.open()
+        h.source.result = SourceResult.Failure(SourceError.UNREACHABLE)
+        h.state.refresh()
+        h.runCurrent()
+        val first = h.state.refreshNotice
+        h.state.refresh()
+        h.runCurrent()
+
+        assertNotEquals(first?.id, h.state.refreshNotice?.id)
+    }
+
+    @Test
     fun aFailureKeepsTheCachedForecastAndASuccessClearsTheError() = runTest {
         val h = Harness(this)
         h.cached(2.hours)

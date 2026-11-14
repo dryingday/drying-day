@@ -18,8 +18,10 @@
     <string name="forecast_indoors_partly">When you bring it in</string>
     <string name="forecast_indoors">Indoors</string>
     <string name="forecast_day_missing">There isn't enough forecast for this day yet.</string>
-    <string name="forecast_updated">Updated %1$s</string>
-    <string name="forecast_updated_earlier">Updated yesterday, %1$s</string>
+    <string name="forecast_updated">Updated %1$s %2$s</string>
+    <string name="forecast_updated_today">Updated today %1$s %2$s</string>
+    <string name="forecast_updated_yesterday">Updated yesterday %1$s %2$s</string>
+    <string name="forecast_updated_weekday">Updated %1$s %2$s %3$s</string>
     <string name="forecast_updating">Updating…</string>
     <string name="forecast_refresh">Refresh</string>
     <string name="forecast_try_again">Try again</string>

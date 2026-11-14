@@ -49,8 +49,6 @@ import io.github.dryingday.shared.resources.forecast_times
 import io.github.dryingday.shared.resources.forecast_times_local
 import io.github.dryingday.shared.resources.forecast_tips
 import io.github.dryingday.shared.resources.forecast_try_again
-import io.github.dryingday.shared.resources.forecast_updated
-import io.github.dryingday.shared.resources.forecast_updated_earlier
 import io.github.dryingday.shared.resources.forecast_updating
 import io.github.dryingday.shared.resources.load_heavy
 import io.github.dryingday.shared.resources.load_heavy_hint
@@ -115,6 +113,14 @@ fun MainScreen(
             if (state.status !is ForecastStatus.Showing) LoadSwitch(state, body)
             SourceAttributions(attributions, color = text)
         }
+        state.refreshNotice?.let {
+            RefreshNoticeBar(
+                it,
+                dark,
+                state::dismissRefreshNotice,
+                Modifier.safeDrawingPadding().align(Alignment.BottomCenter),
+            )
+        }
     }
 }
 
@@ -148,8 +154,7 @@ private fun Showing(
     if (status.refreshing) {
         Message(Res.string.forecast_updating, body)
     } else {
-        val resource = if (label.earlierDate) Res.string.forecast_updated_earlier else Res.string.forecast_updated
-        BasicText(stringResource(resource, label.time), style = body)
+        BasicText(updatedText(label), style = body)
     }
     status.lastError?.let { Message(it.textUnderForecast(), body) }
     ActionButton(Res.string.forecast_refresh, status.refreshing, body, state::refresh)

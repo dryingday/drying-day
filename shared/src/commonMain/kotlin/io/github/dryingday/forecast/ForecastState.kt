@@ -23,6 +23,9 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
+/** A failed refresh for the screen to announce. [id] differs for each, so two in a row both show. */
+class RefreshNotice(val error: SourceError, val id: Long)
+
 /** Automatic fetches start at this age. */
 internal val FORECAST_FRESH_FOR: Duration = 1.hours
 
@@ -53,7 +56,15 @@ class ForecastState(
     var status: ForecastStatus by mutableStateOf(ForecastStatus.Loading)
         private set
 
-    var load: Load by mutableStateOf(readLoad())
+    var load: Load by mutableStateOf(readLoad(settings))
+        private set
+
+    /**
+     * Set when a fetch the user asked for ([refresh]) fails while there is a forecast to keep showing, so the
+     * screen can say so for a moment. The forecast and its fetch time are untouched. Cleared by
+     * [dismissRefreshNotice], or by the next [refresh].
+     */
+    var refreshNotice: RefreshNotice? by mutableStateOf(null)
         private set
 
     /** The time the advice was last worked out for: the clock at the last tick, fetch or return to the screen. */
@@ -66,6 +77,7 @@ class ForecastState(
     private var retryNotBefore: Instant? = null
     private var fetchJob: Job? = null
     private var tickJob: Job? = null
+    private var noticeCount = 0L
 
     init {
         recompute()
@@ -84,6 +96,7 @@ class ForecastState(
         place = coordinates
         cancelFetch()
         lastError = null
+        refreshNotice = null
         retryNotBefore = null
         now = clock.now()
         recompute()
@@ -109,7 +122,17 @@ class ForecastState(
     /** The Refresh button: ignores both waits, and does nothing while a fetch runs or with no place. */
     fun refresh() {
         now = clock.now()
-        if (fetchJob == null) startFetch() else recompute()
+        if (fetchJob == null) {
+            refreshNotice = null
+            startFetch(asked = true)
+        } else {
+            recompute()
+        }
+    }
+
+    /** The notice has been shown. */
+    fun dismissRefreshNotice() {
+        refreshNotice = null
     }
 
     private suspend fun tickEveryMinute() {
@@ -134,7 +157,7 @@ class ForecastState(
         return now < until && until - now <= AUTO_RETRY_AFTER
     }
 
-    private fun startFetch() {
+    private fun startFetch(asked: Boolean = false) {
         val coordinates = place ?: return
         // Lazy, so fetchJob is set before the body can finish on an eager dispatcher.
         val job = scope.launch(start = CoroutineStart.LAZY) {
@@ -152,6 +175,9 @@ class ForecastState(
                     is SourceResult.Failure -> {
                         lastError = result.error
                         retryNotBefore = done + AUTO_RETRY_AFTER
+                        if (asked && cache.get(coordinates) != null) {
+                            refreshNotice = RefreshNotice(result.error, ++noticeCount)
+                        }
                     }
                 }
             } finally {
@@ -191,6 +217,7 @@ class ForecastState(
             }
         }
     }
-
-    private fun readLoad(): Load = if (settings.getStringOrNull(LOAD_KEY) == Load.LIGHT.name) Load.LIGHT else Load.HEAVY
 }
+
+private fun readLoad(settings: Settings): Load =
+    if (settings.getStringOrNull(LOAD_KEY) == Load.LIGHT.name) Load.LIGHT else Load.HEAVY

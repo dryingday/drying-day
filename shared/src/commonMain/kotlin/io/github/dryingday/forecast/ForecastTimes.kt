@@ -1,11 +1,15 @@
 package io.github.dryingday.forecast
 
 import io.github.dryingday.engine.DayAdvice
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.daysUntil
 import kotlinx.datetime.format.char
 import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toLocalDateTime
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
@@ -54,14 +58,37 @@ private const val SECONDS_PER_MINUTE = 60L
 internal fun timesAreLocalToPlace(forecastZone: TimeZone, deviceZone: TimeZone, now: Instant): Boolean =
     forecastZone.offsetAt(now) != deviceZone.offsetAt(now)
 
-/** How "Updated" reads: with a day when the fetch was on an earlier local date, plain for an unknown age. */
-class UpdatedLabel(val earlierDate: Boolean, val time: String)
+/** Which day "Updated" names. [UNKNOWN] when the fetch time is after now, so there is no age to name. */
+enum class UpdatedDay { TODAY, YESTERDAY, WEEKDAY, UNKNOWN }
 
+/** How "Updated" reads: the day, the time and the zone the time is in. [weekday] is set for [UpdatedDay.WEEKDAY]. */
+class UpdatedLabel(val day: UpdatedDay, val weekday: DayOfWeek?, val time: String, val zone: String)
+
+/** The days, time and zone are the place's, as every other time on the screen is. */
 internal fun updatedLabel(fetchedAt: Instant, now: Instant, zone: TimeZone, formatTime: TimeFormat): UpdatedLabel {
-    val unknownAge = fetchedAt > now
-    val earlier = !unknownAge && fetchedAt.toLocalDateTime(zone).date < now.toLocalDateTime(zone).date
-    return UpdatedLabel(earlier, formatTime(fetchedAt, zone))
+    val fetched = fetchedAt.toLocalDateTime(zone).date
+    val daysAgo = fetched.daysUntil(now.toLocalDateTime(zone).date)
+    val day = when {
+        fetchedAt > now -> UpdatedDay.UNKNOWN
+        daysAgo <= 0 -> UpdatedDay.TODAY
+        daysAgo == 1 -> UpdatedDay.YESTERDAY
+        else -> UpdatedDay.WEEKDAY
+    }
+    val weekday = if (day == UpdatedDay.WEEKDAY) fetched.dayOfWeek else null
+    return UpdatedLabel(day, weekday, formatTime(fetchedAt, zone), offsetText(zone.offsetAt(fetchedAt)))
 }
+
+/** `UTC`, `UTC+1`, `UTC-5`, `UTC+5:45`: a zone's abbreviation isn't known to common code, and an offset is. */
+internal fun offsetText(offset: UtcOffset): String {
+    val total = offset.totalSeconds
+    if (total == 0) return "UTC"
+    val minutes = abs(total) / SECONDS_PER_MINUTE.toInt()
+    val sign = if (total < 0) "-" else "+"
+    val rest = minutes % MINUTES_PER_HOUR
+    return "UTC$sign${minutes / MINUTES_PER_HOUR}" + if (rest == 0) "" else ":" + rest.toString().padStart(2, '0')
+}
+
+private const val MINUTES_PER_HOUR = 60
 
 /** `70 %`, for the dryness line. */
 internal fun DayAdvice.drynessText() = "$dryness %"
