@@ -73,7 +73,7 @@ A partial forecast is fine: the engine already says `null` for a day it can't vo
 
 Open-Meteo's [licence](https://open-meteo.com/en/licence) (CC BY 4.0, checked 2026-11-08) asks for credit, a link to the licence, an indication of changes, and "a link next to any location Open-Meteo data are displayed". Its geocoding docs ask for "Location data based on GeoNames" (also CC BY).
 
-- A `SourceAttributions` composable in `commonMain` renders each source's attributions from string resources, with tappable links to the source and the licence, opened in the browser. A device with no browser must not crash when a link is tapped. It says the drying advice is worked out from the data, which covers "changes were made". Roughly: "Weather data by Open-Meteo.com (CC BY 4.0). Drying advice worked out from it by this app. Place data based on GeoNames (CC BY 4.0)."
+- A `SourceAttributions` composable in `commonMain` renders each source's attributions from string resources, with tappable links to the source and the licence, opened in the browser. A device with no browser must not crash when a link is tapped. It says the drying advice is worked out from the data, which covers "changes were made". Roughly: "Weather data from Open-Meteo.com (CC BY 4.0). This app works out the drying advice from that data, with fixed rules that run on your phone. It uses no AI and contacts no other service. Place data based on GeoNames (CC BY 4.0)."
 - It goes on the placeholder screen now, so it's visible on a device. Bolt 4 shows the `PLACES` attribution next to search results, and bolt 5 keeps the full credit next to the forecast.
 
 ### Free-tier terms
