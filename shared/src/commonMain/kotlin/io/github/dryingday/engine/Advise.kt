@@ -56,19 +56,19 @@ private fun dayAdvice(
     val (best, dryness, verdict) = outcome(windows, load.needPoints)
     // The window the washing goes out in; none when it isn't worth it.
     val onTheLine = best?.takeIf { verdict != Verdict.DONT_BOTHER }
+    val table = if (verdict == Verdict.WILL_DRY) emptyList() else reasons(hours, daylight, usable, now, best)
+    val named = if (table.isEmpty() && verdict != Verdict.WILL_DRY && weakestFactor) {
+        listOfNotNull(weakestReason(hours, daylight, usable, now, best))
+    } else {
+        table
+    }
     return DayAdvice(
         date = date,
         verdict = verdict,
         hangOut = onTheLine?.hangOut,
         bringIn = onTheLine?.bringIn,
         dryness = dryness,
-        reasons = if (verdict ==
-            Verdict.WILL_DRY
-        ) {
-            emptyList()
-        } else {
-            reasons(hours, daylight, usable, now, best, weakestFactor)
-        },
+        reasons = named,
         tips = onTheLine?.let { tips(hours, it, load) }.orEmpty(),
         indoorPlan = if (verdict == Verdict.WILL_DRY) {
             emptyList()

@@ -17,24 +17,30 @@ import kotlin.time.Instant
  * including drying time before hang-out that earned nothing, or with no window over the usable time;
  * "most" is more than half, by time. [Reason.DAY_OVER], today after a sunset, is the only reason when it
  * applies.
- *
- * Rule 7: when that gives an empty list and [weakestFactor] is set, the one reason whose factor came closest
- * to its threshold is added; see [JudgedDay.weakest].
  */
-@Suppress("LongParameterList") // Rule 6 inputs, plus the switch the tests use to see the table alone.
 internal fun reasons(
     hours: List<HourlyWeather>,
     daylight: Interval,
     usable: Interval,
     now: Instant,
     window: Window?,
-    weakestFactor: Boolean = true,
 ): List<Reason> {
     if (daylight.length > Duration.ZERO && now >= daylight.end) return listOf(Reason.DAY_OVER)
     val day = JudgedDay(hours, daylight, usable, now, window)
-    val table = Reason.entries.filter { day.applies(it) }
-    return if (table.isEmpty() && weakestFactor) listOfNotNull(day.weakest()) else table
+    return Reason.entries.filter { day.applies(it) }
 }
+
+/**
+ * Rule 7: for a day whose list from [reasons] is empty, the one reason whose factor came closest to its
+ * threshold, the first in the table's order on a tie. See [JudgedDay.weakest].
+ */
+internal fun weakestReason(
+    hours: List<HourlyWeather>,
+    daylight: Interval,
+    usable: Interval,
+    now: Instant,
+    window: Window?,
+): Reason? = JudgedDay(hours, daylight, usable, now, window).weakest()
 
 private class JudgedDay(
     private val hours: List<HourlyWeather>,
