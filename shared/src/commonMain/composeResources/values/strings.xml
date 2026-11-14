@@ -25,7 +25,9 @@
     <string name="search_back">Back</string>
     <string name="approximate_location">Approximate location</string>
     <string name="places_title">Saved places</string>
-    <string name="places_back">Back</string>
+    <string name="places_back">Drying advice</string>
+    <string name="places_open_advice">Show drying advice for this place</string>
+    <string name="places_select">Use this place</string>
     <string name="places_current">Current</string>
     <string name="places_remove">Remove</string>
 </resources>
