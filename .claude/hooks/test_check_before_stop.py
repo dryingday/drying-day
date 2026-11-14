@@ -52,6 +52,18 @@ class TreeKey(unittest.TestCase):
         self.write("build/out.txt", "x")
         self.assertEqual(before, tree_key(self.dir))
 
+    def test_local_properties_changes_key(self):
+        self.write(".gitignore", "local.properties\n")
+        absent = tree_key(self.dir)
+        self.write("local.properties", "sdk.dir=/one\n")
+        created = tree_key(self.dir)
+        self.write("local.properties", "sdk.dir=/two\n")
+        edited = tree_key(self.dir)
+        os.remove(os.path.join(self.dir, "local.properties"))
+        deleted = tree_key(self.dir)
+        self.assertEqual(3, len({absent, created, edited}))
+        self.assertEqual(absent, deleted)
+
 
 if __name__ == "__main__":
     unittest.main()
