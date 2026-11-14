@@ -98,7 +98,7 @@ sealed interface ForecastStatus {
 
 ### The load
 
-A switch with two choices, **Light load** and **Heavy load**, each with a line saying what it means, from bolt 2's `Load`: "Shirts, underwear, thin cotton, synthetics" and "Towels, jeans, bedding, hoodies. Mixed loads too".
+A switch with two choices, **Light load** and **Heavy load**, each with a line saying what it means, from bolt 2's `Load`: "Shirts, underwear, thin cotton, synthetics." and "Towels, jeans, bedding, hoodies. Mixed loads too."
 
 - **The default is `HEAVY`.** A mixed load is heavy, most loads are mixed, and a heavy load's verdict is the cautious one: if it says the washing will dry, a light load will too.
 - **The choice is remembered** across launches, as `"LIGHT"` or `"HEAVY"` under the key `load` in a private preferences file, `settings`. Any other stored value counts as the default.
@@ -137,23 +137,23 @@ All of it in string resources. The copy, to start from:
 
 | Code | Text |
 |---|---|
-| `RAIN` | Rain gets in the way |
-| `FOG` | Fog or mist |
-| `COLD` | Cold, damp air dries slowly |
-| `DAMP_AIR` | The air is too damp |
-| `STILL_AIR` | Not much wind |
-| `SHORT_DAYLIGHT` | Not enough daylight |
-| `DAY_OVER` | Today's daylight is over |
-| `PEG_WELL` | Peg everything well, as it's gusty |
-| `SHOWERS_POSSIBLE` | Keep an eye on the sky, as showers are possible |
-| `HEAVY_ITEMS` | Pockets out, hang heavy things by the hems, and turn them halfway |
-| `SPACE_OUT` | Leave space between items, as there's little wind |
-| `DARKS_INSIDE_OUT` | Turn darks inside out, as strong sun fades them |
-| `AIRER_SPACED` | Use an airer, with space between items |
-| `OPEN_WINDOW` | Open a window, as the air outside is dry enough to help |
-| `DEHUMIDIFIER_OR_CLOSED_ROOM` | Keep windows shut. Use a dehumidifier, or a small room with the door closed |
-| `NOT_ON_RADIATOR` | Not on a radiator. Near one is fine |
-| `TURN_HEAVY_ITEMS` | Turn heavy items now and then |
+| `RAIN` | Rain gets in the way. |
+| `FOG` | Fog or mist. |
+| `COLD` | Cold, damp air dries slowly. |
+| `DAMP_AIR` | The air is too damp. |
+| `STILL_AIR` | Not much wind. |
+| `SHORT_DAYLIGHT` | Not enough daylight. |
+| `DAY_OVER` | Today's daylight is over. |
+| `PEG_WELL` | Peg everything well, as it's gusty. |
+| `SHOWERS_POSSIBLE` | Keep an eye on the sky, as showers are possible. |
+| `HEAVY_ITEMS` | Pockets out, hang heavy things by the hems, and turn them halfway. |
+| `SPACE_OUT` | Leave space between items, as there's little wind. |
+| `DARKS_INSIDE_OUT` | Turn darks inside out, as strong sun fades them. |
+| `AIRER_SPACED` | Use an airer, with space between items. |
+| `OPEN_WINDOW` | Open a window, as the air outside is dry enough to help. |
+| `DEHUMIDIFIER_OR_CLOSED_ROOM` | Keep windows shut. Use a dehumidifier, or a small room with the door closed. |
+| `NOT_ON_RADIATOR` | Not on a radiator. Near one is fine. |
+| `TURN_HEAVY_ITEMS` | Turn heavy items now and then. |
 
 | Error | With no forecast to show | Under a forecast that's shown |
 |---|---|---|
