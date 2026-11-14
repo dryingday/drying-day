@@ -51,9 +51,9 @@ A `ForecastCache` holds, for each saved place, the last forecast fetched for it:
 
 #### How old it can be
 
-A forecast's age is `now` − its fetch time. A fetch time after `now` (the clock was set back) is an **unknown age**: the forecast is shown, it's refetched as soon as the rules above allow, "Updated" gives the plain time with no day, and it doesn't become `OutOfDate` until a fetch replaces it.
+A forecast's age is `now` − its fetch time. A fetch time after `now` (the clock was set back) is an **unknown age**: the forecast is shown, it's refetched as soon as the rules above allow, "Updated" gives the time and zone with no day, and it doesn't become `OutOfDate` until a fetch replaces it.
 
-- **Shown with its age, always.** The main screen says when the forecast it's showing was fetched: "Updated 09:40", or "Updated yesterday, 21:10" when that was an earlier local date, in the device's time format (below).
+- **Shown with its age, always.** The main screen says when the forecast it's showing was fetched: "Updated today 09:40 UTC+1", "Updated yesterday 21:10 UTC+1", or "Updated Wednesday 21:10 UTC+1" for any date two or more days back, in the forecast's zone and the device's time format (below). A failed fetch leaves this time alone: it is when the forecast shown was last fetched. A failed Refresh when a forecast is cached, including one too old to show, also shows a short message at the bottom, in the same words as the error under the forecast, for a few seconds. It is a live region, built on foundation only, with no Material dependency.
 - **Not used at an age of `FORECAST_TOO_OLD` = 24 hours or more.** An older forecast gives no advice at all: the screen says the forecast is out of date and offers Refresh. A day-old forecast is a poor basis for a bring-in time, and the response's `past_days=1, forecast_days=5` would otherwise let the engine answer from it for days.
 - Days the cached forecast doesn't cover are `null` from the engine, and shown as such (below). The engine already refuses to guess.
 
@@ -120,7 +120,7 @@ From the top:
    - **Indoors**, for `PARTLY_DRY` ("When you bring it in") and `DONT_BOTHER`: the indoor plan, one line each.
    - A `null` day: "There isn't enough forecast for this day yet." Nothing else.
 4. **The load switch.**
-5. **The forecast's status**: "Updated 09:40", "Updating…" while a fetch runs, and the error below it if the last fetch failed. A Refresh button, which shows the waiting state and can't be tapped twice.
+5. **The forecast's status**: "Updated today 09:40 UTC+1", "Updating…" while a fetch runs, and the error below it if the last fetch failed. A Refresh button, which shows the waiting state and can't be tapped twice.
 6. **The credit**: the full `SourceAttributions` from bolt 3, next to the forecast, as Open-Meteo's terms ask. It stays visible, or one scroll away at large font sizes, in every state that shows the forecast.
 
 Without a usable forecast the screen shows the place, the load switch, the credit, and in place of the days:
@@ -168,7 +168,7 @@ Each enum maps to its string with an exhaustive `when`, so a new code doesn't co
 - **In the forecast's zone**, never the device's: the place's clock is the one the washing line keeps. The device's zone is read once a minute only to compare: when its UTC offset at `now` differs from the forecast zone's, the screen adds "Times are local to the place." under the times.
 - **In the device's time format**: 12- or 24-hour as the user set it. `App` takes `formatTime: (Instant, TimeZone) -> String`. On Android, `MainActivity` passes one built on `android.text.format.DateFormat.getTimeFormat(context)` with its zone set to the forecast's. The iOS wrapper and tests pass a common 24-hour `HH:mm` formatter built with kotlinx-datetime's format builder.
 - **To the minute**, as the engine gives them: the hang-out's seconds rounded up and the bring-in's down, so the times shown never fall before sunrise or `now`, or after rain or sunset. They aren't rounded to a quarter hour: rounding a `WILL_DRY` bring-in down would tell people to take in washing that isn't dry yet, rounding it up could cross the start of rain, and `DayAdvice` doesn't say which end it is. `dryness` is for the engine's bring-in, under a minute after the one shown. The two can't round into the same minute in practice: an hour earns at most 5 points (3 × 1.5 + 0.5) and a day with times needs at least 3, so its window is at least 36 minutes. If they ever did, both are shown as the hang-out's minute rounded down, with a test.
-- The "Updated" time is the same format, in the forecast's zone.
+- The "Updated" time is the same format, in the forecast's zone, with that zone's UTC offset at the fetch time after it (`UTC`, `UTC+1`, `UTC-4`, `UTC+5:45`), because common code has no zone abbreviations. "Today", "yesterday" and the weekday are counted by local date in the forecast's zone.
 
 ### Wiring
 
