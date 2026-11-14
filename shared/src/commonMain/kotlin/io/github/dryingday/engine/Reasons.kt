@@ -1,6 +1,7 @@
 package io.github.dryingday.engine
 
 import io.github.dryingday.engine.DryingThresholds.COLD_BELOW_C
+import io.github.dryingday.engine.DryingThresholds.MOST_SHARE_FACTOR
 import io.github.dryingday.engine.DryingThresholds.SHORT_DAYLIGHT
 import io.github.dryingday.engine.DryingThresholds.SLOW_VPD_KPA
 import io.github.dryingday.engine.DryingThresholds.STILL_AIR_BELOW_FACTOR
@@ -28,6 +29,18 @@ internal fun reasons(
     val day = JudgedDay(hours, daylight, usable, now, window)
     return Reason.entries.filter { day.applies(it) }
 }
+
+/**
+ * Rule 7: for a day whose list from [reasons] is empty, the one reason whose factor came closest to its
+ * threshold, the first in the table's order on a tie. See [JudgedDay.weakest].
+ */
+internal fun weakestReason(
+    hours: List<HourlyWeather>,
+    daylight: Interval,
+    usable: Interval,
+    now: Instant,
+    window: Window?,
+): Reason? = JudgedDay(hours, daylight, usable, now, window).weakest()
 
 private class JudgedDay(
     private val hours: List<HourlyWeather>,
@@ -60,9 +73,36 @@ private class JudgedDay(
         Reason.SHORT_DAYLIGHT -> usable.length < SHORT_DAYLIGHT
     }
 
+    /**
+     * Rule 7: the reason, of COLD, DAMP_AIR, STILL_AIR and SHORT_DAYLIGHT, whose closeness to its threshold is
+     * highest, the first in that order on a tie. Closenesses are fractions of whole milliseconds, compared by
+     * cross-multiplying, so a tie is exact. Null only when there is no time to judge.
+     */
+    fun weakest(): Reason? {
+        val span = judged.length.inWholeMilliseconds
+        val usableMs = usable.length.inWholeMilliseconds
+        if (span <= 0 || usableMs <= 0) return null
+        val closeness = listOf(
+            Reason.COLD to share(span) { it.isSlow() && it.temperatureC < COLD_BELOW_C },
+            Reason.DAMP_AIR to share(span) { it.isSlow() && it.temperatureC >= COLD_BELOW_C },
+            Reason.STILL_AIR to share(span) { windFactor(it.windSpeedKmh) < STILL_AIR_BELOW_FACTOR },
+            Reason.SHORT_DAYLIGHT to Fraction(SHORT_DAYLIGHT.inWholeMilliseconds, usableMs),
+        )
+        return closeness.reduce { best, next -> if (next.second > best.second) next else best }.first
+    }
+
+    // The share of the judged time that meets the condition, divided by the share that is "most".
+    private fun share(span: Long, condition: (HourlyWeather) -> Boolean) =
+        Fraction(hours.timeIn(judged, condition).inWholeMilliseconds * MOST_SHARE_FACTOR, span)
+
     private fun heldBack(kind: HourKind) = window?.endedBy == kind || before.any { it.kind() == kind }
 
     private fun mostOfTheTime(condition: (HourlyWeather) -> Boolean) = hours.mostOf(judged, condition)
+}
+
+/** [numerator] over [denominator], whole milliseconds, compared by cross-multiplying without rounding. */
+private class Fraction(val numerator: Long, val denominator: Long) : Comparable<Fraction> {
+    override fun compareTo(other: Fraction) = (numerator * other.denominator).compareTo(other.numerator * denominator)
 }
 
 private fun HourlyWeather.isSlow() = vapourPressureDeficitKpa(temperatureC, relativeHumidityPercent) < SLOW_VPD_KPA

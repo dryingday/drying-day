@@ -1,7 +1,10 @@
 package io.github.dryingday.reference
 
 import io.github.dryingday.engine.DayAdvice
+import io.github.dryingday.engine.Reason
+import io.github.dryingday.engine.Verdict
 import io.github.dryingday.engine.advise
+import io.github.dryingday.engine.tableReasons
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
 import kotlin.test.Test
@@ -58,6 +61,26 @@ class ReferenceSetTest {
             if (days.drop(1).all { it != null }) null else "${expected.id} ${expected.load}: $days"
         }
         assertTrue(missing.isEmpty(), missing.joinToString("\n"))
+    }
+
+    @Test
+    fun weakestFactorOnlyFillsAnEmptyList() {
+        val failures = expectations.flatMap { expected ->
+            val case = cases.getValue(expected.id)
+            val days = advise(case.forecast, expected.load, case.now)
+            val table = tableReasons(case.forecast, expected.load, case.now)
+            days.zip(table).mapIndexedNotNull { index, (day, fromTable) ->
+                if (day == null || fromTable == null) return@mapIndexedNotNull null
+                val label = "${expected.id} ${expected.load} day $index"
+                when {
+                    day.verdict == Verdict.WILL_DRY -> label.takeIf { day.reasons.isNotEmpty() }
+                    Reason.DAY_OVER in day.reasons -> label.takeIf { day.reasons != listOf(Reason.DAY_OVER) }
+                    fromTable.isNotEmpty() -> label.takeIf { day.reasons != fromTable }
+                    else -> label.takeIf { day.reasons.size != 1 }
+                }
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("\n"))
     }
 
     private fun today(expected: ReferenceExpectation): Pair<ReferenceCase, DayAdvice>? {

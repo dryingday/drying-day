@@ -15,18 +15,30 @@ import kotlin.time.Instant
  * daylight from [now] onwards missing. Rules 3 to 6 and the tips and indoor plan of
  * docs/bolts/02-drying-rules.md.
  */
-fun advise(forecast: Forecast, load: Load, now: Instant): List<DayAdvice?> {
+fun advise(forecast: Forecast, load: Load, now: Instant): List<DayAdvice?> = adviseDays(forecast, load, now, true)
+
+/** Each day's reasons as rule 6's table gives them, before rule 7 adds one to an empty list. For tests. */
+internal fun tableReasons(forecast: Forecast, load: Load, now: Instant): List<List<Reason>?> =
+    adviseDays(forecast, load, now, false).map { it?.reasons }
+
+private fun adviseDays(forecast: Forecast, load: Load, now: Instant, weakestFactor: Boolean): List<DayAdvice?> {
     val today = now.toLocalDateTime(forecast.timeZone).date
-    return (0 until DAYS).map { adviseDay(forecast, load, now, today.plus(it, DateTimeUnit.DAY)) }
+    return (0 until DAYS).map { adviseDay(forecast, load, now, today.plus(it, DateTimeUnit.DAY), weakestFactor) }
 }
 
-private fun adviseDay(forecast: Forecast, load: Load, now: Instant, date: LocalDate): DayAdvice? {
+private fun adviseDay(
+    forecast: Forecast,
+    load: Load,
+    now: Instant,
+    date: LocalDate,
+    weakestFactor: Boolean,
+): DayAdvice? {
     val light = forecast.days.firstOrNull { it.date == date } ?: return null
     val daylight = light.daylight(forecast.timeZone)
     val usable = Interval(minOf(maxOf(daylight.start, now), daylight.end), daylight.end)
     val hours = forecast.hours.filter { it.start < daylight.end && it.start + 1.hours > usable.start }
     val complete = usable.length == Duration.ZERO || covers(hours, usable)
-    return if (complete) dayAdvice(forecast, load, now, date, daylight, usable, hours) else null
+    return if (complete) dayAdvice(forecast, load, now, date, daylight, usable, hours, weakestFactor) else null
 }
 
 @Suppress("LongParameterList")
@@ -38,18 +50,25 @@ private fun dayAdvice(
     daylight: Interval,
     usable: Interval,
     hours: List<HourlyWeather>,
+    weakestFactor: Boolean,
 ): DayAdvice {
     val windows = if (usable.length > Duration.ZERO) windows(hours, daylight, now, load.needPoints) else emptyList()
     val (best, dryness, verdict) = outcome(windows, load.needPoints)
     // The window the washing goes out in; none when it isn't worth it.
     val onTheLine = best?.takeIf { verdict != Verdict.DONT_BOTHER }
+    val table = if (verdict == Verdict.WILL_DRY) emptyList() else reasons(hours, daylight, usable, now, best)
+    val named = if (table.isEmpty() && verdict != Verdict.WILL_DRY && weakestFactor) {
+        listOfNotNull(weakestReason(hours, daylight, usable, now, best))
+    } else {
+        table
+    }
     return DayAdvice(
         date = date,
         verdict = verdict,
         hangOut = onTheLine?.hangOut,
         bringIn = onTheLine?.bringIn,
         dryness = dryness,
-        reasons = if (verdict == Verdict.WILL_DRY) emptyList() else reasons(hours, daylight, usable, now, best),
+        reasons = named,
         tips = onTheLine?.let { tips(hours, it, load) }.orEmpty(),
         indoorPlan = if (verdict == Verdict.WILL_DRY) {
             emptyList()
