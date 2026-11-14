@@ -4,7 +4,7 @@
     <string name="attribution_weather">Weather data from %1$s (%2$s). This app works out the drying advice from that data, with fixed rules that run on your phone. It uses no AI and contacts no other service.</string>
     <string name="attribution_places">Place data based on %1$s (%2$s).</string>
     <string name="first_run_title">Where is your washing line?</string>
-    <string name="first_run_privacy">The place you choose stays on this device. This app sends Open-Meteo, the weather service, only its rough coordinates and what you type into a search, with your phone's language.</string>
+    <string name="first_run_privacy">The place you choose stays on this device. This app sends Open-Meteo, the weather service, only the place's rough coordinates and your searches. A search also includes your phone's language.</string>
     <string name="first_run_privacy_location">If you use your approximate location, your phone's location service finds it. The phone's maker or Google may run that service, which this app doesn't control.</string>
     <string name="first_run_use_location">Use my approximate location</string>
     <string name="first_run_locating">Finding your location…</string>
