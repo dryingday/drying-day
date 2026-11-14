@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Stop hook: don't let the agent finish while ./gradlew check fails (Spotless always rerun).
 
-The result is remembered against the state of the working tree (HEAD, tracked changes and
-untracked files), kept in .gradle/, which git ignores:
+The result is remembered against the state of the working tree (HEAD, tracked changes,
+untracked files and local.properties, which git ignores but which sets the Android SDK location
+for the build), kept in .gradle/, which git ignores:
 - unchanged since the last green check: stop straight away, so chat-only turns stay fast;
 - unchanged since the last failed check, while retrying in the same turn (stop_hook_active):
   block again with the saved output, without rebuilding.
-A timeout or an error in this hook counts as a failure. Claude Code's hooks reference says it
-ends a turn after 8 consecutive Stop-hook continuations, so a failure that can't be fixed in
-the session doesn't trap it.
+A timeout or an error in this hook counts as a failure. Claude Code's hooks reference caps
+consecutive Stop-hook continuations at 8, but the count resets each time Claude calls a tool, so
+a session that keeps working between blocks isn't ended by the cap.
 """
 
 import hashlib
@@ -39,6 +40,14 @@ def tree_key(cwd):
             if os.path.isfile(path):
                 with open(path, "rb") as f:
                     h.update(hashlib.sha256(f.read()).digest())
+    # local.properties is gitignored but sets sdk.dir, so it decides whether the build runs.
+    local = os.path.join(cwd, "local.properties")
+    h.update(b"local.properties:")
+    if os.path.isfile(local):
+        with open(local, "rb") as f:
+            h.update(hashlib.sha256(f.read()).digest())
+    else:
+        h.update(b"absent")
     return h.hexdigest()
 
 
