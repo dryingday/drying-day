@@ -1,0 +1,33 @@
+Categories:
+  - Weather
+License: GPL-3.0-or-later
+SourceCode: https://github.com/dryingday/drying-day
+IssueTracker: https://github.com/dryingday/drying-day/issues
+Changelog: https://github.com/dryingday/drying-day/releases
+
+AutoName: Drying Day
+
+RepoType: git
+Repo: https://github.com/dryingday/drying-day.git
+Binaries: https://github.com/dryingday/drying-day/releases/download/v%v/drying-day-%v.apk
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: 88465c2d2015d2b351b4ae8e3719c88e474b1a3d
+    subdir: androidApp
+    sudo:
+      - echo "deb https://deb.debian.org/debian trixie main" > /etc/apt/sources.list.d/trixie.list
+      - apt-get update
+      - apt-get install -y -t trixie openjdk-21-jdk-headless
+      - update-alternatives --auto java
+    output: build/outputs/apk/release/androidApp-release-unsigned.apk
+    gradle:
+      - yes
+
+AllowedAPKSigningKeys: d3f89dbc9bef33753e6f4fd4a5b09d23eb43157f93726ba2e7ebcb0a1f260924
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1
