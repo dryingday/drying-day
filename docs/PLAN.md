@@ -53,11 +53,15 @@ A spec names each protected change the bolt needs precisely enough to be checked
 | 4 | Location | First-run choice, platform location (coarse), place search, saved places, permission handling |
 | 5 | Main screen | Verdict-first UI, load switch, today/tomorrow/day after, offline cache, error states |
 | 6 | Release | Icon, fastlane metadata and screenshots, release signing, privacy policy, reproducibility check, draft fdroiddata metadata, `v1.0.0` |
+| 7 | Weather at a glance | A picture for each verdict, the selected day's hours (sky, temperature, rain chance, drying window), when rain is due; `v1.1.0` |
 
 Bolts 2 and 3 can run in parallel once 1 is merged.
 
 ## Later
 
+- Pictures of how to hang clothes (what "by the hems" means).
+- A settings page for the equipment owned (airer, dehumidifier), shaping the indoor plan.
+- Switching between saved places the way Breezy Weather does, in place of the places screen.
 - More weather sources and a source picker.
 - Morning "drying day" notification; home-screen widget.
 - iOS app.
