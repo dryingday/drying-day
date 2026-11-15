@@ -1,6 +1,8 @@
 package io.github.dryingday.forecast
 
 import com.russhwolf.settings.MapSettings
+import io.github.dryingday.engine.Condition
+import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.W
 import io.github.dryingday.engine.auckland
 import io.github.dryingday.engine.forecast
@@ -32,6 +34,17 @@ private val springForward = forecast(london, LocalDate(2025, 3, 29)) { _, hour -
 }
 private val sunny = forecast(auckland, LocalDate(2025, 6, 14))
 
+// Every hour gets a condition, cycling through them all.
+private fun withConditions(forecast: Forecast) = forecast.copy(
+    hours = forecast.hours.mapIndexed { i, hour ->
+        hour.copy(condition = Condition.entries[i % Condition.entries.size])
+    },
+)
+
+// What version 1 stored: no condition on any hour.
+private fun versionOne(text: String) = text.replace(Regex(""","condition":(null|"[A-Z_]+")"""), "")
+    .replace("\"version\":2", "\"version\":1")
+
 private fun parse(text: String) = Json.parseToJsonElement(text).jsonObject
 
 class ForecastCacheTest {
@@ -58,6 +71,49 @@ class ForecastCacheTest {
         assertEquals("Europe/London", back.forecast.timeZone.id)
         assertTrue(back.forecast.hours.any { it.visibilityM == null })
         assertTrue(back.forecast.hours.any { it.precipitationProbabilityPercent == null })
+    }
+
+    @Test
+    fun conditionsRoundTripUnderVersionTwo() {
+        val withConditions = withConditions(springForward)
+        cache.put(here, fetched, withConditions)
+
+        assertEquals(withConditions, reloaded().get(here)?.forecast)
+        assertEquals(2, parse(stored()).getValue("version").toString().toInt())
+        assertTrue(withConditions.hours.map { it.condition }.toSet().size > 1)
+    }
+
+    @Test
+    fun aVersionOneEntryIsReadWithoutConditionsAndRewrittenAsVersionTwo() {
+        cache.put(here, fetched, springForward)
+        val v1 = versionOne(stored())
+        assertFalse("condition" in v1)
+
+        val old = ForecastCache(MapSettings(KEY to v1))
+
+        assertEquals(springForward, old.get(here)?.forecast)
+        assertTrue(old.get(here)?.forecast?.hours.orEmpty().all { it.condition == null })
+        val settings = MapSettings(KEY to v1)
+        ForecastCache(settings).put(there, fetched, sunny)
+        val rewritten = parse(checkNotNull(settings.getStringOrNull(KEY)))
+        assertEquals("2", rewritten.getValue("version").toString())
+        val back = ForecastCache(settings)
+        assertEquals(springForward, back.get(here)?.forecast)
+        assertEquals(sunny, back.get(there)?.forecast)
+    }
+
+    @Test
+    fun anUnknownStoredConditionIsNullAndTheEntryKept() {
+        cache.put(here, fetched, withConditions(sunny))
+        val known = stored()
+        val unknown = known.replace("\"CLEAR\"", "\"HAIL\"").replace("\"CLOUDY\"", "\"HAIL\"")
+        assertTrue("HAIL" in unknown)
+
+        val back = assertNotNull(ForecastCache(MapSettings(KEY to unknown)).get(here)).forecast
+
+        assertEquals(sunny.hours.size, back.hours.size)
+        assertTrue(back.hours.any { it.condition == null })
+        assertEquals(sunny.days, back.days)
     }
 
     @Test
@@ -153,6 +209,7 @@ class ForecastCacheTest {
                 "precipitationMm",
                 "windGustKmh",
                 "shortwaveRadiationWm2",
+                "condition",
             ),
             entry.getValue("hours").jsonArray.first().jsonObject.keys,
         )
@@ -176,7 +233,7 @@ class ForecastCacheTest {
     @Test
     fun anotherVersionIsNoCache() {
         cache.put(here, fetched, sunny)
-        val other = stored().replace("\"version\":1", "\"version\":2")
+        val other = stored().replace("\"version\":2", "\"version\":3")
 
         assertNull(ForecastCache(MapSettings(KEY to other)).get(here))
     }

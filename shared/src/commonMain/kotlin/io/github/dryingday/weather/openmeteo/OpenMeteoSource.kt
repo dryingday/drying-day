@@ -24,7 +24,7 @@ private const val FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 private const val SEARCH_URL = "https://geocoding-api.open-meteo.com/v1/search"
 private const val HOURLY_FIELDS =
     "temperature_2m,relative_humidity_2m,wind_speed_10m,visibility,precipitation_probability,precipitation," +
-        "wind_gusts_10m,shortwave_radiation"
+        "wind_gusts_10m,shortwave_radiation,weather_code"
 private const val DAILY_FIELDS = "sunrise,sunset,daylight_duration"
 private const val DAYS_BEFORE_TODAY = 1
 private const val FORECAST_DAYS = 5

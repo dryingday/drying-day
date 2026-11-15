@@ -1,5 +1,6 @@
 package io.github.dryingday.reference
 
+import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.DayAdvice
 import io.github.dryingday.engine.Reason
 import io.github.dryingday.engine.Verdict
@@ -61,6 +62,27 @@ class ReferenceSetTest {
             if (days.drop(1).all { it != null }) null else "${expected.id} ${expected.load}: $days"
         }
         assertTrue(missing.isEmpty(), missing.joinToString("\n"))
+    }
+
+    @Test
+    fun theSkyNeverChangesTheAdvice() {
+        val failures = expectations.mapNotNull { expected ->
+            val case = cases.getValue(expected.id)
+            val withSky = case.forecast.copy(
+                hours = case.forecast.hours.mapIndexed { i, hour ->
+                    hour.copy(condition = Condition.entries[i % Condition.entries.size])
+                },
+            )
+            val without = advise(case.forecast, expected.load, case.now)
+            val with = advise(withSky, expected.load, case.now)
+            if (without == with) null else "${expected.id} ${expected.load}"
+        }
+        assertTrue(case0HasNoConditions(), "the generated forecasts have conditions")
+        assertTrue(failures.isEmpty(), failures.joinToString("\n"))
+    }
+
+    private fun case0HasNoConditions() = allReferenceCases.all { case ->
+        case.forecast.hours.all { it.condition == null }
     }
 
     @Test

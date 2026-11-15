@@ -33,12 +33,24 @@ private fun adviseDay(
     date: LocalDate,
     weakestFactor: Boolean,
 ): DayAdvice? {
+    val day = usableDay(forecast, now, date) ?: return null
+    return dayAdvice(forecast, load, now, date, day.daylight, day.usable, day.hours, weakestFactor)
+}
+
+/** A day's daylight, its usable part (rule 1) and the forecast hours that overlap that part. */
+internal class UsableDay(val daylight: Interval, val usable: Interval, val hours: List<HourlyWeather>)
+
+/**
+ * The day [date] as the engine reads it, or null when its forecast is incomplete: no daylight data, or an hour
+ * of its usable time missing. [advise] and [firstWet] both decide that here, so they can't disagree.
+ */
+internal fun usableDay(forecast: Forecast, now: Instant, date: LocalDate): UsableDay? {
     val light = forecast.days.firstOrNull { it.date == date } ?: return null
     val daylight = light.daylight(forecast.timeZone)
     val usable = Interval(minOf(maxOf(daylight.start, now), daylight.end), daylight.end)
     val hours = forecast.hours.filter { it.start < daylight.end && it.start + 1.hours > usable.start }
     val complete = usable.length == Duration.ZERO || covers(hours, usable)
-    return if (complete) dayAdvice(forecast, load, now, date, daylight, usable, hours, weakestFactor) else null
+    return if (complete) UsableDay(daylight, usable, hours) else null
 }
 
 @Suppress("LongParameterList")

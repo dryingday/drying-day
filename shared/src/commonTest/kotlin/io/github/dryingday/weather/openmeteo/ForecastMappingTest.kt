@@ -1,5 +1,6 @@
 package io.github.dryingday.weather.openmeteo
 
+import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.Forecast
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -7,6 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 private const val HOUR = 3600L
@@ -16,6 +18,7 @@ private const val HUMIDITY = "relative_humidity_2m"
 private const val PRECIPITATION = "precipitation"
 private const val PROBABILITY = "precipitation_probability"
 private const val VISIBILITY = "visibility"
+private const val WEATHER_CODE = "weather_code"
 
 private val start = Instant.parse("2025-06-14T13:00:00Z").epochSeconds
 private val midnight = Instant.parse("2025-06-14T00:00:00Z").epochSeconds
@@ -35,6 +38,7 @@ private fun hourly(count: Int = 2, vararg overrides: Pair<String, List<Number?>>
     PRECIPITATION to List(count) { 0.0 },
     "wind_gusts_10m" to List(count) { 20.0 },
     "shortwave_radiation" to List(count) { 400.0 },
+    WEATHER_CODE to List(count) { 3 },
 ) + overrides
 
 private fun daily(vararg overrides: Pair<String, List<Number?>>): Map<String, List<Number?>> = mapOf(
@@ -327,4 +331,84 @@ class ForecastMappingTest {
 
         assertEquals(1, parsed(text).hours.size)
     }
+
+    @Test
+    fun everyWmoCodeInTheTableGivesItsCondition() {
+        val table =
+            mapOf(
+                Condition.CLEAR to listOf(0, 1),
+                Condition.PARTLY_CLOUDY to listOf(2),
+                Condition.CLOUDY to listOf(3),
+                Condition.FOG to listOf(45, 48),
+                Condition.DRIZZLE to listOf(51, 53, 55, 56, 57),
+                Condition.RAIN to listOf(61, 63, 65, 66, 67),
+                Condition.SHOWERS to listOf(80, 81, 82),
+                Condition.SNOW to listOf(71, 73, 75, 77, 85, 86),
+                Condition.THUNDER to listOf(95, 96, 99),
+            )
+        assertEquals(Condition.entries.toSet(), table.keys)
+
+        for ((condition, codes) in table) {
+            for (code in codes) {
+                val hours = hourly(2, WEATHER_CODE to listOf(code, code))
+
+                assertEquals(condition, parsed(body(hours = hours)).hours.single().condition, "$code")
+            }
+        }
+    }
+
+    @Test
+    fun anUnknownCodeIsNoConditionAndTheHourIsKept() {
+        for (code in listOf(-1, 4, 10, 44, 50, 60, 68, 70, 78, 79, 83, 90, 94, 97, 100, 1000)) {
+            val hours = hourly(2, WEATHER_CODE to listOf(code, code))
+
+            assertNull(parsed(body(hours = hours)).hours.single().condition, "$code")
+        }
+    }
+
+    @Test
+    fun aNullCodeIsNoConditionAndTheHourIsKept() {
+        assertNull(condition(null, null))
+        assertEquals(Condition.CLOUDY, condition(null, 3))
+        assertEquals(Condition.CLOUDY, condition(3, null))
+    }
+
+    @Test
+    fun theHourTakesTheMoreSevereOfItsTwoStamps() {
+        assertEquals(Condition.RAIN, condition(2, 63))
+        assertEquals(Condition.RAIN, condition(63, 2))
+        assertEquals(Condition.THUNDER, condition(95, 0))
+        assertEquals(Condition.SNOW, condition(73, 80))
+        assertEquals(Condition.SNOW, condition(80, 71))
+        assertEquals(Condition.CLEAR, condition(0, 1))
+    }
+
+    @Test
+    fun oneNullStampTakesTheOther() {
+        assertEquals(Condition.FOG, condition(45, null))
+        assertEquals(Condition.FOG, condition(null, 45))
+        // An unknown code is null too, so the other stamp stands.
+        assertEquals(Condition.CLOUDY, condition(3, 1000))
+        assertEquals(Condition.CLOUDY, condition(1000, 3))
+    }
+
+    @Test
+    fun aMissingWeatherCodeArrayGivesNoConditionsAndNotABadResponse() {
+        val hours = hourly(3) - WEATHER_CODE
+
+        val forecast = parsed(body(hours = hours))
+
+        assertEquals(2, forecast.hours.size)
+        assertTrue(forecast.hours.all { it.condition == null })
+    }
+
+    @Test
+    fun aWeatherCodeArrayOfAnotherLengthIsBad() {
+        assertNull(parseForecast(body(hours = hourly(3, WEATHER_CODE to listOf(3, 3)))))
+        assertNull(parseForecast(body(hours = hourly(2, WEATHER_CODE to listOf(3, 3, 3)))))
+        assertNull(parseForecast(body(hours = hourly(2, WEATHER_CODE to emptyList()))))
+    }
+
+    private fun condition(first: Int?, second: Int?) =
+        parsed(body(hours = hourly(2, WEATHER_CODE to listOf(first, second)))).hours.single().condition
 }
