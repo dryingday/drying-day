@@ -43,7 +43,7 @@ A few calls a day per device, as bolt 3's free-tier note assumes: one an hour at
 A `ForecastCache` holds, for each saved place, the last forecast fetched for it:
 
 - **The key is the place's rounded coordinates**, the same values `PlaceStore` already keeps, so the cache holds no location the place store doesn't.
-- **Each entry is** those coordinates, the fetch time (an `Instant` from the clock the app is given) and the `Forecast` the source returned: the zone's IANA id, the hours and the days, every field the engine reads and nothing else. No response body, no headers, no URL.
+- **Each entry is** those coordinates, the fetch time (an `Instant` from the clock the app is given) and the `Forecast` the source returned: the zone's IANA id, the hours and the days, every field the engine or the screen reads, and nothing else (the screen's `condition` since bolt 7). No response body, no headers, no URL.
 - **One forecast per set of coordinates a saved place has.** The API is `get(coordinates)`, `put(coordinates, fetchedAt, forecast)` and `retain(saved: Set<Coordinates>)`, which drops every entry whose coordinates no saved place has. `retain` runs with the place store's coordinates at launch (from `App`) and after every change to the store (from `PlacesState`, below): a removal, a new device fix replacing the old one, a search result added. So a place's forecast goes when no saved place has its coordinates any more, and a device place and a searched place that round to the same coordinates share one entry, which outlives either alone. With the last place removed, the cache is empty. The cache and the place store are separate writes, so a crash between them can leave an entry behind until the next `retain`, which is at the next launch at the latest.
 - Stored with `multiplatform-settings`, as one JSON string under the key `forecasts`, so a write is all or nothing, with its own private serializable types and a version, like `PlaceStore`. On Android, `SharedPreferencesSettings` over a private preferences file, `forecasts`. `allowBackup` is off and `data_extraction_rules.xml` excludes every shared-preferences domain, so nothing here leaves the device through backup, and the manifest doesn't change. The iOS wrapper isn't shipped in v1; there, as with bolt 4's `places`, `NSUserDefaults` goes into device backups, and the cache adds no coordinates `places` doesn't already hold.
 - A value that can't be decoded, a different version, an unknown zone id or values the engine's types reject all count as no cache, without an exception escaping. An entry that fails alone is dropped alone.
@@ -188,7 +188,7 @@ None new, and no change to any `AndroidManifest.xml`.
 
 ## Out of scope
 
-Release work, the icon and store screenshots (bolt 6). Translations beyond English. Notifications, widgets, background refresh. A forecast for places other than the current one. Material 3 or any other design system. Hourly charts or the raw weather: the verdict is the product. Any change to the engine or its thresholds.
+Release work, the icon and store screenshots (bolt 6). Translations beyond English. Notifications, widgets, background refresh. A forecast for places other than the current one. Material 3 or any other design system. Any change to the engine or its thresholds.
 
 ## Acceptance criteria
 

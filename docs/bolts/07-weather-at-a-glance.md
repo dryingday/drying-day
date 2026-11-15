@@ -37,11 +37,13 @@ Any other code is no condition (`null`).
 | The `weather_code` array missing | Every hour's condition is `null`. Not `BAD_RESPONSE` |
 | A `weather_code` array of a different length from `time` | `BAD_RESPONSE`, as with any other hourly array |
 
-**The cache.** `ForecastCache` keeps `condition` with each hour, by its enum name, under version 2. A stored name it doesn't know is read as `null` for that hour, and the entry is kept. A version 1 entry is still read, with every condition `null`, so the first launch after the update still has its forecast offline. The next `put` writes version 2. "What's kept" in bolt 5 now reads "every field the engine or the screen reads, and nothing else".
+**The cache.** `ForecastCache` keeps `condition` with each hour, by its enum name, under version 2. A stored name it doesn't know is read as `null` for that hour, and the entry is kept. A version 1 entry is still read, with every condition `null`, so the first launch after the update still has its forecast offline. The next write (a `put`, or a `retain` that drops something) stores version 2. Any other version is still no cache. This PR edits bolt 5's "What's kept" to read "every field the engine or the screen reads, and nothing else", and takes "Hourly charts or the raw weather" out of its "Out of scope".
 
 ### When rain is due
 
-A public function in `engine`, `firstWet(forecast, date, now): Instant?`, gives the start of the usable part of the first `WET` hour (rule 2) in the day's usable time (rule 1): daylight, and from `now` on today. It returns `null` when there's none, and when the day is one the engine gives `null` advice for. It uses the classification `advise` already uses, so it adds no rule and no threshold: an hour the line counts as wet is the hour the screen calls wet.
+A public function in `engine`, `firstWet(forecast, date, now): Instant?`, gives the start of the usable part of the first `WET` hour (rule 2) in the day's usable time (rule 1): daylight, and from `now` on today. It returns `null` when there's none, and when the day is one the engine gives `null` advice for. It uses the classification `advise` already uses (the internal `HourKind.WET`), so it adds no rule and no threshold: an hour the line counts as wet is the hour the screen calls wet.
+
+It isn't the `RAIN` reason. `RAIN` counts only a wet hour that ends the chosen window or comes before it, and a `WILL_DRY` day has no reasons. `firstWet` gives the first wet hour of the day wherever it falls, so a `WILL_DRY` day with rain after bring-in says so: "Bring in by 14:30" followed by "Rain likely from 16:00" is meant. It tells people why the bring-in time matters.
 
 ### The screen
 
@@ -50,7 +52,7 @@ Changes to bolt 5's main screen, in its order:
 1. **The days.** Each tab gains its verdict's picture, small, before the short verdict.
 2. **The selected day:**
    - **The verdict** gains its picture, large, before the headline.
-   - **The rain line**, new, straight after the times, or after the headline on a `DONT_BOTHER` day: "Rain likely from 15:00." from `firstWet`, or "No rain expected while it's light." when it gives `null`. It's left out on a `DAY_OVER` day and on a `null` day. The time is rounded down to the minute and formatted the way bolt 5 formats times, in the forecast's zone.
+   - **The rain line**, new, straight after the times, or after the headline on a `DONT_BOTHER` day: "Rain likely from 15:00." from `firstWet`, or "No rain expected while it's light." when it gives `null`. It's left out on a `DAY_OVER` day, on a `null` day, and on a day with no usable time (polar night), where "while it's light" would mean nothing. The time is rounded down to the minute and formatted the way bolt 5 formats times, in the forecast's zone.
    - **The hours**, new, after the rain line and before Why, Tips and Indoors. There's one column for each forecast hour whose start falls from the hour containing sunrise to the hour containing sunset. Today, it starts at the hour containing `now`. A gap in the forecast leaves no column. Each column holds, from the top:
      - the hour's start, in the device's time format, as bolt 5 formats times;
      - the hour's `condition` as a picture, or nothing for `null`;
@@ -77,7 +79,7 @@ Drawn for this app and licensed with it (GPL-3.0-or-later). No icon set and no n
   These are in the same style, drawn at 48 dp and 24 dp.
 - An exhaustive `when` maps each `Condition` and each `Verdict` to its drawable and its spoken name, so a new code doesn't compile without both.
 
-PR 2 includes a contact sheet of all twelve in light and dark. That's the maintainer's first look at the style, and the place to change it before the screen is built.
+PR 2 includes a contact sheet of all twelve in light and dark. That's the maintainer's first look at the style, and the place to change it before the screen is built. So PR 2 is high: it waits for the maintainer's approval, which answers "is this the style?". PR 2 also carries the spoken names' string resources, so its mappings compile on their own.
 
 ### Text
 
@@ -87,11 +89,13 @@ In string resources, the maintainer's voice, as with the copy in PR 54. To start
 |---|---|
 | Rain line | Rain likely from %1$s. / No rain expected while it's light. |
 | Conditions (spoken) | clear, partly cloudy, cloudy, fog, drizzle, rain, showers, snow, thunder |
-| Column (spoken) | %1$s, %2$s, %3$s degrees, %4$s %% chance of rain, in the drying window |
+| Column (spoken) | %1$s, %2$s, %3$s degrees, %4$s chance of rain, in the drying window |
+
+As with `forecast_dryness`, the percentage is passed in already formatted ("40 %"), so no string holds a literal `%`.
 
 ### Release
 
-`versionName` 1.1.0, `versionCode` 3, `changelogs/3.txt`. The four store screenshots are retaken from the final main, as in PR 63. `fastlane/.../full_description.txt` gains one sentence about the hourly view. After the PR is merged, the tag goes on, and then the maintainer runs `scripts/release.py 1.1.0`, as `docs/releasing.md` sets out.
+In `androidApp/build.gradle.kts`, `versionName` 1.1.0 and `versionCode` 3, with `fastlane/metadata/android/en-US/changelogs/3.txt`. The four store screenshots are retaken from the final main, as in PR 63. `fastlane/.../full_description.txt` gains one sentence about the hourly view. After the PR is merged, the tag goes on, and then the maintainer runs `scripts/release.py 1.1.0`, as `docs/releasing.md` sets out.
 
 ### Network, permissions, dependencies
 
@@ -117,8 +121,8 @@ In string resources, the maintainer's voice, as with the copy in PR 54. To start
   - a `weather_code` array of a different length giving `BAD_RESPONSE`;
   - the request's `hourly` list exactly as above.
 
-  The Open-Meteo fixtures gain `weather_code`, and one keeps a fixture without it.
-- An engine test over the whole reference set: `advise` gives identical `DayAdvice` with every condition set to `null` and with conditions filled in. The reference set's labels and the fixtures it uses don't change.
+  The response fixtures in `ForecastMappingTest` and `OpenMeteoForecastTest` gain `weather_code`, and one keeps a response without it.
+- An engine test over the whole reference set: `advise` gives identical `DayAdvice` with every condition `null`, as the generated forecasts have them, and with synthetic conditions filled in by the test, each hour cycling through `Condition.entries`. The reference set's labels, fixtures, generated code and fetch script don't change.
 - `firstWet` tests:
   - a wet first hour;
   - rain only after sunset;
@@ -128,29 +132,30 @@ In string resources, the maintainer's voice, as with the copy in PR 54. To start
   - a `null` day;
   - a wet hour at a daylight-saving change.
 
-  Each wet hour matches the hour `advise` treats as wet, checked against `RAIN` in reasons on the same fixtures.
+  Each test checks the result against the hours the internal `kind()` classifies as `HourKind.WET`, not against `RAIN` in reasons. One test is a `WILL_DRY` day with rain after bring-in.
 - Cache tests:
   - a version 2 round trip with conditions;
   - a version 1 entry read with `null` conditions and rewritten as version 2;
   - an unknown stored condition read as `null`, keeping the entry.
 
-  The stored-keys test is updated to include `condition`.
+  The stored-keys test is updated to include `condition`. `anotherVersionIsNoCache` changes its other version from 2 to 3 and keeps its assertion that the entry is dropped.
 - Screen tests:
   - which hours get a column (sunrise and sunset mid-hour, today from `now`, a gap, polar night, today after sunset);
   - which columns carry the bar (partial overlap at each end);
   - the rain chance shown from 10 %, blank under it and for `null`;
   - temperature rounding at .5 and at −0.5;
   - the spoken text of a column with and without each part;
-  - the rain line left out on `DAY_OVER` and `null` days;
+  - the rain line's two texts, its time rounded down to the minute and shown in the forecast's zone at a zone different from the device's, and the line left out on `DAY_OVER`, `null` and polar-night days;
   - every `Condition` and `Verdict` having a drawable and a spoken name, through the exhaustive mappings.
 - No real places in tests, fixtures or screenshots, beyond the reference set's.
-- On the emulator (API 36), recorded in PR 4 with screenshots:
+- On the emulator (API 36), with the release APK as bolt 6 requires, since it adds JSON decoding (`weather_code`, the stored condition, the version 1 read). Recorded in PR 4 with screenshots:
   - a will-dry, a partly-dry and a don't-bother day, in light and dark;
   - the hours scrolled;
   - today after the hang-out time;
   - 200 % font scale with no clipping;
   - TalkBack reading a column;
-  - offline after installing over 1.0.1 with a cached version 1 forecast, showing the forecast with no pictures in the row.
+  - offline after updating over a build from `main` before PR 1 that has cached a version 1 forecast, showing the forecast with no pictures in the row. The installed 1.0.1 is signed with the maintainer's key, so the agent can't update over it. The run uses two debug builds instead, then a fresh install of the release APK for the decoding paths.
+- PR 5: `versionCode` 3 and `versionName` 1.1.0, `changelogs/3.txt` within F-Droid's length (the existing `scripts/` test), and the listing sentence. `v1.1.0` is on GitHub Releases with the signed APK and its SHA-256, as for 1.0.0.
 
   As in bolt 5, live data gives whatever the day brings, so the PR says which verdict was live and shows the others with fixtures through an uncommitted fake source.
 
@@ -158,9 +163,9 @@ In string resources, the maintainer's voice, as with the copy in PR 54. To start
 
 | PR | Contents | Expected tier |
 |---|---|---|
-| 0 | This spec, and bolt 7 and the later ideas in `docs/PLAN.md` | high (a new request field, a cache format change, a visual design) |
+| 0 | This spec, bolt 5's two lines, and bolt 7 and the later ideas in `docs/PLAN.md` | high (a new request field, a cache format change, a visual design) |
 | 1 | `Condition`, `HourlyWeather.condition`, the request field, the mapping and its fixtures, cache version 2, `firstWet`, with tests | medium (the request change and cache format this spec names) |
-| 2 | The twelve pictures: SVG sources, vector drawables, the mappings and their tests, the contact sheet | low (art, no behaviour) |
+| 2 | The twelve pictures: SVG sources, vector drawables, the mappings, the spoken names' strings and their tests, the contact sheet | high (the maintainer approves the style) |
 | 3 | The text and the screen logic: which hours, the bar, the rain line, the spoken text, with tests | medium (UI copy, time display) |
 | 4 | The screen: the pictures in the tabs and the headline, the rain line, the hours row, the emulator run | high (the maintainer asked to shape the visual design together) |
 | 5 | 1.1.0: version, changelog, retaken screenshots, the listing sentence. After it's merged: the tag, then `scripts/release.py 1.1.0` | high (version bump, store listing) |
