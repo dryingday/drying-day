@@ -1,6 +1,7 @@
 package io.github.dryingday.forecast
 
 import io.github.dryingday.engine.Condition
+import io.github.dryingday.engine.Load
 import io.github.dryingday.engine.Verdict
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.condition_clear
@@ -12,6 +13,8 @@ import io.github.dryingday.shared.resources.condition_rain
 import io.github.dryingday.shared.resources.condition_showers
 import io.github.dryingday.shared.resources.condition_snow
 import io.github.dryingday.shared.resources.condition_thunder
+import io.github.dryingday.shared.resources.load_heavy
+import io.github.dryingday.shared.resources.load_light
 import io.github.dryingday.shared.resources.verdict_dont_bother
 import io.github.dryingday.shared.resources.verdict_partly_dry
 import io.github.dryingday.shared.resources.verdict_will_dry
@@ -82,5 +85,20 @@ class PicturesTest {
                 condition.spokenName().key,
             )
         }
+    }
+
+    // Written out apart from Pictures.kt, so swapped entries there fail here.
+    @Test
+    fun eachLoadHasThePictureOfItsName() {
+        assertEquals(
+            mapOf(Load.LIGHT to Res.drawable.load_light, Load.HEAVY to Res.drawable.load_heavy),
+            Load.entries.associateWith { it.picture() },
+        )
+    }
+
+    @Test
+    fun noLoadPictureIsAlsoASkyOrVerdictPicture() {
+        val others = Condition.entries.map { it.picture() }.toSet() + Verdict.entries.map { it.picture() }
+        assertEquals(emptySet(), Load.entries.map { it.picture() }.toSet() intersect others)
     }
 }
