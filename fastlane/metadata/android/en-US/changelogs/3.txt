@@ -1,0 +1,1 @@
+Weather at a glance: a picture for each verdict, the sky for each hour of the day with the drying window marked, and when rain is likely to start.
