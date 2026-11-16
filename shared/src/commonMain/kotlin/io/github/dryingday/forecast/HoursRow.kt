@@ -6,12 +6,14 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -61,7 +63,9 @@ internal fun HoursRow(columns: List<HourColumn>, body: TextStyle) {
 }
 
 // One semantics node for the whole column. The bar is under every column in the drying window, so it joins up
-// across neighbours; a column outside it has the same space, empty, so the columns line up.
+// across neighbours; a column outside it has the same space, empty, so the columns line up. The column takes
+// its widest child's width: in a row that scrolls sideways the width is unbounded, and without that the bar's
+// fillMaxWidth would measure nothing and never draw.
 @Composable
 private fun HourColumnView(column: HourColumn, body: TextStyle) {
     val text = body.color
@@ -69,7 +73,10 @@ private fun HourColumnView(column: HourColumn, body: TextStyle) {
     val description = (listOf(column.time) + parts).joinToString(", ")
     val small = body.copy(fontSize = 13.sp, textAlign = TextAlign.Center)
     Column(
-        Modifier.widthIn(min = HOUR_COLUMN_MIN_WIDTH).clearAndSetSemantics { contentDescription = description },
+        Modifier.width(IntrinsicSize.Max).widthIn(min = HOUR_COLUMN_MIN_WIDTH).clearAndSetSemantics {
+            contentDescription =
+                description
+        },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column(
