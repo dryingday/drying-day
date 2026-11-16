@@ -17,6 +17,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -247,7 +248,8 @@ private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, bod
             BasicText(it.resolve(), style = body)
         }
         val columns = dayHours(context.forecast, context.date, day, now, formatTime)
-        if (columns.isNotEmpty()) HoursRow(columns, body)
+        // Keyed on the day, so each day's row opens at its first column rather than where the last one was left.
+        if (columns.isNotEmpty()) key(context.date) { HoursRow(columns, body) }
         val dayOverOnly = day.reasons == listOf(Reason.DAY_OVER)
         if (day.verdict != Verdict.WILL_DRY && !dayOverOnly) {
             Section(Res.string.forecast_held_back, day.reasons.map { it.text() }, body)
