@@ -1,6 +1,6 @@
 # Bolt 7: weather at a glance
 
-The main screen shows the weather it worked from. After v1.0 the maintainer found the screen too wordy and missed the forecast itself: the app fetches it but never shows it. This bolt adds three things: a picture for each verdict, a row of hours for the selected day (sky, temperature, chance of rain, with the drying window marked) and one line saying when rain is due. The verdict stays first and the advice doesn't change: no change to the engine's rules or thresholds.
+The main screen shows the weather it worked from. After v1.0 the maintainer found the screen too wordy and missed the forecast itself: the app fetches it but never shows it. This bolt adds three things: a picture for each verdict, a row of hours for the selected day (the sky, with the drying window marked) and one line saying when rain is due. The verdict stays first and the advice doesn't change: no change to the engine's rules or thresholds.
 
 It reverses one line of bolt 5's "Out of scope" ("Hourly charts or the raw weather"), as the maintainer asked on 2026-11-14.
 
@@ -52,19 +52,19 @@ Changes to bolt 5's main screen, in its order:
 1. **The days.** Each tab gains its verdict's picture, small, before the short verdict.
 2. **The selected day:**
    - **The verdict** gains its picture, large, before the headline.
-   - **The rain line**, new, straight after the times, or after the headline on a `DONT_BOTHER` day: "Rain likely from 15:00." from `firstWet`, or "No rain expected while it's light." when it gives `null`. It's left out on a `DAY_OVER` day, on a `null` day, and on a day with no usable time (polar night), where "while it's light" would mean nothing. The time is rounded down to the minute and formatted the way bolt 5 formats times, in the forecast's zone.
+   - **The rain line**, new, after the times (and, on a `PARTLY_DRY` day, after "About 70 % dry by then.", so "by then" stays next to the bring-in time, a decision put to the maintainer in PR 4), or after the headline on a `DONT_BOTHER` day: "Rain likely from 15:00." from `firstWet`, or "No rain expected while it's light." when it gives `null`. It's left out on a `DAY_OVER` day, on a `null` day, and on a day with no usable time (polar night), where "while it's light" would mean nothing. The time is rounded down to the minute and formatted the way bolt 5 formats times, in the forecast's zone.
    - **The hours**, new, after the rain line and before Why, Tips and Indoors. There's one column for each forecast hour that overlaps the day's daylight as the engine clips it (`DailyLight.daylight(zone)`): `start < daylight.end` and `start + 1 h > daylight.start`. Today, the hour must also end after `now`. So polar day runs midnight to midnight, and a sunset exactly on the hour adds no empty column. A gap in the forecast leaves no column. Each column holds, from the top:
-     - the hour's start, in the forecast's zone and the device's time format, through bolt 5's `formatTime`. On the day the clocks go back, the repeated hour shows the same label twice, in order. On the day they go forward, the skipped label doesn't appear;
-     - the hour's `condition` as a picture, or nothing for `null`;
-     - the temperature, rounded half up, as "11°";
-     - the chance of rain, as "40 %", when it's at least 10 %. It's left blank under 10 % or when the value is `null`.
+     - the hour's start, to the hour ("8 AM" in 12-hour, "08" in 24-hour), in the forecast's zone. `App` takes a second formatter, `formatHour`, for these labels: on Android it's built on the device's 12- or 24-hour setting with the skeleton `ha` or `HH`; the iOS wrapper and tests pass a common `HH`. On the day the clocks go back, the repeated hour shows the same label twice, in order. On the day they go forward, the skipped label doesn't appear;
+     - the hour's `condition` as a picture, or nothing for `null`.
+
+     No temperature and no chance of rain: the maintainer found the chance of rain unclear, and no single figure is the one that decides drying (it's temperature and humidity together, with wind and sun), so the row shows the sky alone. Both were taken out in review of PR 4.
 
      Columns that overlap `hangOut` to `bringIn` have a bar under them: the drying window. The row scrolls sideways, and today's opens at its first column. A `null` day, polar night or today after sunset shows no row.
 3. Everything else is as bolt 5 left it.
 
 The rules from bolt 5's "Design system" still hold: foundation only, at least 48 dp for anything tappable (the row isn't tappable), light and dark, and nothing carried by colour alone. At 200 % font scale the columns grow taller and wider without clipping.
 
-**Accessibility.** The pictures are decorative, with their semantics cleared, as the verdict is always written out next to them. Each column is one node that reads "10:00, partly cloudy, 11 degrees, 40 % chance of rain, in the drying window". It leaves out the parts the column doesn't show. It's built by joining, with ", ", the parts that apply, each its own string resource. The time comes from the same `formatTime` as the label. The bar is described only through that node.
+**Accessibility.** The pictures are decorative, with their semantics cleared, as the verdict is always written out next to them. Each column is one node that reads "10 AM, partly cloudy, in the drying window". It leaves out the parts the column doesn't show. It's built by joining, with ", ", the parts that apply, each its own string resource. The time comes from the same `formatHour` as the label. The bar is described only through that node.
 
 ### The pictures
 
@@ -89,9 +89,7 @@ In string resources, the maintainer's voice, as with the copy in PR 54. To start
 |---|---|
 | Rain line | Rain likely from %1$s. / No rain expected while it's light. |
 | Conditions (spoken) | clear, partly cloudy, cloudy, fog, drizzle, rain, showers, snow, thunder |
-| Column parts (spoken) | %1$s degrees / %1$s chance of rain / in the drying window, with the time and condition name as they are |
-
-As with `forecast_dryness`, the percentage is passed in already formatted ("40 %"), so no string holds a literal `%`.
+| Column parts (spoken) | in the drying window, with the time and condition name as they are |
 
 ### Release
 
@@ -106,7 +104,7 @@ In `androidApp/build.gradle.kts`, `versionName` 1.1.0 and `versionCode` 3, with 
 ## Out of scope
 
 - Any change to the engine's rules, thresholds or verdicts. `Condition` is never an input to `advise`.
-- Wind, humidity or radiation on screen.
+- Temperature, chance of rain, wind, humidity or radiation on screen.
 - A daily summary picture in the tabs (the verdict picture stands in).
 - Night hours.
 - Pictures of how to hang clothes, a settings page for equipment (airer, dehumidifier), and a Breezy-style place switcher. Each is a later bolt, listed in `docs/PLAN.md`.
@@ -143,8 +141,7 @@ In `androidApp/build.gradle.kts`, `versionName` 1.1.0 and `versionCode` 3, with 
 - Screen tests:
   - which hours get a column (sunrise and sunset mid-hour, a sunset on the hour, polar day, today from `now`, a gap, polar night, today after sunset, and both daylight-saving changes);
   - which columns carry the bar (partial overlap at each end);
-  - the rain chance shown from 10 %, blank under it and for `null`;
-  - temperature rounding at .5 and at −0.5;
+  - the hour labels through `formatHour`, in the forecast's zone at a zone different from the device's;
   - the spoken text of a column with and without each part;
   - the rain line's two texts, its time rounded down to the minute and shown in the forecast's zone at a zone different from the device's, and the line left out on `DAY_OVER`, `null` and polar-night days;
   - every `Condition` having a drawable and a spoken name, and every `Verdict` a drawable, through the exhaustive mappings.
