@@ -175,6 +175,17 @@ class DayHoursTest {
         assertEquals(hoursOf(10, 13), forecast.columns(advice = advice).filter { it.inDryingWindow }.map { it.time })
     }
 
+    // The bar follows the engine's instants, as the spec's "overlap hangOut to bringIn" says, not the minutes
+    // shown: a hang-out at 10:59:30 (shown 11:00) bars the 10:00 column, a bring-in at 14:00:20 (shown 14:00)
+    // bars the 14:00 one. Each overlap is real, if short.
+    @Test
+    fun theBarFollowsTheEnginesInstantsToTheSecond() {
+        val forecast = forecast()
+        val advice = windowAdvice(at(day0, 10 to 59) + 30.seconds, at(day0, 14 to 0) + 20.seconds)
+
+        assertEquals(hoursOf(10, 14), forecast.columns(advice = advice).filter { it.inDryingWindow }.map { it.time })
+    }
+
     @Test
     fun aDayWithoutAWindowHasNoBar() {
         val forecast = forecast { _, _ -> rain }
