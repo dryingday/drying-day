@@ -1,5 +1,6 @@
 package io.github.dryingday.weather.openmeteo
 
+import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.Forecast
 import io.github.dryingday.weather.Coordinates
 import io.github.dryingday.weather.SourceError
@@ -31,6 +32,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 private const val FIRST_STAMP = 1749906000L
@@ -40,7 +42,7 @@ private const val GOOD_BODY =
     """{"timezone":"Etc/UTC","utc_offset_seconds":0,
     "hourly":{"time":[$FIRST_STAMP,$SECOND_STAMP],"temperature_2m":[20.0,20.0],"relative_humidity_2m":[50,50],
     "wind_speed_10m":[10.0,10.0],"visibility":[20000.0,20000.0],"precipitation_probability":[0,0],
-    "precipitation":[0.0,0.0],"wind_gusts_10m":[20.0,20.0],"shortwave_radiation":[400.0,400.0]},
+    "precipitation":[0.0,0.0],"wind_gusts_10m":[20.0,20.0],"shortwave_radiation":[400.0,400.0],"weather_code":[3,61]},
     "daily":{"time":[1749859200],"sunrise":[1749880000],"sunset":[1749940000],"daylight_duration":[60000.0]}}"""
 
 private val somewhere = Coordinates(12.3456, -65.4321)
@@ -61,7 +63,7 @@ class OpenMeteoForecastTest {
 
         val hourly =
             "temperature_2m%2Crelative_humidity_2m%2Cwind_speed_10m%2Cvisibility%2Cprecipitation_probability%2C" +
-                "precipitation%2Cwind_gusts_10m%2Cshortwave_radiation"
+                "precipitation%2Cwind_gusts_10m%2Cshortwave_radiation%2Cweather_code"
         assertEquals(
             "https://api.open-meteo.com/v1/forecast?latitude=12.35&longitude=-65.43&hourly=$hourly" +
                 "&daily=sunrise%2Csunset%2Cdaylight_duration&timezone=auto&timeformat=unixtime" +
@@ -91,6 +93,18 @@ class OpenMeteoForecastTest {
 
         val forecast: Forecast = assertIs<SourceResult.Success<Forecast>>(result).value
         assertEquals(FIRST_STAMP, forecast.hours.single().start.epochSeconds)
+        assertEquals(Condition.RAIN, forecast.hours.single().condition)
+    }
+
+    @Test
+    fun aResponseWithoutWeatherCodesStillGivesTheForecast() = runTest {
+        val body = GOOD_BODY.replace(""","weather_code":[3,61]""", "")
+        assertFalse("weather_code" in body)
+
+        val result = source { respond(body) }.forecast(somewhere)
+
+        val forecast: Forecast = assertIs<SourceResult.Success<Forecast>>(result).value
+        assertNull(forecast.hours.single().condition)
     }
 
     @Test

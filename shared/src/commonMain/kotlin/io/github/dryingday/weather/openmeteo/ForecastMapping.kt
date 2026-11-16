@@ -1,5 +1,6 @@
 package io.github.dryingday.weather.openmeteo
 
+import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.DailyLight
 import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.HourlyWeather
@@ -39,6 +40,8 @@ private data class HourlyColumns(
     val precipitation: List<Double?>,
     @SerialName("wind_gusts_10m") val windGusts: List<Double?>,
     @SerialName("shortwave_radiation") val shortwaveRadiation: List<Double?>,
+    // Optional, for the screen only: absent is no conditions, not a bad response.
+    @SerialName("weather_code") val weatherCode: List<Double?>? = null,
 ) {
     val columns get() =
         listOf(
@@ -50,7 +53,7 @@ private data class HourlyColumns(
             precipitation,
             windGusts,
             shortwaveRadiation,
-        )
+        ) + listOfNotNull(weatherCode)
 }
 
 @Serializable
@@ -90,11 +93,13 @@ private fun HourlyColumns.hour(i: Int): HourlyWeather? = try {
     val end = i + 1
     val start = requireNotNull(time[i])
     require(requireNotNull(time[end]) - start == SECONDS_PER_HOUR)
+    val condition = moreSevere(condition(i), condition(end))
     val first = reading(start, stamp = i, end = end)
     val last = reading(start, stamp = end, end = end)
     val firstVisibility = first.visibilityM
     val lastVisibility = last.visibilityM
     first.copy(
+        condition = condition,
         temperatureC = (first.temperatureC + last.temperatureC) / 2,
         relativeHumidityPercent = (first.relativeHumidityPercent + last.relativeHumidityPercent) / 2,
         windSpeedKmh = (first.windSpeedKmh + last.windSpeedKmh) / 2,
@@ -107,6 +112,31 @@ private fun HourlyColumns.hour(i: Int): HourlyWeather? = try {
 } catch (_: IllegalArgumentException) {
     null
 }
+
+/** The condition at stamp [i]: null when there is no code, or it isn't one we draw. */
+private fun HourlyColumns.condition(i: Int): Condition? {
+    val code = weatherCode?.get(i) ?: return null
+    return if (code == code.toInt().toDouble()) CONDITIONS[code.toInt()] else null
+}
+
+private fun moreSevere(a: Condition?, b: Condition?): Condition? = when {
+    a == null -> b
+    b == null -> a
+    else -> maxOf(a, b)
+}
+
+/** WMO weather interpretation codes, as docs/bolts/07-weather-at-a-glance.md, "The sky", tabulates them. */
+private val CONDITIONS: Map<Int, Condition> = mapOf(
+    Condition.CLEAR to listOf(0, 1),
+    Condition.PARTLY_CLOUDY to listOf(2),
+    Condition.CLOUDY to listOf(3),
+    Condition.FOG to listOf(45, 48),
+    Condition.DRIZZLE to listOf(51, 53, 55, 56, 57),
+    Condition.RAIN to listOf(61, 63, 65, 66, 67),
+    Condition.SHOWERS to listOf(80, 81, 82),
+    Condition.SNOW to listOf(71, 73, 75, 77, 85, 86),
+    Condition.THUNDER to listOf(95, 96, 99),
+).flatMap { (condition, codes) -> codes.map { it to condition } }.toMap()
 
 /** One stamp's readings. They go through [HourlyWeather]'s checks singly, so averaging can't hide a bad one. */
 private fun HourlyColumns.reading(start: Long, stamp: Int, end: Int) = HourlyWeather(

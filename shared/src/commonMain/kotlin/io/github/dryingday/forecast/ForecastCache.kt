@@ -1,6 +1,7 @@
 package io.github.dryingday.forecast
 
 import com.russhwolf.settings.Settings
+import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.DailyLight
 import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.HourlyWeather
@@ -16,7 +17,11 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.time.Instant
 
 private const val KEY = "forecasts"
-private const val VERSION = 1
+private const val VERSION = 2
+private const val VERSION_WITHOUT_CONDITIONS = 1
+
+// Writes a null condition out too, so every stored hour has the same keys. A version 1 hour has none.
+private val writer = Json { encodeDefaults = true }
 
 // Plain classes, not data classes: no generated toString to print coordinates. Entries stay raw JSON in the
 // state so one that won't decode is dropped alone.
@@ -45,6 +50,8 @@ private class StoredHour(
     val precipitationMm: Double,
     val windGustKmh: Double,
     val shortwaveRadiationWm2: Double,
+    // The enum's name, read through Condition.entries so a name from a newer version is null, not a bad entry.
+    val condition: String? = null,
 )
 
 @Serializable
@@ -81,7 +88,8 @@ class ForecastCache(private val settings: Settings) {
     }
 
     private fun save() {
-        val state = StoredState(VERSION, entries.map { (key, value) -> Json.encodeToJsonElement(toStored(key, value)) })
+        val state =
+            StoredState(VERSION, entries.map { (key, value) -> writer.encodeToJsonElement(toStored(key, value)) })
         settings.putString(KEY, Json.encodeToString(state))
     }
 
@@ -92,7 +100,7 @@ class ForecastCache(private val settings: Settings) {
             settings.getStringOrNull(KEY)?.let { Json.decodeFromString<StoredState>(it) }
         } catch (_: IllegalArgumentException) {
             null
-        }?.takeIf { it.version == VERSION } ?: return emptyMap()
+        }?.takeIf { it.version == VERSION || it.version == VERSION_WITHOUT_CONDITIONS } ?: return emptyMap()
         val loaded = LinkedHashMap<Coordinates, CachedForecast>()
         for (element in state.entries) {
             try {
@@ -122,6 +130,7 @@ private fun toStored(key: Coordinates, value: CachedForecast) = StoredEntry(
             it.precipitationMm,
             it.windGustKmh,
             it.shortwaveRadiationWm2,
+            it.condition?.name,
         )
     },
     days = value.forecast.days.map { StoredDay(it.date.toString(), it.sunrise.toString(), it.sunset.toString()) },
@@ -142,6 +151,7 @@ private fun StoredEntry.toCached() = CachedForecast(
                 it.precipitationMm,
                 it.windGustKmh,
                 it.shortwaveRadiationWm2,
+                Condition.entries.firstOrNull { c -> c.name == it.condition },
             )
         },
         days.map { DailyLight(LocalDate.parse(it.date), Instant.parse(it.sunrise), Instant.parse(it.sunset)) },

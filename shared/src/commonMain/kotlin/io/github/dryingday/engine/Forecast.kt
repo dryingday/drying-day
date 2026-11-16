@@ -33,6 +33,7 @@ data class Forecast(val timeZone: TimeZone, val hours: List<HourlyWeather>, val 
  * @property visibilityM null when the source doesn't give it; counts as clear.
  * @property precipitationProbabilityPercent null when the source doesn't give it; then [precipitationMm] alone
  *   decides whether the hour is wet.
+ * @property condition the sky, for the screen. The engine never reads it. Null when the source doesn't give it.
  */
 data class HourlyWeather(
     val start: Instant,
@@ -44,6 +45,7 @@ data class HourlyWeather(
     val precipitationMm: Double,
     val windGustKmh: Double,
     val shortwaveRadiationWm2: Double,
+    val condition: Condition? = null,
 ) {
     init {
         require(temperatureC in MIN_TEMPERATURE_C..MAX_TEMPERATURE_C) {
