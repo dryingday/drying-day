@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Source of shared/src/commonMain/composeResources/drawable/condition_fog.xml. One colour, tinted
+       with the text colour at run time. See docs/bolts/07-weather-at-a-glance.md. -->
+  <path d="M6.51,12 L17.03,12 A3.31,3.31 0 0 0 17.03,5.37 A4.91,4.91 0 0 0 8.57,6.74 A2.74,2.74 0 0 0 6.51,12 Z" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M3.5,15.5 L20.5,15.5" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M5.5,19 L18.5,19" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
