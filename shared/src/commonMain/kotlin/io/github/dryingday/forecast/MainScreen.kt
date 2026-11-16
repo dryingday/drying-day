@@ -88,6 +88,7 @@ fun MainScreen(
     days: DayPicker,
     attributions: List<Attribution>,
     formatTime: TimeFormat,
+    formatHour: TimeFormat,
     onPlaces: () -> Unit,
 ) {
     val dark = isSystemInDarkTheme()
@@ -105,7 +106,7 @@ fun MainScreen(
                 BasicText(placeLabel(place), style = body.copy(textDecoration = TextDecoration.Underline))
             }
             when (val status = state.status) {
-                is ForecastStatus.Showing -> Showing(status, state, days, formatTime, body)
+                is ForecastStatus.Showing -> Showing(status, state, days, formatTime, formatHour, body)
 
                 is ForecastStatus.Loading -> Message(Res.string.forecast_loading, body)
 
@@ -141,11 +142,13 @@ private fun OutOfDate(status: ForecastStatus.OutOfDate, state: ForecastState, bo
 }
 
 @Composable
+@Suppress("LongParameterList") // Each is passed in by name from MainScreen.
 private fun Showing(
     status: ForecastStatus.Showing,
     state: ForecastState,
     picker: DayPicker,
     formatTime: TimeFormat,
+    formatHour: TimeFormat,
     body: TextStyle,
 ) {
     DayTabs(status, picker.selected, body, picker.onSelect)
@@ -154,7 +157,7 @@ private fun Showing(
         Message(Res.string.forecast_day_missing, body)
     } else {
         val date = status.today.plus(picker.selected, DateTimeUnit.DAY)
-        Day(day, DayContext(status.forecast, date, state.now), formatTime, body)
+        Day(day, DayContext(status.forecast, date, state.now), formatTime, formatHour, body)
     }
     LoadSwitch(state, body)
     val label = updatedLabel(status.fetchedAt, state.now, status.timeZone, formatTime)
@@ -215,7 +218,7 @@ private class DayContext(val forecast: Forecast, val date: LocalDate, val now: I
 }
 
 @Composable
-private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, body: TextStyle) {
+private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, formatHour: TimeFormat, body: TextStyle) {
     val text = body.color
     val zone = context.zone
     val now = context.now
@@ -247,7 +250,7 @@ private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, bod
         rainLine(context.forecast, context.date, day, now, formatTime)?.let {
             BasicText(it.resolve(), style = body)
         }
-        val columns = dayHours(context.forecast, context.date, day, now, formatTime)
+        val columns = dayHours(context.forecast, context.date, day, now, formatHour)
         // Keyed on the day, so each day's row opens at its first column rather than where the last one was left.
         if (columns.isNotEmpty()) key(context.date) { HoursRow(columns, body) }
         val dayOverOnly = day.reasons == listOf(Reason.DAY_OVER)

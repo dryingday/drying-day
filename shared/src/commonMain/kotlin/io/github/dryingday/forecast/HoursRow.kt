@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,7 +37,7 @@ import org.jetbrains.compose.resources.stringResource
 
 internal val SMALL_PICTURE = 24.dp
 private val DRYING_BAR = 6.dp
-private val HOUR_COLUMN_MIN_WIDTH = 56.dp
+private val HOUR_COLUMN_MIN_WIDTH = 48.dp
 
 @Composable
 @Suppress("SpreadOperator") // A handful of strings, resolved once each.
@@ -91,9 +90,6 @@ private fun HourColumnView(column: HourColumn, body: TextStyle) {
             } else {
                 Picture(condition.picture(), SMALL_PICTURE, text)
             }
-            BasicText(column.temperature, style = small.copy(fontWeight = FontWeight.Bold))
-            // Blank, not absent, so every column is as tall as the others.
-            BasicText(column.rainChance ?: NO_BREAK_SPACE, style = small)
         }
         Spacer(Modifier.height(4.dp))
         Box(
@@ -103,5 +99,3 @@ private fun HourColumnView(column: HourColumn, body: TextStyle) {
         )
     }
 }
-
-private const val NO_BREAK_SPACE = "\u00A0"

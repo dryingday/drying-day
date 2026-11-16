@@ -27,6 +27,13 @@ private val twentyFourHour = LocalTime.Format {
 /** `HH:mm`, for the iOS wrapper and tests. Android passes one built on the device's setting. */
 val twentyFourHourFormat: TimeFormat = { instant, zone -> twentyFourHour.format(instant.toLocalDateTime(zone).time) }
 
+private val twentyFourHourOfDay = LocalTime.Format { hour() }
+
+/** `HH`, for the hours row's labels in the iOS wrapper and tests. Android passes one built on the device's setting. */
+val twentyFourHourHourFormat: TimeFormat = { instant, zone ->
+    twentyFourHourOfDay.format(instant.toLocalDateTime(zone).time)
+}
+
 /** The two times to show for a day with a window, to the minute. */
 class Window(val hangOut: Instant, val bringIn: Instant)
 
