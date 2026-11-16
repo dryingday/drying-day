@@ -33,7 +33,7 @@ The selected half has a border and bold text; the other has neither. So it isn't
 
 - Light: Shirts, underwear, thin cotton, synthetics.
 - Heavy: Towels, jeans, bedding, hoodies. Mixed loads too.
-- Not sure? Pick heavy. If a heavy load will dry, a light one will too.
+- Heavy loads need better weather than light ones. If you're not sure, pick heavy.
 
 The hints no longer show under each choice.
 
@@ -53,7 +53,7 @@ The placement is pure logic, as bolt 7's `dayHours` is: a function from the colu
 
 **The bar.** 6 dp tall, in the text colour, as now. At least 6 dp wide, so a short window or one whose times meet still shows: a bar narrower than that is widened about its centre, then kept inside the row. The first column today is the whole hour holding `now`, so the bar can start partway along it; the part before `now` is left as it is.
 
-**The times.** Above the bar, the two times from `window()`, in `formatTime` in the forecast's zone: the hang-out time over the bar's start, its start edge lined up with it, and the bring-in time over the bar's end, its end edge lined up with it. When the two don't fit side by side over the bar with a gap between them, they're shown as one label, "10:15–11:00", centred over the bar and kept inside the row. When `window()` gives the two the same minute, the label is that one time. The label never clips at 200 % font scale.
+**The times.** Above the bar, the two times from `window()`, in `formatTime` in the forecast's zone: the hang-out time over the bar's start, its start edge lined up with it, and the bring-in time over the bar's end, its end edge lined up with it. When the two don't fit side by side over the bar with a gap between them, they're shown as one label, "10:15 to 11:00", centred over the bar and kept inside the row. When `window()` gives the two the same minute, the label is that one time. The label never clips at 200 % font scale.
 
 **Where the row opens.** Each day's row opens with the bar's start in view: scrolled to one column before the bar's first column, or the first column if the bar starts there. A day without a bar opens at its first column, as now. This is also pure logic (the column to open at), with the screen scrolling to it.
 
@@ -61,7 +61,7 @@ The placement is pure logic, as bolt 7's `dayHours` is: a function from the colu
 
 **The written times go.** "Hang out at 10:15. Bring in by 14:30." no longer shows as a line (it stays as the bar's spoken text). On a `PARTLY_DRY` day, "About 70 % dry by then." loses the "then" it pointed at, so it becomes "About 70 % dry by 14:30.", with `window()`'s bring-in.
 
-**The note**, under the row: "What's the drying window?". Open: "Hang the washing out at the start of the bar and bring it in by the end. That's when it should be dry, or when damp air, rain or sunset would start to undo the work." "Times are in the place's own time zone." goes straight under the row, above the note, so it's always visible. It's shown whenever there's a row and the device's offset differs, by bolt 5's test, not only when there's a window: a don't-bother day's hour labels are in the place's zone too.
+**The note**, under the row: "What's the drying window?". Open: "The bar runs from when the washing starts to dry until it's dry, or until damp air, rain or sunset would start to undo the work. Hang it out at the start and bring it in by the end." "Times are in the place's own time zone." goes straight under the row, above the note, so it's always visible. It's shown whenever there's a row and the device's offset differs, by bolt 5's test, not only when there's a window: a don't-bother day's hour labels are in the place's zone too.
 
 ### The screen
 
@@ -93,17 +93,17 @@ PR 1 updates the contact sheet (`art/pictures-sheet.png`) with the two, in light
 
 ### Text
 
-In string resources, in the maintainer's voice. To start from:
+In string resources, drafted with the maintainer's voice profile (the reason before the rule, no dashes); the maintainer can still change any of them in PR 2:
 
 | Key | Text |
 |---|---|
 | Toggle halves | Light / Heavy (spoken: the existing "Light load" / "Heavy load") |
 | Load note | Light or heavy? |
-| Load note, open | Light: Shirts, underwear, thin cotton, synthetics. / Heavy: Towels, jeans, bedding, hoodies. Mixed loads too. / Not sure? Pick heavy. If a heavy load will dry, a light one will too. |
+| Load note, open | Light: Shirts, underwear, thin cotton, synthetics. / Heavy: Towels, jeans, bedding, hoodies. Mixed loads too. / Heavy loads need better weather than light ones. If you're not sure, pick heavy. |
 | Window note | What's the drying window? |
-| Window note, open | Hang the washing out at the start of the bar and bring it in by the end. That's when it should be dry, or when damp air, rain or sunset would start to undo the work. |
+| Window note, open | The bar runs from when the washing starts to dry until it's dry, or until damp air, rain or sunset would start to undo the work. Hang it out at the start and bring it in by the end. |
 | Dryness | About %1$s dry by %2$s. (replaces "About %1$s dry by then.") |
-| Bar, one label | %1$s–%2$s |
+| Bar, one label | %1$s to %2$s |
 | Note state (spoken) | collapsed / expanded |
 
 The hint strings `load_light_hint` and `load_heavy_hint` are reused in the open note, led by the half's name.
