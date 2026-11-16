@@ -114,16 +114,16 @@ From the top:
 2. **The days**: three tabs, **Today**, **Tomorrow** and the weekday of `today` + 2 days ("Thursday"), from `Showing.today`, so a `null` day is labelled too, each with its verdict in short (Will dry, Partly, Don't bother, or a dash for a `null` day). Today is selected on launch, and again when `Showing.today` changes. The selection survives rotation (`configChanges` from bolt 4 already keeps the composition).
 3. **The selected day**, in this order:
    - **The verdict**, large: **Will dry**, **Partly dry, finish indoors**, or **Don't bother, dry indoors**, as `docs/PLAN.md` words them. When today's only reason is `DAY_OVER`, the headline is **Too late to dry outside today** instead, and there's no "Why".
-   - **The times**, for `WILL_DRY` and `PARTLY_DRY`: "Hang out at 10:15. Bring in by 14:30." For `PARTLY_DRY`, then: "About 70 % dry by then." The percentage is `dryness`.
+   - **The times**, for `WILL_DRY` and `PARTLY_DRY`: "Hang out at 10:15. Bring in by 14:30." For `PARTLY_DRY`, then: "About 70 % dry by then." The percentage is `dryness`. Bolt 8 shows the times on the drying window bar instead, and makes the dryness line "About 70 % dry by 14:30."
    - **Why**, for `PARTLY_DRY` and `DONT_BOTHER`: the reasons, one line each, in the engine's order.
    - **Tips**, for `WILL_DRY` and `PARTLY_DRY`: the engine's tips, one line each.
    - **Indoors**, for `PARTLY_DRY` ("When you bring it in") and `DONT_BOTHER`: the indoor plan, one line each.
    - A `null` day: "There isn't enough forecast for this day yet." Nothing else.
-4. **The load switch.**
+4. **The load switch.** Bolt 8 moves it under the place, above the days, as a toggle.
 5. **The forecast's status**: "Updated today 09:40 UTC+1", "Updating…" while a fetch runs, and the error below it if the last fetch failed. A Refresh button, which shows the waiting state and can't be tapped twice.
 6. **The credit**: the full `SourceAttributions` from bolt 3, next to the forecast, as Open-Meteo's terms ask. It stays visible, or one scroll away at large font sizes, in every state that shows the forecast.
 
-Without a usable forecast the screen shows the place, the load switch, the credit, and in place of the days:
+Without a usable forecast the screen shows the place, the load switch (under the place, from bolt 8), the credit, and in place of the days:
 
 | Status | Shows |
 |---|---|
@@ -165,7 +165,7 @@ Each enum maps to its string with an exhaustive `when`, so a new code doesn't co
 
 #### Times
 
-- **In the forecast's zone**, never the device's: the place's clock is the one the washing line keeps. The device's zone is read once a minute only to compare: when its UTC offset at `now` differs from the forecast zone's, the screen adds "Times are in the place's own time zone." under the times.
+- **In the forecast's zone**, never the device's: the place's clock is the one the washing line keeps. The device's zone is read once a minute only to compare: when its UTC offset at `now` differs from the forecast zone's, the screen adds "Times are in the place's own time zone." under the times (under the hours row from bolt 8).
 - **In the device's time format**: 12- or 24-hour as the user set it. `App` takes `formatTime: (Instant, TimeZone) -> String`. On Android, `MainActivity` passes one built on `android.text.format.DateFormat.getTimeFormat(context)` with its zone set to the forecast's. The iOS wrapper and tests pass a common 24-hour `HH:mm` formatter built with kotlinx-datetime's format builder.
 - **To the minute**, as the engine gives them: the hang-out's seconds rounded up and the bring-in's down, so the times shown never fall before sunrise or `now`, or after rain or sunset. They aren't rounded to a quarter hour: rounding a `WILL_DRY` bring-in down would tell people to take in washing that isn't dry yet, rounding it up could cross the start of rain, and `DayAdvice` doesn't say which end it is. `dryness` is for the engine's bring-in, under a minute after the one shown. The two can't round into the same minute in practice: an hour earns at most 5 points (3 × 1.5 + 0.5) and a day with times needs at least 3, so its window is at least 36 minutes. If they ever did, both are shown as the hang-out's minute rounded down, with a test.
 - The "Updated" time is the same format, in the forecast's zone, with that zone's UTC offset at the fetch time after it (`UTC`, `UTC+1`, `UTC-4`, `UTC+5:45`), because common code has no zone abbreviations. "Today", "yesterday" and the weekday are counted by local date in the forecast's zone.
