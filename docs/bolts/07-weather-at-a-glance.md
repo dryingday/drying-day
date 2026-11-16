@@ -71,12 +71,12 @@ The rules from bolt 5's "Design system" still hold: foundation only, at least 48
 Drawn for this app and licensed with it (GPL-3.0-or-later). No icon set and no new dependency. Each has an SVG source in `art/` next to the app icon's. The app uses them as vector drawables in `shared/src/commonMain/composeResources/drawable/`, through `painterResource`, which the resources library the app already uses provides.
 
 - **Nine conditions**, one per `Condition`, on a 24 dp grid. They're line drawings in one colour, tinted with the text colour, so they follow light and dark mode without a second set.
-- **Three verdicts**:
-  - `WILL_DRY`: washing on a line in the sun.
-  - `PARTLY_DRY`: washing on a line, with a house.
-  - `DONT_BOTHER`: an airer indoors.
+- **Three verdicts**, each one t-shirt with the outcome drawn on it, so a glance reads the result, not the method:
+  - `WILL_DRY`: a sparkle.
+  - `PARTLY_DRY`: one drop.
+  - `DONT_BOTHER`: three drops.
 
-  These are in the same style, drawn at 48 dp and 24 dp.
+  These are in the same style, with thinner strokes than the sky (0.8 against 1.5 on the 24 dp grid), as they're drawn at 48 dp beside the headline as well as at 24 dp in the tabs. The maintainer chose this design in review of PR 2, in place of a washing line, a house and an airer.
 - Exhaustive `when`s map each `Condition` to its drawable and its spoken name, and each `Verdict` to its drawable, so a new code doesn't compile without them. A verdict picture has no spoken name, as the written verdict beside it is what's read.
 
 PR 2 includes a contact sheet of all twelve in light and dark. That's the maintainer's first look at the style, and the place to change it before the screen is built. So PR 2 is high: it waits for the maintainer's approval, which answers "is this the style?". PR 2 also carries the spoken names' string resources, so its mappings compile on their own.
