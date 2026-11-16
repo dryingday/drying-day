@@ -54,15 +54,12 @@ A spec names each protected change the bolt needs precisely enough to be checked
 | 5 | Main screen | Verdict-first UI, load switch, today/tomorrow/day after, offline cache, error states |
 | 6 | Release | Icon, fastlane metadata and screenshots, release signing, privacy policy, reproducibility check, draft fdroiddata metadata, `v1.0.0` |
 | 7 | Weather at a glance | A picture for each verdict, the selected day's hours (sky, drying window), when rain is due; `v1.1.0` |
+| 8 | Fewer words, more pictures | The load as a toggle at the top, the drying window as a bar with its times, explanations in notes that open; `v1.2.0` |
 
 Bolts 2 and 3 can run in parallel once 1 is merged.
 
 ## Later
 
-- Load switch higher up the screen: after bolt 7 it sits too far down.
-- Fewer words, more pictures, each expandable for the explanation:
-  - light and heavy load as a toggle with a weight icon on each side, and an expandable note on what each means;
-  - a bar above the hours row from hang-out to bring-in, with the two times called out and an expandable explanation under it.
 - The place's name in place of "Approximate location" for a device fix.
 - Pictures of how to hang clothes (what "by the hems" means).
 - A settings page for the equipment owned (airer, dehumidifier), shaping the indoor plan.

@@ -59,7 +59,7 @@ Changes to bolt 5's main screen, in its order:
 
      No temperature and no chance of rain: the maintainer found the chance of rain unclear, and no single figure is the one that decides drying (it's temperature and humidity together, with wind and sun), so the row shows the sky alone. Both were taken out in review of PR 4.
 
-     Columns that overlap `hangOut` to `bringIn` have a bar under them: the drying window. The row scrolls sideways, and today's opens at its first column. A `null` day, polar night or today after sunset shows no row.
+     Columns that overlap `hangOut` to `bringIn` have a bar under them: the drying window. Bolt 8 replaces it with a bar above the row, placed by time, with the times on it. The row scrolls sideways, and today's opens at its first column (in bolt 8, at the bar's start). A `null` day, polar night or today after sunset shows no row.
 3. Everything else is as bolt 5 left it.
 
 The rules from bolt 5's "Design system" still hold: foundation only, at least 48 dp for anything tappable (the row isn't tappable), light and dark, and nothing carried by colour alone. At 200 % font scale the columns grow taller and wider without clipping.

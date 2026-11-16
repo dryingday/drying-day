@@ -114,16 +114,16 @@ From the top:
 2. **The days**: three tabs, **Today**, **Tomorrow** and the weekday of `today` + 2 days ("Thursday"), from `Showing.today`, so a `null` day is labelled too, each with its verdict in short (Will dry, Partly, Don't bother, or a dash for a `null` day). Today is selected on launch, and again when `Showing.today` changes. The selection survives rotation (`configChanges` from bolt 4 already keeps the composition).
 3. **The selected day**, in this order:
    - **The verdict**, large: **Will dry**, **Partly dry, finish indoors**, or **Don't bother, dry indoors**, as `docs/PLAN.md` words them. When today's only reason is `DAY_OVER`, the headline is **Too late to dry outside today** instead, and there's no "Why".
-   - **The times**, for `WILL_DRY` and `PARTLY_DRY`: "Hang out at 10:15. Bring in by 14:30." For `PARTLY_DRY`, then: "About 70 % dry by then." The percentage is `dryness`.
+   - **The times**, for `WILL_DRY` and `PARTLY_DRY`: "Hang out at 10:15. Bring in by 14:30." For `PARTLY_DRY`, then: "About 70 % dry by then." The percentage is `dryness`. Bolt 8 shows the times on the drying window bar instead, and makes the dryness line "About 70 % dry by 14:30."
    - **Why**, for `PARTLY_DRY` and `DONT_BOTHER`: the reasons, one line each, in the engine's order.
    - **Tips**, for `WILL_DRY` and `PARTLY_DRY`: the engine's tips, one line each.
    - **Indoors**, for `PARTLY_DRY` ("When you bring it in") and `DONT_BOTHER`: the indoor plan, one line each.
    - A `null` day: "There isn't enough forecast for this day yet." Nothing else.
-4. **The load switch.**
+4. **The load switch.** Bolt 8 moves it under the place, above the days, as a toggle.
 5. **The forecast's status**: "Updated today 09:40 UTC+1", "Updating…" while a fetch runs, and the error below it if the last fetch failed. A Refresh button, which shows the waiting state and can't be tapped twice.
 6. **The credit**: the full `SourceAttributions` from bolt 3, next to the forecast, as Open-Meteo's terms ask. It stays visible, or one scroll away at large font sizes, in every state that shows the forecast.
 
-Without a usable forecast the screen shows the place, the load switch, the credit, and in place of the days:
+Without a usable forecast the screen shows the place, the load switch (under the place, from bolt 8), the credit, and in place of the days:
 
 | Status | Shows |
 |---|---|
