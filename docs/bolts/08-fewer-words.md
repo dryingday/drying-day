@@ -9,7 +9,7 @@ Two follow-ups from the maintainer's review of bolt 7 (PR 70). The load switch s
 One small component, used twice below: a line of text with a mark after it, "▸" closed and "▾" open, that shows or hides the note's text under it when tapped.
 
 - At least 48 dp tall, the whole line tappable. Underlined like the screen's other actions, so it doesn't rely on colour.
-- Closed on launch. Open or closed survives rotation (bolt 4's `configChanges` keeps the composition) and switching days. It isn't stored: no new settings key.
+- Closed on launch. Open or closed survives rotation (bolt 4's `configChanges` keeps the composition) and switching days. So each note's state is held above the selected day, not inside it: the window note leaves the composition on a day without a bar, and comes back as it was. It isn't stored: no new settings key.
 - **Accessibility.** One node with `Role.Button`, its label the line's text, and a state description, "collapsed" or "expanded", from string resources. The mark is decorative, its semantics cleared, as bolt 5's load switch does with "●".
 
 ### The load toggle
@@ -27,7 +27,7 @@ Replaces bolt 5's load switch. The choices, the default (`HEAVY`), the stored ke
 
 The selected half has a border and bold text; the other has neither. So it isn't carried by colour alone. The weights sit on the outer ends, so the toggle reads light to heavy from left to right. At the same font scale as the day tabs stack (1.5), the halves stack too, light first, each keeping its weight at the start.
 
-**Accessibility.** Each half is one node with `Role.RadioButton` and its selected state, labelled "Light load" or "Heavy load" (the existing strings), as the switch is now. The weights are decorative.
+**Accessibility.** The two halves are a `selectableGroup()`, so TalkBack says which of two it's on. Each half is one node with `Role.RadioButton` and its selected state, labelled "Light load" or "Heavy load" (the existing strings), as the switch is now. The weights are decorative.
 
 **The note**, under the toggle: "Light or heavy?". Open, it shows bolt 5's two hints, each led by its load, and why heavy is the default:
 
@@ -43,23 +43,23 @@ Replaces bolt 7's bar under the hour columns, and the written times.
 
 **Where.** Above the hours row, in the same sideways scroll, so it moves with the columns. Shown when the selected day has `hangOut` and `bringIn` (a `WILL_DRY` or `PARTLY_DRY` day) and an hours row. A day with a window always has a row, as the window lies in daylight; a test checks that over the reference set and the engine's tests' forecasts, and if it ever doesn't, the written times are shown as now, so the times are never lost.
 
-**The columns** become one width, the widest column's (still at least 48 dp), so a time maps to a place on the row without measuring each column.
+**The columns** become one width, the widest column's (still at least 48 dp), so a time maps to a place on the row by its column index and fraction alone. That width depends on the font scale, so the row measures its columns once (a custom `Layout`, or a measured width passed down), and the opening scroll runs after that layout.
 
-**Its span.** From `hangOut` to `bringIn`, placed by time, not by whole hours: a time falls in the column whose hour holds it, at the fraction of the hour it's at. A bring-in exactly at an hour's end is that column's right edge. A time before the first column's start is clamped to it (today, with `now` past the hang-out), and a time after the last column's end to that. On the day the clocks change, columns are placed by their instants, so the repeated or skipped hour needs nothing special.
+**Its span.** From the hang-out to the bring-in as bolt 5 shows them, through `DayAdvice.window()` (the hang-out rounded up to the minute and the bring-in down, both the hang-out's minute when they'd meet), so the bar's ends and its times always agree. Placed by time, not by whole hours: a time falls in the column whose hour holds it, at the fraction of the hour it's at. A bring-in exactly at an hour's end is that column's right edge. A time before the first column's start is clamped to it, and a time after the last column's end to that. Neither happens with the engine's own advice (it never starts a window before `now`, and the first column today is the hour holding `now`), so the clamp is defensive and tested with synthetic input. Today after the hang-out time, the bar starts partway along the first column, at `now`. On the day the clocks change, columns are placed by their instants, so the repeated or skipped hour needs nothing special.
 
 The placement is pure logic, as bolt 7's `dayHours` is: a function from the columns and the window to a start and an end, each a column index and a fraction from 0 to 1. The screen draws the result.
 
-**The bar.** 6 dp tall, in the text colour, as now.
+**The bar.** 6 dp tall, in the text colour, as now. At least 6 dp wide, so a short window or one whose times meet still shows: a bar narrower than that is widened about its centre, then kept inside the row. The first column today is the whole hour holding `now`, so the bar can start partway along it; the part before `now` is left as it is.
 
-**The times.** Above the bar, in `formatTime` in the forecast's zone (rounded down to the minute, as bolt 5's times are): the hang-out time over the bar's start, its start edge lined up with it, and the bring-in time over the bar's end, its end edge lined up with it. When the two don't fit side by side over the bar with a gap between them, they're shown as one label, "10:15–11:00", centred over the bar and kept inside the row. The label never clips at 200 % font scale.
+**The times.** Above the bar, the two times from `window()`, in `formatTime` in the forecast's zone: the hang-out time over the bar's start, its start edge lined up with it, and the bring-in time over the bar's end, its end edge lined up with it. When the two don't fit side by side over the bar with a gap between them, they're shown as one label, "10:15–11:00", centred over the bar and kept inside the row. When `window()` gives the two the same minute, the label is that one time. The label never clips at 200 % font scale.
 
 **Where the row opens.** Each day's row opens with the bar's start in view: scrolled to one column before the bar's first column, or the first column if the bar starts there. A day without a bar opens at its first column, as now. This is also pure logic (the column to open at), with the screen scrolling to it.
 
 **Accessibility.** The bar and its times are one node, before the columns, that reads the existing sentence: "Hang out at 10:15. Bring in by 14:30." The times inside it are decorative. Each column keeps its spoken text from bolt 7, "in the drying window" included, judged by the same overlap as now.
 
-**The written times go.** "Hang out at 10:15. Bring in by 14:30." no longer shows as a line (it stays as the bar's spoken text). On a `PARTLY_DRY` day, "About 70 % dry by then." loses the "then" it pointed at, so it becomes "About 70 % dry by 14:30.", with the bring-in time.
+**The written times go.** "Hang out at 10:15. Bring in by 14:30." no longer shows as a line (it stays as the bar's spoken text). On a `PARTLY_DRY` day, "About 70 % dry by then." loses the "then" it pointed at, so it becomes "About 70 % dry by 14:30.", with `window()`'s bring-in.
 
-**The note**, under the row: "What's the drying window?". Open: "Hang the washing out at the start of the bar and bring it in by the end. That's when it should be dry, or when damp air, rain or sunset would start to undo the work." "Times are in the place's own time zone.", when bolt 5 shows it, goes straight under the row, above the note, so it's always visible.
+**The note**, under the row: "What's the drying window?". Open: "Hang the washing out at the start of the bar and bring it in by the end. That's when it should be dry, or when damp air, rain or sunset would start to undo the work." "Times are in the place's own time zone." goes straight under the row, above the note, so it's always visible. It's shown whenever there's a row and the device's offset differs, by bolt 5's test, not only when there's a window: a don't-bother day's hour labels are in the place's zone too.
 
 ### The screen
 
@@ -72,8 +72,8 @@ Changes to the order bolt 5 and bolt 7 left, from the top:
    - the verdict, unchanged;
    - on a `PARTLY_DRY` day, "About 70 % dry by 14:30.";
    - the rain line, unchanged;
-   - the bar and the hours row;
-   - "Times are in the place's own time zone.", when it applies;
+   - the bar and the hours row (or, if a day with a window ever had no row, the written times, as now);
+   - "Times are in the place's own time zone.", when there's a row (or the written times) and the zones differ;
    - the drying window note, when there's a bar;
    - Why, Tips and Indoors, unchanged.
 5. **The forecast's status and Refresh**, unchanged.
@@ -87,7 +87,7 @@ Bolt 5's "Design system" still holds: foundation only, at least 48 dp for anythi
 
 Two weights, light and heavy, in bolt 7's style: line drawings in one colour on a 24 dp grid with 1.5 strokes, tinted with the text colour. The same shape at two sizes: the light weight small in the grid, the heavy one filling it, so the difference is in the size. SVG sources in `art/`, vector drawables in `shared/src/commonMain/composeResources/drawable/`, through `painterResource`, as bolt 7. Licensed with the app. An exhaustive `when` maps each `Load` to its picture.
 
-PR 1 updates the contact sheet (`art/pictures-sheet.png`) with the two, in light and dark, next to the existing twelve. The maintainer sees them there, and again on the screen in PR 3.
+PR 1 updates the contact sheet (`art/pictures-sheet.png`) with the two, in light and dark, next to the existing twelve. PR 1 is medium, so it merges without the maintainer; their first look at the weights is on the screen in PR 3, which can still change them.
 
 ### Text
 
@@ -129,25 +129,27 @@ In `androidApp/build.gradle.kts`, `versionName` 1.2.0 and `versionCode` 4, with 
 - `./gradlew check` passes with no network. The Kotlin compiles for iOS with `-Pdryingday.ios=true`.
 - Bar placement tests:
   - hang-out and bring-in mid-hour, on the hour, and a bring-in exactly at an hour's end;
-  - both in the same column;
-  - today with `now` past the hang-out, clamped to the first column;
+  - both in the same column, and a window narrower than 6 dp widened to 6 dp, at the row's start and end edges;
+  - the bar's ends taken from `window()`, including the two times meeting in one minute;
+  - a hang-out before the first column and a bring-in after the last, with synthetic advice, clamped;
   - both daylight-saving changes, in the forecast's zone at a zone different from the device's;
   - no bar for a `DONT_BOTHER` day, a `null` day, polar night and today after sunset.
 - Where-the-row-opens tests: the bar starting in the first column, in a later column, and no bar.
 - A test that every day with a window has an hours row, over the reference set and the engine tests' forecasts, for both loads.
-- Text tests: the dryness line with the bring-in time, rounded down to the minute and in the forecast's zone; the one-label form.
+- Text tests: the dryness line with `window()`'s bring-in, in the forecast's zone; the one-label form, and the single time when the two meet; the time-zone note on a don't-bother day with a row.
 - A test that every `Load` has a picture, through the exhaustive mapping.
 - The existing load tests (default, round trip, unknown stored value) pass unchanged.
 - No real places in tests, fixtures or screenshots, beyond the reference set's.
 - On the emulator (API 36), with a debug build (no new JSON decoding, so the release APK isn't required). Recorded in PR 3 with screenshots:
   - a will-dry, a partly-dry and a don't-bother day, in light and dark;
-  - both notes open and closed;
+  - both notes open and closed, TalkBack reading "collapsed" and "expanded";
+  - a note left open across rotation and across switching days (the window note opened on a will-dry day is still open after going to a don't-bother day, which has no note, and back);
   - the toggle switched, both ways;
   - a short window shown as one label, and a long one with the row opened partway along;
-  - today after the hang-out time;
-  - the loading or failed state with the toggle at the top;
+  - today after the hang-out time, the bar starting partway along the first column;
+  - the loading, failed and out-of-date states with the toggle at the top (out of date by the clock moved forward, as in bolt 5);
   - 200 % font scale with no clipping, the toggle stacked;
-  - TalkBack reading the toggle, a note with its state, and the bar.
+  - TalkBack reading the toggle ("1 of 2"), a note with its state, and the bar.
 
   As in bolt 7, live data gives whatever the day brings, so the PR says which verdict was live and shows the others with fixtures through an uncommitted fake source.
 - PR 4: `versionCode` 4 and `versionName` 1.2.0, `changelogs/4.txt` within F-Droid's length (the existing `scripts/` test). `v1.2.0` is on GitHub Releases with the signed APK and its SHA-256.
