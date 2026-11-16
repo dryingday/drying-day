@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The sky, as TalkBack reads it in an hour's column. Lower case: they sit mid-sentence. -->
+    <string name="sky_clear">clear</string>
+    <string name="sky_partly_cloudy">partly cloudy</string>
+    <string name="sky_cloudy">cloudy</string>
+    <string name="sky_fog">fog</string>
+    <string name="sky_drizzle">drizzle</string>
+    <string name="sky_rain">rain</string>
+    <string name="sky_showers">showers</string>
+    <string name="sky_snow">snow</string>
+    <string name="sky_thunder">thunder</string>
+</resources>

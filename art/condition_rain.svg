@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Source of shared/src/commonMain/composeResources/drawable/condition_rain.xml. One colour, tinted
+       with the text colour at run time. See docs/bolts/07-weather-at-a-glance.md. -->
+  <path d="M6.51,13.5 L17.03,13.5 A3.31,3.31 0 0 0 17.03,6.87 A4.91,4.91 0 0 0 8.57,8.24 A2.74,2.74 0 0 0 6.51,13.5 Z" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.5,16.5 L7,21" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12.5,16.5 L11,21" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16.5,16.5 L15,21" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
