@@ -20,6 +20,7 @@ import io.github.dryingday.weather.openmeteo.sharedOpenMeteoSource
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.datetime.TimeZone
 import java.util.Date
+import java.util.Locale
 import kotlin.time.Clock
 
 class MainActivity : ComponentActivity() {
@@ -56,6 +57,7 @@ class MainActivity : ComponentActivity() {
                 settings = settings,
                 clock = Clock.System,
                 formatTime = ::formatTime,
+                formatHour = ::formatHour,
                 visible = appVisible,
             ) { enabled, onBack -> BackHandler(enabled, onBack) }
         }
@@ -64,6 +66,15 @@ class MainActivity : ComponentActivity() {
     // In the device's 12- or 24-hour setting, in the forecast's zone and not the device's.
     private fun formatTime(instant: kotlin.time.Instant, zone: TimeZone): String {
         val format = android.text.format.DateFormat.getTimeFormat(this)
+        format.timeZone = java.util.TimeZone.getTimeZone(zone.id)
+        return format.format(Date(instant.toEpochMilliseconds()))
+    }
+
+    // Just the hour, in the device's 12- or 24-hour setting ("8 AM" or "08"), in the forecast's zone.
+    private fun formatHour(instant: kotlin.time.Instant, zone: TimeZone): String {
+        val skeleton = if (android.text.format.DateFormat.is24HourFormat(this)) "HH" else "ha"
+        val pattern = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault(), skeleton)
+        val format = java.text.SimpleDateFormat(pattern, Locale.getDefault())
         format.timeZone = java.util.TimeZone.getTimeZone(zone.id)
         return format.format(Date(instant.toEpochMilliseconds()))
     }

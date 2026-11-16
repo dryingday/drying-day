@@ -17,6 +17,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.dryingday.engine.DayAdvice
+import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.Load
 import io.github.dryingday.engine.Reason
 import io.github.dryingday.engine.Verdict
@@ -56,7 +58,10 @@ import io.github.dryingday.shared.resources.load_light
 import io.github.dryingday.shared.resources.load_light_hint
 import io.github.dryingday.weather.Attribution
 import io.github.dryingday.weather.SourceAttributions
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
@@ -65,6 +70,7 @@ private val DARK_BACKGROUND = Color(0xFF121212)
 private const val DAYS = 3
 private const val BODY_SP = 16
 private const val HEADLINE_SP = 28
+private val LARGE_PICTURE = 48.dp
 
 /** Which of the three days is selected, and how to change it. */
 class DayPicker(val selected: Int, val onSelect: (Int) -> Unit)
@@ -82,6 +88,7 @@ fun MainScreen(
     days: DayPicker,
     attributions: List<Attribution>,
     formatTime: TimeFormat,
+    formatHour: TimeFormat,
     onPlaces: () -> Unit,
 ) {
     val dark = isSystemInDarkTheme()
@@ -99,7 +106,7 @@ fun MainScreen(
                 BasicText(placeLabel(place), style = body.copy(textDecoration = TextDecoration.Underline))
             }
             when (val status = state.status) {
-                is ForecastStatus.Showing -> Showing(status, state, days, formatTime, body)
+                is ForecastStatus.Showing -> Showing(status, state, days, formatTime, formatHour, body)
 
                 is ForecastStatus.Loading -> Message(Res.string.forecast_loading, body)
 
@@ -135,11 +142,13 @@ private fun OutOfDate(status: ForecastStatus.OutOfDate, state: ForecastState, bo
 }
 
 @Composable
+@Suppress("LongParameterList") // Each is passed in by name from MainScreen.
 private fun Showing(
     status: ForecastStatus.Showing,
     state: ForecastState,
     picker: DayPicker,
     formatTime: TimeFormat,
+    formatHour: TimeFormat,
     body: TextStyle,
 ) {
     DayTabs(status, picker.selected, body, picker.onSelect)
@@ -147,7 +156,8 @@ private fun Showing(
     if (day == null) {
         Message(Res.string.forecast_day_missing, body)
     } else {
-        Day(day, status.timeZone, state.now, formatTime, body)
+        val date = status.today.plus(picker.selected, DateTimeUnit.DAY)
+        Day(day, DayContext(status.forecast, date, state.now), formatTime, formatHour, body)
     }
     LoadSwitch(state, body)
     val label = updatedLabel(status.fetchedAt, state.now, status.timeZone, formatTime)
@@ -168,6 +178,7 @@ private fun DayTabs(status: ForecastStatus.Showing, selected: Int, body: TextSty
     val stacked = LocalDensity.current.fontScale >= STACK_TABS_FROM_FONT_SCALE
     val tab = @Composable { index: Int, modifier: Modifier ->
         val isSelected = index == selected
+        val text = body.color
         val weight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         Column(
             modifier.heightIn(min = 48.dp)
@@ -179,10 +190,14 @@ private fun DayTabs(status: ForecastStatus.Showing, selected: Int, body: TextSty
                 stringResource(dayLabel(status.today, index)),
                 style = body.copy(fontWeight = weight, textDecoration = tabUnderline(isSelected)),
             )
-            BasicText(
-                stringResource(status.days.getOrNull(index).shortVerdict()),
-                style = body.copy(fontSize = 13.sp, fontWeight = weight),
-            )
+            val advice = status.days.getOrNull(index)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                advice?.let { Picture(it.verdict.picture(), SMALL_PICTURE, text) }
+                BasicText(
+                    stringResource(advice.shortVerdict()),
+                    style = body.copy(fontSize = 13.sp, fontWeight = weight),
+                )
+            }
         }
     }
     if (stacked) {
@@ -197,14 +212,25 @@ private fun DayTabs(status: ForecastStatus.Showing, selected: Int, body: TextSty
 // The selected tab is bold and underlined: not colour alone.
 private fun tabUnderline(selected: Boolean) = if (selected) TextDecoration.Underline else TextDecoration.None
 
+/** What the selected day is worked out from: the forecast, the day's date and the time it is now. */
+private class DayContext(val forecast: Forecast, val date: LocalDate, val now: Instant) {
+    val zone: TimeZone get() = forecast.timeZone
+}
+
 @Composable
-private fun Day(day: DayAdvice, zone: TimeZone, now: Instant, formatTime: TimeFormat, body: TextStyle) {
+private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, formatHour: TimeFormat, body: TextStyle) {
+    val text = body.color
+    val zone = context.zone
+    val now = context.now
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        BasicText(
-            stringResource(day.headline()),
-            Modifier.semantics { heading() },
-            style = body.copy(fontSize = HEADLINE_SP.sp, fontWeight = FontWeight.Bold),
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Picture(day.verdict.picture(), LARGE_PICTURE, text)
+            BasicText(
+                stringResource(day.headline()),
+                Modifier.weight(1f).semantics { heading() },
+                style = body.copy(fontSize = HEADLINE_SP.sp, fontWeight = FontWeight.Bold),
+            )
+        }
         day.window()?.let { window ->
             BasicText(
                 stringResource(
@@ -221,6 +247,12 @@ private fun Day(day: DayAdvice, zone: TimeZone, now: Instant, formatTime: TimeFo
                 BasicText(stringResource(Res.string.forecast_dryness, day.drynessText()), style = body)
             }
         }
+        rainLine(context.forecast, context.date, day, now, formatTime)?.let {
+            BasicText(it.resolve(), style = body)
+        }
+        val columns = dayHours(context.forecast, context.date, day, now, formatHour)
+        // Keyed on the day, so each day's row opens at its first column rather than where the last one was left.
+        if (columns.isNotEmpty()) key(context.date) { HoursRow(columns, body) }
         val dayOverOnly = day.reasons == listOf(Reason.DAY_OVER)
         if (day.verdict != Verdict.WILL_DRY && !dayOverOnly) {
             Section(Res.string.forecast_held_back, day.reasons.map { it.text() }, body)

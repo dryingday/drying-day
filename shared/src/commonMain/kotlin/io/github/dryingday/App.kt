@@ -37,7 +37,8 @@ private enum class Screen { Main, Places, Search }
  * reached from it. [deviceLocation] is null where the device can't be asked. [backHandler] runs onBack for the
  * system back gesture while enabled, and does nothing where the platform has none. [forecastSettings] holds the
  * forecast cache and [settings] the load; [visible] is whether the app is on screen at all (on Android, at least
- * STARTED). [formatTime] writes a time in the device's 12- or 24-hour format. See docs/bolts/05-main-screen.md.
+ * STARTED). [formatTime] writes a time in the device's 12- or 24-hour format, and
+ * [formatHour] writes just the hour for the hours row ("8 AM" or "08"). See docs/bolts/05-main-screen.md.
  */
 @Composable
 @Suppress("LongParameterList") // The platform wrappers pass each in by name.
@@ -50,6 +51,7 @@ fun App(
     settings: Settings,
     clock: Clock,
     formatTime: TimeFormat,
+    formatHour: TimeFormat,
     visible: Boolean,
     backHandler: @Composable (enabled: Boolean, onBack: () -> Unit) -> Unit = { _, _ -> },
 ) {
@@ -110,6 +112,7 @@ fun App(
             days = DayPicker(selectedDay) { selectedDay = it },
             attributions = forecastSource.attributions,
             formatTime = formatTime,
+            formatHour = formatHour,
             onPlaces = { screen = Screen.Places },
         )
     }

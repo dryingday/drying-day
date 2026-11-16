@@ -3,6 +3,7 @@ package io.github.dryingday
 import androidx.compose.ui.window.ComposeUIViewController
 import com.russhwolf.settings.NSUserDefaultsSettings
 import io.github.dryingday.forecast.twentyFourHourFormat
+import io.github.dryingday.forecast.twentyFourHourHourFormat
 import io.github.dryingday.places.PlaceStore
 import io.github.dryingday.weather.openmeteo.sharedOpenMeteoSource
 import platform.Foundation.NSUserDefaults
@@ -28,6 +29,7 @@ fun mainViewController(): UIViewController {
             settings = defaults,
             clock = Clock.System,
             formatTime = twentyFourHourFormat,
+            formatHour = twentyFourHourHourFormat,
             visible = true,
         )
     }

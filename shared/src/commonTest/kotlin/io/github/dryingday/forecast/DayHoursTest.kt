@@ -3,7 +3,6 @@ package io.github.dryingday.forecast
 import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.DayAdvice
 import io.github.dryingday.engine.Forecast
-import io.github.dryingday.engine.HourlyWeather
 import io.github.dryingday.engine.Load
 import io.github.dryingday.engine.Polar
 import io.github.dryingday.engine.Reason
@@ -20,9 +19,7 @@ import io.github.dryingday.engine.rain
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.forecast_no_rain
 import io.github.dryingday.shared.resources.forecast_rain_from
-import io.github.dryingday.shared.resources.hour_degrees
 import io.github.dryingday.shared.resources.hour_in_drying_window
-import io.github.dryingday.shared.resources.hour_rain_chance
 import io.github.dryingday.shared.resources.sky_partly_cloudy
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -45,16 +42,14 @@ private fun Forecast.columns(
     date: LocalDate = day0,
     now: Instant = morning,
     advice: DayAdvice? = adviceFor(date, now),
-) = dayHours(this, date, advice, now, twentyFourHourFormat)
+) = dayHours(this, date, advice, now, twentyFourHourHourFormat)
 
 private fun Forecast.locals(date: LocalDate = day0, now: Instant = morning) = columns(date, now).map { it.time }
 
 private fun windowAdvice(hangOut: Instant, bringIn: Instant) =
     DayAdvice(day0, Verdict.WILL_DRY, hangOut, bringIn, 100, emptyList(), emptyList(), emptyList())
 
-private fun Forecast.mapHours(change: (HourlyWeather) -> HourlyWeather) = Forecast(timeZone, hours.map(change), days)
-
-private fun hoursOf(first: Int, last: Int) = (first..last).map { it.toString().padStart(2, '0') + ":00" }
+private fun hoursOf(first: Int, last: Int) = (first..last).map { it.toString().padStart(2, '0') }
 
 private fun Message.text() = resource.key + args
 
@@ -196,43 +191,6 @@ class DayHoursTest {
     }
 
     @Test
-    fun theRainChanceShowsFromTenPercent() {
-        val chances = listOf(null, 0.0, 9.9, 10.0, 40.0, 100.0)
-        val forecast = forecast().mapHours {
-            it.copy(
-                precipitationProbabilityPercent = chances[it.start.toLocalDateTime(london).hour % chances.size],
-            )
-        }
-        val shown = forecast.columns(advice = windowAdvice(at(day0, 9 to 0), at(day0, 12 to 0)))
-            .associate { it.time to it.rainChance }
-
-        assertNull(shown["06:00"]) // null
-        assertNull(shown["07:00"]) // 0
-        assertNull(shown["08:00"]) // 9.9
-        assertEquals("10 %", shown["09:00"])
-        assertEquals("40 %", shown["10:00"])
-        assertEquals("100 %", shown["11:00"])
-    }
-
-    @Test
-    fun theTemperatureRoundsHalfUp() {
-        val temperatures = mapOf(
-            10.5 to "11°",
-            10.49 to "10°",
-            11.0 to "11°",
-            -0.5 to "0°",
-            -0.51 to "-1°",
-            -1.5 to "-1°",
-            0.4 to "0°",
-        )
-        for ((degrees, text) in temperatures) {
-            val forecast = forecast().mapHours { it.copy(temperatureC = degrees) }
-
-            assertEquals(text, forecast.columns().first().temperature, "$degrees")
-        }
-    }
-
-    @Test
     fun theConditionAndTimeComeFromTheHour() {
         val forecast = forecast(auckland).let { f ->
             Forecast(
@@ -245,17 +203,16 @@ class DayHoursTest {
         }
         val columns = forecast.columns(now = at(day0, 5 to 0, auckland))
 
-        assertEquals("06:00", columns.first().time)
+        assertEquals("06", columns.first().time)
         assertEquals(listOf(null, Condition.FOG), columns.take(2).map { it.condition })
     }
 
     @Test
     fun theSpokenTextHasEveryPartTheColumnShows() {
-        val column = HourColumn(at(day0, 10 to 0), "10:00", Condition.PARTLY_CLOUDY, "11°", "40 %", true)
+        val column = HourColumn(at(day0, 10 to 0), "10", Condition.PARTLY_CLOUDY, true)
 
         assertEquals(
-            "10:00, ${Res.string.sky_partly_cloudy.key}[], ${Res.string.hour_degrees.key}[11], " +
-                "${Res.string.hour_rain_chance.key}[40 %], ${Res.string.hour_in_drying_window.key}[]",
+            "10, ${Res.string.sky_partly_cloudy.key}[], ${Res.string.hour_in_drying_window.key}[]",
             column.spokenText { it.text() },
         )
     }
@@ -263,31 +220,45 @@ class DayHoursTest {
     @Test
     fun theSpokenTextLeavesOutEachPartTheColumnDoesNotShow() {
         val start = at(day0, 10 to 0)
-        val degrees = "${Res.string.hour_degrees.key}[-3]"
 
-        assertEquals("10:00, $degrees", HourColumn(start, "10:00", null, "-3°", null, false).spokenText { it.text() })
+        assertEquals("10", HourColumn(start, "10", null, false).spokenText { it.text() })
         assertEquals(
-            "10:00, ${Res.string.sky_partly_cloudy.key}[], $degrees",
-            HourColumn(start, "10:00", Condition.PARTLY_CLOUDY, "-3°", null, false).spokenText { it.text() },
+            "10, ${Res.string.sky_partly_cloudy.key}[]",
+            HourColumn(start, "10", Condition.PARTLY_CLOUDY, false).spokenText { it.text() },
         )
         assertEquals(
-            "10:00, $degrees, ${Res.string.hour_rain_chance.key}[40 %]",
-            HourColumn(start, "10:00", null, "-3°", "40 %", false).spokenText { it.text() },
-        )
-        assertEquals(
-            "10:00, $degrees, ${Res.string.hour_in_drying_window.key}[]",
-            HourColumn(start, "10:00", null, "-3°", null, true).spokenText { it.text() },
+            "10, ${Res.string.hour_in_drying_window.key}[]",
+            HourColumn(start, "10", null, true).spokenText { it.text() },
         )
     }
 
     @Test
+    fun aColumnsLabelComesFromTheHourFormat() {
+        val forecast = forecast(auckland)
+        val now = at(day0, 5 to 0, auckland)
+        val first = dayHours(forecast, day0, forecast.adviceFor(day0, now), now, twentyFourHourHourFormat).first()
+
+        assertEquals("06", first.time)
+        assertEquals("06", twentyFourHourHourFormat(first.start, auckland))
+        assertEquals("18", twentyFourHourHourFormat(first.start, TimeZone.UTC))
+    }
+
+    @Test
+    fun theHourFormatShowsTheHourOnly() {
+        assertEquals("08", twentyFourHourHourFormat(at(day0, 8 to 45), london))
+        assertEquals("00", twentyFourHourHourFormat(at(day0, 0 to 0), london))
+        assertEquals("23", twentyFourHourHourFormat(at(day0, 23 to 59), london))
+        assertEquals("09", twentyFourHourHourFormat(Instant.parse("2025-06-14T08:05:00Z"), london))
+    }
+
+    @Test
     fun theSpokenTimeIsTheLabel() {
-        val twelveHour: TimeFormat = { _, _ -> "10 am" }
+        val twelveHour: TimeFormat = { _, _ -> "10 AM" }
         val forecast = forecast()
         val column = dayHours(forecast, day0, forecast.adviceFor(day0), morning, twelveHour).first()
 
-        assertEquals("10 am", column.time)
-        assertEquals("10 am", column.spokenText { it.text() }.substringBefore(","))
+        assertEquals("10 AM", column.time)
+        assertEquals("10 AM", column.spokenText { it.text() }.substringBefore(","))
     }
 }
 

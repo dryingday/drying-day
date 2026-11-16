@@ -11,12 +11,9 @@ import io.github.dryingday.engine.firstWet
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.forecast_no_rain
 import io.github.dryingday.shared.resources.forecast_rain_from
-import io.github.dryingday.shared.resources.hour_degrees
 import io.github.dryingday.shared.resources.hour_in_drying_window
-import io.github.dryingday.shared.resources.hour_rain_chance
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.StringResource
-import kotlin.math.floor
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
@@ -27,21 +24,11 @@ import kotlin.time.Instant
 internal class Message(val resource: StringResource, val args: List<String> = emptyList())
 
 /**
- * One column of the hours row. [time] is the hour's start in the forecast's zone, through the device's time
- * format. [temperature] reads "11°". [rainChance] reads "40 %", and is null when the chance is under 10 % or
- * unknown. [inDryingWindow] puts the bar under the column.
+ * One column of the hours row. [time] is the hour's start in the forecast's zone, through the device's hour
+ * format ("8 AM" or "08"). [inDryingWindow] puts the bar under the column.
  */
-internal class HourColumn(
-    val start: Instant,
-    val time: String,
-    val condition: Condition?,
-    val temperature: String,
-    val rainChance: String?,
-    val inDryingWindow: Boolean,
-)
+internal class HourColumn(val start: Instant, val time: String, val condition: Condition?, val inDryingWindow: Boolean)
 
-private const val SHOWN_FROM_CHANCE_PERCENT = 10.0
-private const val HALF = 0.5
 private const val SPOKEN_SEPARATOR = ", "
 
 /**
@@ -54,7 +41,7 @@ internal fun dayHours(
     date: LocalDate,
     advice: DayAdvice?,
     now: Instant,
-    formatTime: TimeFormat,
+    formatHour: TimeFormat,
 ): List<HourColumn> {
     val daylight = advice?.let { forecast.daylightOf(date) }?.takeIf { it.end > it.start && it.end > now }
     if (advice == null || daylight == null) return emptyList()
@@ -63,12 +50,8 @@ internal fun dayHours(
         .map {
             HourColumn(
                 start = it.start,
-                time = formatTime(it.start, forecast.timeZone),
+                time = formatHour(it.start, forecast.timeZone),
                 condition = it.condition,
-                temperature = "${roundHalfUp(it.temperatureC)}°",
-                rainChance = it.precipitationProbabilityPercent
-                    ?.takeIf { chance -> chance >= SHOWN_FROM_CHANCE_PERCENT }
-                    ?.let { chance -> "${roundHalfUp(chance)} %" },
                 inDryingWindow = advice.inWindow(it.start),
             )
         }
@@ -81,8 +64,6 @@ private fun DayAdvice.inWindow(start: Instant): Boolean {
     val to = bringIn
     return from != null && to != null && start < to && start + 1.hours > from
 }
-
-private fun roundHalfUp(value: Double): Int = floor(value + HALF).toInt()
 
 /**
  * The rain line: when rain is due, or that none is expected while it's light. Null where the line is left out:
@@ -113,8 +94,6 @@ internal fun rainLine(
  */
 internal fun HourColumn.spokenParts(): List<Message> = buildList {
     condition?.let { add(Message(it.spokenName())) }
-    add(Message(Res.string.hour_degrees, listOf(temperature.removeSuffix("°"))))
-    rainChance?.let { add(Message(Res.string.hour_rain_chance, listOf(it))) }
     if (inDryingWindow) add(Message(Res.string.hour_in_drying_window))
 }
 
