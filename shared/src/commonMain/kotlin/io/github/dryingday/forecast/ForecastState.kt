@@ -211,6 +211,7 @@ class ForecastState(
                     timeZone = forecast.timeZone,
                     today = now.toLocalDateTime(forecast.timeZone).date,
                     days = advise(forecast, load, now),
+                    forecast = forecast,
                     refreshing = refreshing,
                     lastError = lastError,
                 )

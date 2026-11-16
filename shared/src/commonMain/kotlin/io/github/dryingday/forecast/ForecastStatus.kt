@@ -1,6 +1,7 @@
 package io.github.dryingday.forecast
 
 import io.github.dryingday.engine.DayAdvice
+import io.github.dryingday.engine.Forecast
 import io.github.dryingday.weather.SourceError
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -17,13 +18,14 @@ sealed interface ForecastStatus {
     /**
      * A cached forecast under 24 hours old, or of unknown age. [today] is `now`'s date in [timeZone], and [days]
      * are for it and the two dates after, so a null day still has a date to label. [refreshing] while a fetch
-     * runs; [lastError] if the last one failed.
+     * runs; [lastError] if the last one failed. [forecast] is what [days] were worked from, for the hours row.
      */
     data class Showing(
         val fetchedAt: Instant,
         val timeZone: TimeZone,
         val today: LocalDate,
         val days: List<DayAdvice?>,
+        val forecast: Forecast,
         val refreshing: Boolean,
         val lastError: SourceError?,
     ) : ForecastStatus
