@@ -47,7 +47,9 @@ Replaces bolt 7's bar under the hour columns, and the written times.
 
 **Its span.** From the hang-out to the bring-in as bolt 5 shows them, through `DayAdvice.window()` (the hang-out rounded up to the minute and the bring-in down, both the hang-out's minute when they'd meet), so the bar's ends and its times always agree. Placed by time, not by whole hours: a time falls in the column whose hour holds it, at the fraction of the hour it's at. A bring-in exactly at an hour's end is that column's right edge. A time before the first column's start is clamped to it, and a time after the last column's end to that. Neither happens with the engine's own advice (it never starts a window before `now`, and the first column today is the hour holding `now`), so the clamp is defensive and tested with synthetic input. Today after the hang-out time, the bar starts partway along the first column, at `now`. On the day the clocks change, columns are placed by their instants, so the repeated or skipped hour needs nothing special.
 
-The placement is pure logic, as bolt 7's `dayHours` is: a function from the columns and the window to a start and an end, each a column index and a fraction from 0 to 1. The screen draws the result.
+The columns are consecutive hours wherever there's a window: the engine gives no advice for a day with a gap in its usable time (its completeness check), so no gap falls inside a window.
+
+The placement is pure logic, as bolt 7's `dayHours` is: a function from the columns, the window, the column width and the row's width (both in dp) to the bar's start and end in dp along the row, the 6 dp minimum below applied. The screen measures the widths and draws the result.
 
 **The bar.** 6 dp tall, in the text colour, as now. At least 6 dp wide, so a short window or one whose times meet still shows: a bar narrower than that is widened about its centre, then kept inside the row. The first column today is the whole hour holding `now`, so the bar can start partway along it; the part before `now` is left as it is.
 
@@ -129,7 +131,7 @@ In `androidApp/build.gradle.kts`, `versionName` 1.2.0 and `versionCode` 4, with 
 - `./gradlew check` passes with no network. The Kotlin compiles for iOS with `-Pdryingday.ios=true`.
 - Bar placement tests:
   - hang-out and bring-in mid-hour, on the hour, and a bring-in exactly at an hour's end;
-  - both in the same column, and a window narrower than 6 dp widened to 6 dp, at the row's start and end edges;
+  - both in the same column, and a window narrower than 6 dp widened to 6 dp, in the middle of the row and at its start and end edges;
   - the bar's ends taken from `window()`, including the two times meeting in one minute;
   - a hang-out before the first column and a bring-in after the last, with synthetic advice, clamped;
   - both daylight-saving changes, in the forecast's zone at a zone different from the device's;
@@ -145,7 +147,7 @@ In `androidApp/build.gradle.kts`, `versionName` 1.2.0 and `versionCode` 4, with 
   - both notes open and closed, TalkBack reading "collapsed" and "expanded";
   - a note left open across rotation and across switching days (the window note opened on a will-dry day is still open after going to a don't-bother day, which has no note, and back);
   - the toggle switched, both ways;
-  - a short window shown as one label, and a long one with the row opened partway along;
+  - a short window shown as one label (when the label form is chosen depends on measured text, so it's checked here, not in a unit test), and a long one with the row opened partway along;
   - today after the hang-out time, the bar starting partway along the first column;
   - the loading, failed and out-of-date states with the toggle at the top (out of date by the clock moved forward, as in bolt 5);
   - 200 % font scale with no clipping, the toggle stacked;
