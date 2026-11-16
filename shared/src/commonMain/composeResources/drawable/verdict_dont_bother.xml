@@ -5,39 +5,27 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M2,11 L12,2.8 L22,11"
+        android:pathData="M7.8,2.5 L10.2,2.5 Q12,4.3 13.8,2.5 L16.2,2.5 L19.8,5.5 L17.7,7.6 L16.2,6.7 L16.2,14.5 L7.8,14.5 L7.8,6.7 L6.3,7.6 L4.2,5.5 Z"
         android:strokeColor="#FF000000"
-        android:strokeWidth="1.1"
+        android:strokeWidth="0.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M4.5,9 L4.5,21.5 L19.5,21.5 L19.5,9"
+        android:pathData="M7.6,16.6 L8.9,19.1 A1.53,1.53 0 1 1 6.3,19.1 Z"
         android:strokeColor="#FF000000"
-        android:strokeWidth="1.1"
+        android:strokeWidth="0.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M6.5,11.2 L17.5,11.2"
+        android:pathData="M12,16.6 L13.3,19.1 A1.53,1.53 0 1 1 10.7,19.1 Z"
         android:strokeColor="#FF000000"
-        android:strokeWidth="1.1"
+        android:strokeWidth="0.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M9.69,11.8 L11.01,11.8 Q12,12.79 12.99,11.8 L14.31,11.8 L16.29,13.45 L15.13,14.61 L14.31,14.11 L14.31,18.4 L9.69,18.4 L9.69,14.11 L8.87,14.61 L7.71,13.45 Z"
+        android:pathData="M16.4,16.6 L17.7,19.1 A1.53,1.53 0 1 1 15.1,19.1 Z"
         android:strokeColor="#FF000000"
-        android:strokeWidth="1.1"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M10.35,10.2 L10.35,12.4"
-        android:strokeColor="#FF000000"
-        android:strokeWidth="1.1"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M13.65,10.2 L13.65,12.4"
-        android:strokeColor="#FF000000"
-        android:strokeWidth="1.1"
+        android:strokeWidth="0.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 </vector>
