@@ -18,6 +18,11 @@
     <string name="forecast_indoors_partly">When you bring it in</string>
     <string name="forecast_indoors">Indoors</string>
     <string name="forecast_day_missing">There isn't enough forecast for this day yet.</string>
+    <string name="forecast_rain_from">Rain likely from %1$s.</string>
+    <string name="forecast_no_rain">No rain expected while it's light.</string>
+    <string name="hour_degrees">%1$s degrees</string>
+    <string name="hour_rain_chance">%1$s chance of rain</string>
+    <string name="hour_in_drying_window">in the drying window</string>
     <string name="forecast_updated">Updated %1$s %2$s</string>
     <string name="forecast_updated_today">Updated today %1$s %2$s</string>
     <string name="forecast_updated_yesterday">Updated yesterday %1$s %2$s</string>

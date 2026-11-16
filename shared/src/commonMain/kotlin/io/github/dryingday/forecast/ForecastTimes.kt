@@ -45,7 +45,7 @@ internal fun DayAdvice.window(): Window? {
     return Window(if (meet) start.roundedDown() else up, if (meet) start.roundedDown() else down)
 }
 
-private fun Instant.roundedDown() = Instant.fromEpochSeconds(epochSeconds - epochSeconds.mod(SECONDS_PER_MINUTE))
+internal fun Instant.roundedDown() = Instant.fromEpochSeconds(epochSeconds - epochSeconds.mod(SECONDS_PER_MINUTE))
 
 private fun Instant.roundedUp(): Instant {
     val down = roundedDown()
