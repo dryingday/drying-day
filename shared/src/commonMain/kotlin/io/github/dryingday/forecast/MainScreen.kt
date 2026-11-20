@@ -40,7 +40,6 @@ import io.github.dryingday.places.SavedPlace
 import io.github.dryingday.places.placeLabel
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.forecast_day_missing
-import io.github.dryingday.shared.resources.forecast_dryness
 import io.github.dryingday.shared.resources.forecast_held_back
 import io.github.dryingday.shared.resources.forecast_indoors
 import io.github.dryingday.shared.resources.forecast_indoors_partly
@@ -243,9 +242,7 @@ private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, for
             if (timesAreLocalToPlace(zone, TimeZone.currentSystemDefault(), now)) {
                 Message(Res.string.forecast_times_local, body)
             }
-            if (day.verdict == Verdict.PARTLY_DRY) {
-                BasicText(stringResource(Res.string.forecast_dryness, day.drynessText()), style = body)
-            }
+            day.drynessLine(zone, formatTime)?.let { BasicText(it.resolve(), style = body) }
         }
         rainLine(context.forecast, context.date, day, now, formatTime)?.let {
             BasicText(it.resolve(), style = body)

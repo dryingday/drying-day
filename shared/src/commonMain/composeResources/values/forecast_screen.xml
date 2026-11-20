@@ -11,7 +11,7 @@
     <string name="day_today">Today</string>
     <string name="day_tomorrow">Tomorrow</string>
     <string name="forecast_times">Hang out at %1$s. Bring in by %2$s.</string>
-    <string name="forecast_dryness">About %1$s dry by then.</string>
+    <string name="forecast_dryness">About %1$s dry by %2$s.</string>
     <string name="forecast_times_local">Times are in the place's own time zone.</string>
     <string name="forecast_held_back">Why</string>
     <string name="forecast_tips">Tips</string>
@@ -34,4 +34,15 @@
     <string name="load_heavy">Heavy load</string>
     <string name="load_light_hint">Shirts, underwear, thin cotton, synthetics.</string>
     <string name="load_heavy_hint">Towels, jeans, bedding, hoodies. Mixed loads too.</string>
+    <string name="load_toggle_light">Light</string>
+    <string name="load_toggle_heavy">Heavy</string>
+    <string name="load_note">Light or heavy?</string>
+    <string name="load_note_line">%1$s: %2$s</string>
+    <string name="load_note_default">Heavy loads need better weather than light ones. If you're not sure, pick heavy.</string>
+    <string name="window_note">What's the drying window?</string>
+    <string name="window_note_open">The bar runs from when the washing starts to dry until it's dry, or until damp air, rain or sunset would start to undo the work. Hang it out at the start and bring it in by the end.</string>
+    <string name="forecast_bar_label">%1$s to %2$s</string>
+    <string name="forecast_bar_single">%1$s</string>
+    <string name="note_collapsed">collapsed</string>
+    <string name="note_expanded">expanded</string>
 </resources>
