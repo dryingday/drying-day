@@ -17,13 +17,16 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -33,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.dryingday.engine.DayAdvice
 import io.github.dryingday.engine.Forecast
-import io.github.dryingday.engine.Load
 import io.github.dryingday.engine.Reason
 import io.github.dryingday.engine.Verdict
 import io.github.dryingday.places.SavedPlace
@@ -51,10 +53,8 @@ import io.github.dryingday.shared.resources.forecast_times_local
 import io.github.dryingday.shared.resources.forecast_tips
 import io.github.dryingday.shared.resources.forecast_try_again
 import io.github.dryingday.shared.resources.forecast_updating
-import io.github.dryingday.shared.resources.load_heavy
-import io.github.dryingday.shared.resources.load_heavy_hint
-import io.github.dryingday.shared.resources.load_light
-import io.github.dryingday.shared.resources.load_light_hint
+import io.github.dryingday.shared.resources.window_note
+import io.github.dryingday.shared.resources.window_note_open
 import io.github.dryingday.weather.Attribution
 import io.github.dryingday.weather.SourceAttributions
 import kotlinx.datetime.DateTimeUnit
@@ -70,6 +70,12 @@ private const val DAYS = 3
 private const val BODY_SP = 16
 private const val HEADLINE_SP = 28
 private val LARGE_PICTURE = 48.dp
+
+/** Whether each note is open. Held above the selected day, so a day without the note doesn't forget it. */
+private class NoteStates {
+    var load by mutableStateOf(false)
+    var window by mutableStateOf(false)
+}
 
 /** Which of the three days is selected, and how to change it. */
 class DayPicker(val selected: Int, val onSelect: (Int) -> Unit)
@@ -93,6 +99,7 @@ fun MainScreen(
     val dark = isSystemInDarkTheme()
     val text = if (dark) Color(0xFFE6E6E6) else Color(0xFF1B1B1B)
     val body = TextStyle(color = text, fontSize = BODY_SP.sp)
+    val notes = remember { NoteStates() }
     Box(Modifier.fillMaxSize().background(if (dark) DARK_BACKGROUND else Color.White)) {
         Column(
             Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()).padding(24.dp),
@@ -104,8 +111,10 @@ fun MainScreen(
             ) {
                 BasicText(placeLabel(place), style = body.copy(textDecoration = TextDecoration.Underline))
             }
+            LoadToggle(state.load, state::chooseLoad, body)
+            LoadNote(notes.load, { notes.load = !notes.load }, body)
             when (val status = state.status) {
-                is ForecastStatus.Showing -> Showing(status, state, days, formatTime, formatHour, body)
+                is ForecastStatus.Showing -> Showing(status, state, days, notes, formatTime, formatHour, body)
 
                 is ForecastStatus.Loading -> Message(Res.string.forecast_loading, body)
 
@@ -116,7 +125,6 @@ fun MainScreen(
 
                 is ForecastStatus.OutOfDate -> OutOfDate(status, state, body)
             }
-            if (state.status !is ForecastStatus.Showing) LoadSwitch(state, body)
             SourceAttributions(attributions, color = text)
         }
         state.refreshNotice?.let {
@@ -146,6 +154,7 @@ private fun Showing(
     status: ForecastStatus.Showing,
     state: ForecastState,
     picker: DayPicker,
+    notes: NoteStates,
     formatTime: TimeFormat,
     formatHour: TimeFormat,
     body: TextStyle,
@@ -156,9 +165,8 @@ private fun Showing(
         Message(Res.string.forecast_day_missing, body)
     } else {
         val date = status.today.plus(picker.selected, DateTimeUnit.DAY)
-        Day(day, DayContext(status.forecast, date, state.now), formatTime, formatHour, body)
+        Day(day, DayContext(status.forecast, date, state.now), notes, formatTime, formatHour, body)
     }
-    LoadSwitch(state, body)
     val label = updatedLabel(status.fetchedAt, state.now, status.timeZone, formatTime)
     if (status.refreshing) {
         Message(Res.string.forecast_updating, body)
@@ -217,7 +225,15 @@ private class DayContext(val forecast: Forecast, val date: LocalDate, val now: I
 }
 
 @Composable
-private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, formatHour: TimeFormat, body: TextStyle) {
+@Suppress("LongParameterList") // Each is passed in by name from the screen.
+private fun Day(
+    day: DayAdvice,
+    context: DayContext,
+    notes: NoteStates,
+    formatTime: TimeFormat,
+    formatHour: TimeFormat,
+    body: TextStyle,
+) {
     val text = body.color
     val zone = context.zone
     val now = context.now
@@ -230,26 +246,36 @@ private fun Day(day: DayAdvice, context: DayContext, formatTime: TimeFormat, for
                 style = body.copy(fontSize = HEADLINE_SP.sp, fontWeight = FontWeight.Bold),
             )
         }
-        day.window()?.let { window ->
-            BasicText(
-                stringResource(
-                    Res.string.forecast_times,
-                    formatTime(window.hangOut, zone),
-                    formatTime(window.bringIn, zone),
-                ),
-                style = body,
-            )
-            if (timesAreLocalToPlace(zone, TimeZone.currentSystemDefault(), now)) {
-                Message(Res.string.forecast_times_local, body)
-            }
-            day.drynessLine(zone, formatTime)?.let { BasicText(it.resolve(), style = body) }
-        }
+        val window = day.window()
+        day.drynessLine(zone, formatTime)?.let { BasicText(it.resolve(), style = body) }
         rainLine(context.forecast, context.date, day, now, formatTime)?.let {
             BasicText(it.resolve(), style = body)
         }
         val columns = dayHours(context.forecast, context.date, day, now, formatHour)
-        // Keyed on the day, so each day's row opens at its first column rather than where the last one was left.
-        if (columns.isNotEmpty()) key(context.date) { HoursRow(columns, body) }
+        if (window != null) {
+            val spoken = stringResource(
+                Res.string.forecast_times,
+                formatTime(window.hangOut, zone),
+                formatTime(window.bringIn, zone),
+            )
+            // A day with a window always has a row; if it ever hasn't, the times are written, so they're never lost.
+            if (columns.isEmpty()) {
+                BasicText(spoken, style = body)
+            } // Keyed on the day, so each day's row opens at its own bar rather than where the last one was left.
+            else {
+                key(context.date) { HoursRow(columns, window, zone, formatTime, spoken, body) }
+            }
+        } else if (columns.isNotEmpty()) {
+            key(context.date) { HoursRow(columns, null, zone, formatTime, "", body) }
+        }
+        if (showsZoneNote(columns, window, zone, TimeZone.currentSystemDefault(), now)) {
+            Message(Res.string.forecast_times_local, body)
+        }
+        if (window != null && columns.isNotEmpty()) {
+            Note(Res.string.window_note, notes.window, { notes.window = !notes.window }, body) {
+                BasicText(stringResource(Res.string.window_note_open), style = body)
+            }
+        }
         val dayOverOnly = day.reasons == listOf(Reason.DAY_OVER)
         if (day.verdict != Verdict.WILL_DRY && !dayOverOnly) {
             Section(Res.string.forecast_held_back, day.reasons.map { it.text() }, body)
@@ -274,34 +300,6 @@ private fun Section(title: StringResource, lines: List<StringResource>, body: Te
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         BasicText(stringResource(title), style = body.copy(fontWeight = FontWeight.Bold))
         for (line in lines) BasicText(stringResource(line), style = body)
-    }
-}
-
-@Composable
-private fun LoadSwitch(state: ForecastState, body: TextStyle) {
-    Column(Modifier.fillMaxWidth()) {
-        for ((load, label, hint) in listOf(
-            Triple(Load.LIGHT, Res.string.load_light, Res.string.load_light_hint),
-            Triple(Load.HEAVY, Res.string.load_heavy, Res.string.load_heavy_hint),
-        )) {
-            val selected = state.load == load
-            Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                    .selectable(selected = selected, role = Role.RadioButton, onClick = { state.chooseLoad(load) })
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                // The mark is for the eye; the selected state is in the row's semantics.
-                BasicText(if (selected) "●" else "○", Modifier.clearAndSetSemantics {}, style = body)
-                Column {
-                    BasicText(
-                        stringResource(label),
-                        style = body.copy(fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal),
-                    )
-                    BasicText(stringResource(hint), style = body.copy(fontSize = 13.sp))
-                }
-            }
-        }
     }
 }
 
