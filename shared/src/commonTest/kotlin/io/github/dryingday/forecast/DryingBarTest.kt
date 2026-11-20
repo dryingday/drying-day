@@ -72,7 +72,7 @@ class DryingBarTest {
 
     @Test
     fun aWindowNarrowerThanSixDpIsWidenedAboutItsCentre() {
-        // 9:30 to 9:34 is 3.3 dp, centred at 77.2 dp... widened to 6 dp about that centre.
+        // 9:30 to 9:34 is 3.3 dp wide, so it is widened to 6 dp about its centre.
         val bar = assertNotNull(span(columns(), window(9 to 30, 9 to 34)))
         assertEquals(MIN_BAR_DP, bar.end - bar.start, 0.001f)
         assertEquals((1.5f * WIDTH + 1.6666f), (bar.start + bar.end) / 2, 0.01f)
