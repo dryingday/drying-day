@@ -97,7 +97,7 @@ internal fun HoursRow(
             if (width != columnPx) columnPx = width
             val widthDp = with(density) { width.toDp() }
             val cells = subcompose("columns") { columns.forEach { HourColumnView(it, widthDp, body) } }
-                .map { it.measure(Constraints.fixed(width, it.measure(loose).height)) }
+                .map { it.measure(Constraints(minWidth = width, maxWidth = width)) }
             val rowWidth = width * columns.size
             val span = barSpan(columns, window, widthDp.value, with(density) { rowWidth.toDp() }.value)
             val bar =
