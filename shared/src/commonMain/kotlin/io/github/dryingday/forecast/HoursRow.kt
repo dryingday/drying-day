@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -85,7 +86,14 @@ internal fun HoursRow(
     val density = LocalDensity.current
     var columnPx by remember { mutableIntStateOf(0) }
     val opening = openingColumn(columns, window)
-    LaunchedEffect(columnPx, opening) { if (columnPx > 0) scroll.scrollTo(opening * columnPx) }
+    // Once, when the columns are first measured: a later refresh or tick of the clock doesn't snap the row back.
+    var opened by remember { mutableStateOf(false) }
+    LaunchedEffect(columnPx) {
+        if (columnPx > 0 && !opened) {
+            opened = true
+            scroll.scrollTo(opening * columnPx)
+        }
+    }
     val small = body.copy(fontSize = 13.sp, textAlign = TextAlign.Center)
     Box(Modifier.fillMaxWidth().horizontalScroll(scroll)) {
         SubcomposeLayout { constraints ->
@@ -96,8 +104,6 @@ internal fun HoursRow(
             val width = maxOf(minPx, widest)
             if (width != columnPx) columnPx = width
             val widthDp = with(density) { width.toDp() }
-            val cells = subcompose("columns") { columns.forEach { HourColumnView(it, widthDp, body) } }
-                .map { it.measure(Constraints(minWidth = width, maxWidth = width)) }
             val rowWidth = width * columns.size
             val span = barSpan(columns, window, widthDp.value, with(density) { rowWidth.toDp() }.value)
             val bar =
@@ -106,6 +112,9 @@ internal fun HoursRow(
                     density,
                     rowWidth,
                 )
+            // Subcomposed after the bar, so a screen reader reads the bar and its times before the columns.
+            val cells = subcompose("columns") { columns.forEach { HourColumnView(it, widthDp, body) } }
+                .map { it.measure(Constraints(minWidth = width, maxWidth = width)) }
             val columnsTop = bar.height
             layout(rowWidth, columnsTop + (cells.maxOfOrNull { it.height } ?: 0)) {
                 bar.place(this)
