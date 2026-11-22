@@ -31,7 +31,7 @@ The commits are the ones Google Fonts builds each family from (`ofl/bigshoulders
 - The licence texts ship in the APK with the fonts, as the OFL asks. `README.md`'s Licence section names the two fonts, their licence and those files. `LICENSE` is untouched. The fonts stay under the OFL; the app stays GPL-3.0-or-later. The OFL allows bundling with any software, and F-Droid accepts OFL fonts.
 - PR 1 checks each file's SHA-256 against this table.
 
-Sizes, in sp so they follow the font scale: the open cloth's verdict 48, Big Shoulders ExtraBold, line height 1.02 (tighter and a "y" touches the line below); the day names on the cloths 15, Bold; section headings 22, Bold. Body text 15 Public Sans Regular, labels and buttons 13 to 14 SemiBold or Bold. The verdict has a second print 2 dp right and 2 dp down in the laundry blue at 30 %, like a stamped linen mark. It's decorative and drawn behind the text.
+Sizes, in sp so they follow the font scale: the open cloth's verdict 40 (48 until the maintainer's review of PR 5 found the cloths too tall; at 40 "Finish indoors" fits on one line on a phone), Big Shoulders ExtraBold, line height 1.02 (tighter and a "y" touches the line below); the day names on the cloths 15, Bold; section headings 22, Bold. Body text 15 Public Sans Regular, labels and buttons 13 to 14 SemiBold or Bold. The verdict has a second print 2 dp right and 2 dp down in the laundry blue at 30 %, like a stamped linen mark. It's decorative and drawn behind the text.
 
 ### Colour
 
@@ -75,6 +75,8 @@ From the top:
 
    The verdict to sky, ink and picture is one exhaustive `when`, with a `null` day giving the `PARTLY_DRY` sky and no picture. Changing day crossfades the sky's colour over 400 ms and swaps the picture.
 
+   The sky runs behind the status bar, to the screen's top edge, with no title bar: on Android, `MainActivity` hides the window title and draws edge to edge (`requestWindowFeature(Window.FEATURE_NO_TITLE)` and `enableEdgeToEdge()`), with no manifest or theme change. The place's row is padded by the status bar's inset, and every screen is padded for the system bars. The status bar's icons follow the ink on what's behind them: dark icons on a dark ink, light on a light ink, so the light-mode don't-bother sky gets light icons. The screen scrolls, so once the sky has scrolled away beneath the bar the icons follow the page's ink instead. The space above the line is kept short so the sky doesn't push the advice down: about 36 dp from the place's row to the line, the sun partly behind the cloths, and 16 dp of drip room below them.
+
    In the sky, from the top: **the place**, as now (its name, tappable, opening the places screen), in the sky's ink; then **the line** with the three cloths.
 2. **The load toggle and its note**, under the sky, unchanged from bolt 8 except that the halves have square corners and a 2 dp ink border, the selected half filled with ink and its text in the page colour (with its border and bold text still, so not colour alone). (Bolt 8 put the toggle above the days. Here the line and the sky read as one picture, so the toggle goes straight under it, still above everything the load changes on the screen except the cloths.)
 3. **The washing and the hours**: the hours row from bolt 7, with the row of washing above it in place of bolt 8's bar (below). Then the time-zone line and the drying window note, as bolt 8 has them. Bolt 8's fallback stays: if a day with a window ever had no hours row, the times are written out.
@@ -92,7 +94,7 @@ The line is a 2 dp rule across the sky's full width in the sky's ink at 80 %. Th
 - the day's full name: "Today", "Tomorrow", or the weekday ("Tuesday");
 - the verdict (below, under Text), as a heading;
 - the sentence: on a `PARTLY_DRY` day the dryness line, then the rain line; otherwise the rain line, as bolt 7 and bolt 8 have them. Today after sunset (`DAY_OVER` its only reason) and polar night have no rain line, so no sentence. A `null` day: "There isn't enough forecast for this day yet." (`forecast_day_missing`, as now) and nothing else;
-- a dashed hem 12 dp above the bottom edge.
+- a dashed hem 9 dp above the bottom edge.
 
 **One height.** All three cloths are the same height: the tallest of the three days' open content at the open cloth's final width, and at least 120 dp. So the line doesn't change height when the day changes, nothing below it moves, and a small cloth's wet patch is measured against the same height as the open one's. Worked out in a custom layout, again when the width, font scale, load or forecast changes. A load switch or a refresh can change the height, and what's below moves then; that's accepted, as both are the user's own action or a new forecast.
 
@@ -221,6 +223,7 @@ In `androidApp/build.gradle.kts`, `versionName` 1.3.0 and `versionCode` 5, with 
   - a `null` day, the loading, failed and out-of-date states;
   - first run, search and places in the new type and colours;
   - the cloths keeping one height as the day changes, with nothing below them moving;
+  - the sky behind the status bar with no title bar, and the status bar's icons readable on each sky in light and dark;
   - today after sunset: a plain cloth, the dark sky with no rain, no sentence;
   - 200 % font scale with no clipping, the cloths hung one under another; and 1.4 on a 320 dp-wide emulator, stacked or not, with no word broken;
   - TalkBack reading a cloth ("Tomorrow, Finish indoors, tab, selected"), the open verdict as a heading, and the washing row's sentence.
