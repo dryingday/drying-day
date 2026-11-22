@@ -45,7 +45,7 @@ private val SHADOW_X = 3.dp
 private val SHADOW_Y = 4.dp
 private const val SHADOW_ALPHA = 0.24f
 
-private val HEM_FROM_BOTTOM = 12.dp
+private val HEM_FROM_BOTTOM = 9.dp
 private val HEM_WIDTH = 2.dp
 private val HEM_DASH = 6.dp
 private val HEM_GAP = 4.dp
@@ -142,7 +142,7 @@ internal fun DrawScope.wetPatch(share: Int) {
 
 private const val PERCENT = 100
 
-/** The open cloth's dashed hem, 12 dp above the bottom edge, inside [inset] each side. */
+/** The open cloth's dashed hem, 8 dp above the bottom edge, inside [inset] each side. */
 internal fun DrawScope.hem(ink: Color, inset: Float) {
     val y = size.height - HEM_FROM_BOTTOM.toPx()
     drawLine(

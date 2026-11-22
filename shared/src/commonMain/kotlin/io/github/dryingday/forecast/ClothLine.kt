@@ -61,7 +61,7 @@ private val SIDE = 16.dp
 private val STACK_GAP = 32.dp
 
 /** The sky below the lowest cloth, where the drips fall. */
-private val DRIP_ROOM = 32.dp
+private val DRIP_ROOM = 16.dp
 
 /** The sky below an empty line. */
 private val EMPTY_LINE_ROOM = 24.dp

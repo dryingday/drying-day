@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -51,10 +53,10 @@ private const val RING_ALPHA = 0.28f
 private const val RAIN_CLOUD_ALPHA = 0.55f
 
 /** The space of sky between the place's row and the line, where the picture shows above the cloths. */
-private val LINE_GAP = 64.dp
+private val LINE_GAP = 36.dp
 
 /** The picture's top, below the place's row. */
-private val PICTURE_TOP = 6.dp
+private val PICTURE_TOP = 2.dp
 
 /** The sky pictures are drawn on a 340-unit-wide sky, scaled to the screen's width but no larger than this. */
 private const val PICTURE_MAX_DP_PER_UNIT = 1.15f
@@ -110,7 +112,7 @@ internal fun SkyScene(
     Column(Modifier.fillMaxWidth().drawBehind { drawRect(background) }) {
         Box(
             Modifier.windowInsetsPadding(
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                WindowInsets.statusBars.union(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
             )
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()

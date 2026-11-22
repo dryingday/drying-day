@@ -37,14 +37,14 @@ import kotlin.random.Random
 // One cloth on the line: drawn (weave, shadow, pegs, wet patch, drips), its tap target, its text, and its shake.
 // See docs/bolts/09-washing-line.md, "The line and the cloths" and "Motion".
 
-internal val CLOTH_TOP_PADDING = 18.dp
+internal val CLOTH_TOP_PADDING = 14.dp
 internal val OPEN_SIDE_PADDING = 12.dp
 private val SMALL_SIDE_PADDING = 6.dp
 
-/** Below the open cloth's text: 12 dp to the hem, the 2 dp hem, and 12 dp to the bottom edge. */
-internal val OPEN_BOTTOM_PADDING = 26.dp
-private val VERDICT_GAP = 8.dp
-private val SENTENCE_GAP = 10.dp
+/** Below the open cloth's text: 8 dp to the hem, the 2 dp hem, and 8 dp to the bottom edge. */
+internal val OPEN_BOTTOM_PADDING = 18.dp
+private val VERDICT_GAP = 4.dp
+private val SENTENCE_GAP = 6.dp
 private const val REVEAL_MS = 300
 private const val REVEAL_DELAY_MS = 180
 private const val SPRAY_SEED_STEP = 31
