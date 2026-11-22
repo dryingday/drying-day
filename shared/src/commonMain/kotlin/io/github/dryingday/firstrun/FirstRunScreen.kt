@@ -2,32 +2,29 @@ package io.github.dryingday.firstrun
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import io.github.dryingday.InkButton
+import io.github.dryingday.Palette
+import io.github.dryingday.bodyStyle
+import io.github.dryingday.headingStyle
+import io.github.dryingday.palette
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.first_run_locating
 import io.github.dryingday.shared.resources.first_run_location_off
@@ -43,30 +40,26 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-private val DARK_BACKGROUND = Color(0xFF121212)
-private val DARK_BUTTON_TEXT = Color(0xFF0B1B33)
-
 /**
  * Shown while there is no current place. The location fix starts only from a tap, in the screen's own scope, so
  * leaving the screen cancels it. [onSearch] opens the place search.
  */
 @Composable
 fun FirstRunScreen(state: FirstRunState, onSearch: () -> Unit) {
-    val dark = isSystemInDarkTheme()
-    val text = if (dark) Color(0xFFE6E6E6) else Color(0xFF1B1B1B)
-    val body = TextStyle(color = text, fontSize = 16.sp)
+    val colours = palette()
+    val body = bodyStyle().copy(color = colours.ink)
 
-    Box(Modifier.fillMaxSize().background(if (dark) DARK_BACKGROUND else Color.White)) {
+    Box(Modifier.fillMaxSize().background(colours.page)) {
         Column(
             Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             BasicText(
                 stringResource(Res.string.first_run_title),
-                style = TextStyle(color = text, fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                style = headingStyle().copy(color = colours.ink),
             )
             BasicText(stringResource(Res.string.first_run_privacy), style = body)
-            LocationChoices(state, dark, body, onSearch)
+            LocationChoices(state, colours, body, onSearch)
         }
     }
 }
@@ -76,16 +69,16 @@ fun FirstRunScreen(state: FirstRunState, onSearch: () -> Unit) {
  * the places screen. The fix runs in the screen's own scope, so leaving the screen cancels it.
  */
 @Composable
-internal fun LocationChoices(state: FirstRunState, dark: Boolean, body: TextStyle, onSearch: () -> Unit) {
+internal fun LocationChoices(state: FirstRunState, colours: Palette, body: TextStyle, onSearch: () -> Unit) {
     val scope = rememberCoroutineScope()
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         if (state.canUseLocation) {
             BasicText(stringResource(Res.string.first_run_privacy_location), style = body)
-            ChoiceButton(
+            InkButton(
                 stringResource(
                     if (state.waiting) Res.string.first_run_locating else Res.string.first_run_use_location,
                 ),
-                dark,
+                colours,
                 enabled = !state.waiting,
             ) { scope.launch { state.useLocation() } }
         }
@@ -104,7 +97,7 @@ internal fun LocationChoices(state: FirstRunState, dark: Boolean, body: TextStyl
                 }
             }
         }
-        ChoiceButton(stringResource(Res.string.first_run_search), dark, enabled = true, onClick = onSearch)
+        InkButton(stringResource(Res.string.first_run_search), colours, onClick = onSearch)
     }
 }
 
@@ -112,28 +105,4 @@ private fun messageFor(problem: LocationProblem): StringResource = when (problem
     LocationProblem.PermissionDenied -> Res.string.first_run_permission_denied
     LocationProblem.LocationOff -> Res.string.first_run_location_off
     LocationProblem.NoFix -> Res.string.first_run_no_fix
-}
-
-@Composable
-private fun ChoiceButton(label: String, dark: Boolean, enabled: Boolean, onClick: () -> Unit) {
-    val fill = if (dark) Color(0xFF8AB4F8) else Color(0xFF1A4F9C)
-    Box(
-        Modifier.fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(fill)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        BasicText(
-            label,
-            style = TextStyle(
-                color = if (dark) DARK_BUTTON_TEXT else Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-            ),
-        )
-    }
 }
