@@ -90,9 +90,12 @@ internal fun Cloth(
 ) {
     val motion = day.motion
     val shake = remember { ShakeState() }
+    // Only a tap made while this cloth is on screen shakes it: when the cloths come back (the forecast
+    // failing and returning), the count they come back with has already been shaken.
+    val shookAt = remember { shakeCount }
     LaunchedEffect(shakeCount) {
         val curve = motion.shake
-        if (shakeCount > 0 && curve != null) {
+        if (shakeCount > shookAt && curve != null) {
             shake.run(curve, sprayDrops(motion.spray, Random(shakeCount * SPRAY_SEED_STEP + day.index)))
         }
     }
