@@ -15,7 +15,7 @@ So there's no pull-to-refresh: a Refresh button does the job.
 Every component this bolt adds:
 
 - is at least 48 dp in each direction where it can be tapped, with a button, tab or radio button role and its selected state in its semantics;
-- follows the system's light or dark setting, with the text colours bolt 4 uses;
+- follows the system's light or dark setting, with the text colours bolt 4 uses (bolt 9's palette and fonts from then on);
 - never carries meaning by colour alone: each verdict is always written out;
 - lays out without clipping at 200 % font scale, scrolling where it has to.
 
@@ -111,9 +111,9 @@ A switch with two choices, **Light load** and **Heavy load**, each with a line s
 From the top:
 
 1. **The place**: its name as bolt 4 shows it ("Approximate location" for a device fix), tappable, opening the places screen.
-2. **The days**: three tabs, **Today**, **Tomorrow** and the weekday of `today` + 2 days ("Thursday"), from `Showing.today`, so a `null` day is labelled too, each with its verdict in short (Will dry, Partly, Don't bother, or a dash for a `null` day). Today is selected on launch, and again when `Showing.today` changes. The selection survives rotation (`configChanges` from bolt 4 already keeps the composition).
+2. **The days**: three tabs, **Today**, **Tomorrow** and the weekday of `today` + 2 days ("Thursday"), from `Showing.today`, so a `null` day is labelled too, each with its verdict in short (Will dry, Partly, Don't bother, or a dash for a `null` day). Today is selected on launch, and again when `Showing.today` changes. The selection survives rotation (`configChanges` from bolt 4 already keeps the composition). Bolt 9 hangs the days as cloths on a line in place of the tabs.
 3. **The selected day**, in this order:
-   - **The verdict**, large: **Will dry**, **Partly dry, finish indoors**, or **Don't bother, dry indoors**, as `docs/PLAN.md` words them. When today's only reason is `DAY_OVER`, the headline is **Too late to dry outside today** instead, and there's no "Why".
+   - **The verdict**, large: **Will dry**, **Partly dry, finish indoors**, or **Don't bother, dry indoors**, as `docs/PLAN.md` words them. When today's only reason is `DAY_OVER`, the headline is **Too late to dry outside today** instead, and there's no "Why". Bolt 9 shortens them to **Will dry**, **Finish indoors**, **Dry indoors** and **Too late today**, printed on the open cloth.
    - **The times**, for `WILL_DRY` and `PARTLY_DRY`: "Hang out at 10:15. Bring in by 14:30." For `PARTLY_DRY`, then: "About 70 % dry by then." The percentage is `dryness`. Bolt 8 shows the times on the drying window bar instead, and makes the dryness line "About 70 % dry by 14:30."
    - **Why**, for `PARTLY_DRY` and `DONT_BOTHER`: the reasons, one line each, in the engine's order.
    - **Tips**, for `WILL_DRY` and `PARTLY_DRY`: the engine's tips, one line each.

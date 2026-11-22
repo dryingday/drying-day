@@ -16,7 +16,7 @@ One small component, used twice below: a line of text with a mark after it, "▸
 
 Replaces bolt 5's load switch. The choices, the default (`HEAVY`), the stored key and value, and the behaviour (re-runs the engine, fetches nothing) are unchanged.
 
-**Where.** Straight under the place, above the days, in every state: `Showing`, `Loading`, `Failed` and `OutOfDate`. The load changes all three days' verdicts, so it goes above the tabs that show them, and it stays put when the forecast arrives.
+**Where.** Straight under the place, above the days, in every state: `Showing`, `Loading`, `Failed` and `OutOfDate`. The load changes all three days' verdicts, so it goes above the tabs that show them, and it stays put when the forecast arrives. Bolt 9 moves it straight under the sky and the line of cloths.
 
 **What.** Two halves side by side, each at least 48 dp tall:
 
@@ -25,7 +25,7 @@ Replaces bolt 5's load switch. The choices, the default (`HEAVY`), the stored ke
 | Left | The light weight, then "Light" |
 | Right | "Heavy", then the heavy weight |
 
-The selected half has a border and bold text; the other has neither. So it isn't carried by colour alone. The weights sit on the outer ends, so the toggle reads light to heavy from left to right. At the same font scale as the day tabs stack (1.5), the halves stack too, light first, each keeping its weight at the start.
+The selected half has a border and bold text; the other has neither. So it isn't carried by colour alone. (Bolt 9 squares its corners and fills the selected half with ink, keeping the border and bold text.) The weights sit on the outer ends, so the toggle reads light to heavy from left to right. At the same font scale as the day tabs stack (1.5), the halves stack too, light first, each keeping its weight at the start.
 
 **Accessibility.** The two halves are a `selectableGroup()`, so TalkBack says which of two it's on. Each half is one node with `Role.RadioButton` and its selected state, labelled "Light load" or "Heavy load" (the existing strings), as the switch is now. The weights are decorative.
 
@@ -39,7 +39,7 @@ The hints no longer show under each choice.
 
 ### The drying window bar
 
-Replaces bolt 7's bar under the hour columns, and the written times.
+Replaces bolt 7's bar under the hour columns, and the written times. Bolt 9 draws it as a row of washing, placed the same way.
 
 **Where.** Above the hours row, in the same sideways scroll, so it moves with the columns. Shown when the selected day has `hangOut` and `bringIn` (a `WILL_DRY` or `PARTLY_DRY` day) and an hours row. A day with a window always has a row, as the window lies in daylight; a test checks that over the reference set and the engine's tests' forecasts, and if it ever doesn't, the written times are shown as now, so the times are never lost.
 
@@ -61,7 +61,7 @@ The placement is pure logic, as bolt 7's `dayHours` is: a function from the colu
 
 **The written times go.** "Hang out at 10:15. Bring in by 14:30." no longer shows as a line (it stays as the bar's spoken text). On a `PARTLY_DRY` day, "About 70 % dry by then." loses the "then" it pointed at, so it becomes "About 70 % dry by 14:30.", with `window()`'s bring-in.
 
-**The note**, under the row: "What's the drying window?". Open: "The bar runs from when the washing starts to dry until it's dry, or until damp air, rain or sunset would start to undo the work. Hang it out at the start and bring it in by the end." "Times are in the place's own time zone." goes straight under the row, above the note, so it's always visible. It's shown whenever there's a row and the device's offset differs, by bolt 5's test, not only when there's a window: a don't-bother day's hour labels are in the place's zone too.
+**The note**, under the row: "What's the drying window?". Open: "The bar runs from when the washing starts to dry until it's dry, or until damp air, rain or sunset would start to undo the work. Hang it out at the start and bring it in by the end." (Bolt 9 rewords it for the row of washing.) "Times are in the place's own time zone." goes straight under the row, above the note, so it's always visible. It's shown whenever there's a row and the device's offset differs, by bolt 5's test, not only when there's a window: a don't-bother day's hour labels are in the place's zone too.
 
 ### The screen
 

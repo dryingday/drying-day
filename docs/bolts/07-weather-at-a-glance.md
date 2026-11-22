@@ -49,9 +49,9 @@ It isn't the `RAIN` reason. `RAIN` counts only a wet hour that ends the chosen w
 
 Changes to bolt 5's main screen, in its order:
 
-1. **The days.** Each tab gains its verdict's picture, small, before the short verdict.
+1. **The days.** Each tab gains its verdict's picture, small, before the short verdict. Bolt 9 replaces the tabs with cloths on a line.
 2. **The selected day:**
-   - **The verdict** gains its picture, large, before the headline.
+   - **The verdict** gains its picture, large, before the headline. Bolt 9 retires the verdict pictures: the cloth's wet patch and drips show the outcome instead.
    - **The rain line**, new, after the times (and, on a `PARTLY_DRY` day, after "About 70 % dry by then.", so "by then" stays next to the bring-in time, a decision put to the maintainer in PR 4; bolt 8 takes the times line away and puts the dryness line straight after the headline), or after the headline on a `DONT_BOTHER` day: "Rain likely from 15:00." from `firstWet`, or "No rain expected while it's light." when it gives `null`. It's left out on a `DAY_OVER` day, on a `null` day, and on a day with no usable time (polar night), where "while it's light" would mean nothing. The time is rounded down to the minute and formatted the way bolt 5 formats times, in the forecast's zone.
    - **The hours**, new, after the rain line and before Why, Tips and Indoors. There's one column for each forecast hour that overlaps the day's daylight as the engine clips it (`DailyLight.daylight(zone)`): `start < daylight.end` and `start + 1 h > daylight.start`. Today, the hour must also end after `now`. So polar day runs midnight to midnight, and a sunset exactly on the hour adds no empty column. A gap in the forecast leaves no column. Each column holds, from the top:
      - the hour's start, to the hour ("8 AM" in 12-hour, "08" in 24-hour), in the forecast's zone. `App` takes a second formatter, `formatHour`, for these labels: on Android it's built on the device's 12- or 24-hour setting with the skeleton `ha` or `HH`; the iOS wrapper and tests pass a common `HH`. On the day the clocks go back, the repeated hour shows the same label twice, in order. On the day they go forward, the skipped label doesn't appear;
