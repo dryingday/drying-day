@@ -38,7 +38,8 @@ private enum class Screen { Main, Places, Search }
  * system back gesture while enabled, and does nothing where the platform has none. [forecastSettings] holds the
  * forecast cache and [settings] the load; [visible] is whether the app is on screen at all (on Android, at least
  * STARTED). [formatTime] writes a time in the device's 12- or 24-hour format, and
- * [formatHour] writes just the hour for the hours row ("8 AM" or "08"). See docs/bolts/05-main-screen.md.
+ * [formatHour] writes just the hour for the hours row ("8 AM" or "08"). [statusBarIcons] is told whether the status bar
+ * icons should be dark, for the screen behind them. See docs/bolts/05-main-screen.md.
  */
 @Composable
 @Suppress("LongParameterList") // The platform wrappers pass each in by name.
@@ -53,6 +54,7 @@ fun App(
     formatTime: TimeFormat,
     formatHour: TimeFormat,
     visible: Boolean,
+    statusBarIcons: (darkIcons: Boolean) -> Unit = {},
     backHandler: @Composable (enabled: Boolean, onBack: () -> Unit) -> Unit = { _, _ -> },
 ) {
     val forecastCache = remember(forecastSettings) { ForecastCache(forecastSettings) }
@@ -83,6 +85,8 @@ fun App(
         }
     }
 
+    // The main screen sets them by its sky; the others by the page.
+    if (screen != Screen.Main || places.current == null) StatusBarIcons(palette().ink, statusBarIcons)
     if (screen == Screen.Search) {
         backHandler(true, closeSearch)
         val scope = rememberCoroutineScope()
@@ -114,6 +118,7 @@ fun App(
             formatTime = formatTime,
             formatHour = formatHour,
             onPlaces = { screen = Screen.Places },
+            statusBarIcons = statusBarIcons,
         )
     }
 }

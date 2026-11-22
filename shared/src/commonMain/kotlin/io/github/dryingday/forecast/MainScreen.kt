@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import io.github.dryingday.FocusRing
 import io.github.dryingday.InkButton
 import io.github.dryingday.Palette
+import io.github.dryingday.StatusBarIcons
 import io.github.dryingday.bodyStyle
 import io.github.dryingday.engine.DayAdvice
 import io.github.dryingday.engine.Forecast
@@ -109,6 +110,7 @@ fun MainScreen(
     formatTime: TimeFormat,
     formatHour: TimeFormat,
     onPlaces: () -> Unit,
+    statusBarIcons: (darkIcons: Boolean) -> Unit = {},
 ) {
     val colours = palette()
     val animations = animationsEnabled()
@@ -121,6 +123,7 @@ fun MainScreen(
         val selected = days.selected
         skyChoice(it.forecast, it.today.plus(selected, DateTimeUnit.DAY), it.days.getOrNull(selected), state.now)
     } ?: NO_FORECAST_SKY
+    StatusBarIcons(colours.sky(sky.kind).ink, statusBarIcons)
     // Only while something on the line or in the sky moves.
     val clock = rememberFrameClock(animations && (sky.rain || cloths.any { it.motion.dripsSmall > 0 }))
     val clothLook = clothLook(colours, animations, clock)
