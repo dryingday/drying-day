@@ -177,9 +177,6 @@ private fun Showing(
     ActionButton(Res.string.forecast_refresh, status.refreshing, body, state::refresh)
 }
 
-// At large font sizes three tabs side by side break words, so they stack.
-private const val STACK_TABS_FROM_FONT_SCALE = 1.5f
-
 @Composable
 private fun DayTabs(status: ForecastStatus.Showing, selected: Int, body: TextStyle, onSelect: (Int) -> Unit) {
     val stacked = LocalDensity.current.fontScale >= STACK_TABS_FROM_FONT_SCALE
