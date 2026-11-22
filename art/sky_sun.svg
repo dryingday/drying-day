@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="170" viewBox="0 0 340 170">
+  <!-- Source of the path data in shared/src/commonMain/kotlin/io/github/dryingday/forecast/Drawings.kt,
+       which a test keeps equal. Placeholder colours: the app colours each layer at draw time.
+       See docs/bolts/09-washing-line.md, "The drawings". -->
+  <path id="ring" d="M216 86A52 52 0 1 1 320 86A52 52 0 1 1 216 86Z" fill="#FFD84D" fill-opacity="0.28"/>
+  <path id="sun" d="M232 86A36 36 0 1 1 304 86A36 36 0 1 1 232 86Z" fill="#FFD84D"/>
+</svg>
