@@ -1,0 +1,367 @@
+<title>Drying Day Design</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;600;700&display=swap">
+<style>
+/* Concept: the washing line is the interface. Days are cloths pegged on a line; the chosen one hangs big with the verdict printed on it.
+   The sky behind is the weather. The drying window is a row of washing on a second line. Everything below stays quiet. */
+:root {
+  --bg: #F3F6F9; --fg: #16202B; --muted: #4A5666; --line: #CBD4DD; --card: #FFFFFF; --accent: #2F5F8A;
+  --display: "Big Shoulders Display", "Arial Narrow", system-ui, sans-serif;
+  --text: "Public Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #14171A; --fg: #E8EAED; --muted: #A3ABB6; --line: #2C3238; --card: #1B1F23; --accent: #9CC2E3; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #14171A; --fg: #E8EAED; --muted: #A3ABB6; --line: #2C3238; --card: #1B1F23; --accent: #9CC2E3; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: var(--text); font-size: 16px; line-height: 1.55;
+  padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1; margin: 0; }
+h1 { font-size: clamp(2.6rem, 7vw, 4.4rem); font-weight: 800; }
+h2 { font-size: 2rem; font-weight: 800; margin-bottom: 14px; }
+h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: 6px; }
+p { margin: 0 0 12px; max-width: 62ch; }
+.lede { font-size: 1.1rem; color: var(--muted); max-width: 60ch; margin-top: 16px; }
+section { margin-top: 64px; }
+.switch { display: inline-flex; border: 2px solid var(--fg); padding: 3px; gap: 2px; margin: 26px 0 28px; }
+.switch button { font: 700 15px var(--text); color: var(--fg); background: none; border: 0; padding: 8px 18px; cursor: pointer; min-height: 40px; }
+.switch button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.stage { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 32px; justify-items: center; }
+.cap { text-align: center; color: var(--muted); font-size: 14px; margin: 12px auto 0; max-width: 320px; }
+
+/* ---- the phone ---- */
+.phones { display: contents;
+  --p-page:#F3F6F9; --p-ink:#16202B; --p-muted:#4A5666; --p-line:#C3CDD7; --p-blue:#2F5F8A;
+  --p-cloth:#FFFFFF; --p-cloth-ink:#16202B; --p-wood:#C99A5B; --p-sun:#FFD84D; --p-cloud:#EEF4F9; --p-cloud-dark:#2F3C4A; --p-rain:#D3DEE8; --p-drop:#DDF0FC; --p-drop-edge:#2F5F8A;
+  --sky-will:#62B3EA; --ink-will:#0E1A28; --sky-partly:#A9BCCB; --ink-partly:#0E1A28; --sky-dont:#4A5B6C; --ink-dont:#F4F7FA; }
+.phones[data-mode="dark"] {
+  --p-page:#14171A; --p-ink:#E8EAED; --p-muted:#A3ABB6; --p-line:#33383F; --p-blue:#9CC2E3;
+  --p-cloth:#ECE8DF; --p-cloth-ink:#16202B; --p-wood:#B9893F; --p-sun:#F4C84A; --p-cloud:#6D7C8C; --p-cloud-dark:#0C1117; --p-rain:#5D7287; --p-drop:#CFE8F8; --p-drop-edge:#0E1A28;
+  --sky-will:#1F5FA8; --ink-will:#F4F7FA; --sky-partly:#435263; --ink-partly:#F4F7FA; --sky-dont:#151C25; --ink-dont:#F4F7FA; }
+.phone { width: min(340px, 100%); background: var(--p-page); color: var(--p-ink); border-radius: 34px; overflow: hidden;
+  border: 7px solid #0E1013; box-shadow: 0 18px 40px -18px rgba(10,20,40,.5); font-family: var(--text); font-size: 14px; line-height: 1.4; }
+.scene { position: relative; overflow: hidden; padding: 12px 14px 30px; background: var(--sky); color: var(--sky-ink); transition: background-color .4s, color .4s; }
+.scene[data-v="will"] { --sky: var(--sky-will); --sky-ink: var(--ink-will); }
+.scene[data-v="partly"] { --sky: var(--sky-partly); --sky-ink: var(--ink-partly); }
+.scene[data-v="dont"] { --sky: var(--sky-dont); --sky-ink: var(--ink-dont); }
+.art { position: absolute; left: 0; top: 0; width: 100%; height: auto; pointer-events: none; }
+.art g { display: none; }
+.scene[data-v="will"] .a-will, .scene[data-v="partly"] .a-partly, .scene[data-v="dont"] .a-dont { display: block; }
+.status, .place, .rack { position: relative; }
+.status { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; opacity: .85; }
+.place { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-weight: 700; }
+.place span:last-child { text-decoration: underline; text-underline-offset: 3px; font-size: 13px; }
+
+/* the line, the pegs, the cloths */
+.rack { display: flex; gap: 8px; align-items: flex-start; margin-top: 34px; padding-top: 10px; }
+.rack::before { content: ""; position: absolute; left: -14px; right: -14px; top: 8px; height: 2px; background: var(--sky-ink); opacity: .8; }
+.cloth { position: relative; flex: none; width: 62px; padding: 18px 6px 10px; text-align: left; font: inherit; cursor: pointer; border: 0; color: var(--p-cloth-ink);
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.03) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0 1px, transparent 1px 3px), var(--p-cloth);
+  filter: drop-shadow(3px 4px 0 rgba(8,16,28,.24)); transform-origin: 50% 0; transition: width .4s cubic-bezier(.3,.7,.2,1); }
+.cloth.sel { width: calc(100% - 132px); padding: 18px 12px 12px; }
+.cloth .peg { position: absolute; top: -9px; width: 8px; height: 19px; background: var(--p-wood); border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.28); }
+.cloth .peg::after, .tl .peg::after { content: ""; position: absolute; left: 3px; top: 7px; width: 1px; height: 11px; background: rgba(0,0,0,.45); }
+.cloth .peg.l { left: 7px; } .cloth .peg.r { right: 7px; }
+.cloth .body { display: block; overflow: hidden; }
+.cloth .d { display: block; font: 700 15px/1 var(--display); letter-spacing: .01em; white-space: nowrap; }
+.cloth .d .full, .cloth.sel .d .short { display: none; } .cloth.sel .d .full { display: inline; }
+.cloth .t { display: none; font: 800 48px/1.02 var(--display); margin-top: 8px; width: var(--fw); text-shadow: 2px 2px 0 rgba(47,95,138,.3); }
+.cloth .w { display: none; font-size: 13.5px; line-height: 1.35; margin-top: 10px; width: var(--fw); }
+.cloth.sel .t, .cloth.sel .w { display: block; animation: textin .3s .18s both; }
+@keyframes textin { from { opacity: 0; } to { opacity: 1; } }
+/* wet cloths: a damp hem and drips */
+/* the damp patch is as tall as the share still wet when it comes in: 100 - % dry */
+.cloth[style*="--wet"] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0' stop-color='%231C3A5C' stop-opacity='.4'/%3E%3Cstop offset='1' stop-color='%231C3A5C' stop-opacity='.16'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 5 Q8 0 17 4 T34 6 T52 3 T70 7 T86 4 T100 5 V100 H0Z' fill='url(%23g)'/%3E%3C/svg%3E"), repeating-linear-gradient(0deg, rgba(0,0,0,.03) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0 1px, transparent 1px 3px);
+  background-repeat: no-repeat, repeat, repeat; background-position: bottom, 0 0, 0 0; background-size: 100% var(--wet), auto, auto; }
+.drips { position: absolute; left: 0; right: 0; top: 100%; height: 0; pointer-events: none; }
+.drop { position: absolute; top: -3px; width: 9px; height: 13px; transform-origin: 50% 0; }
+.drop svg, .fly svg { display: block; width: 100%; height: 100%; fill: var(--p-drop); stroke: var(--p-drop-edge); stroke-width: 1.2; }
+.drop { animation: drip var(--dur, 2.6s) var(--del, 0s) infinite ease-in; }
+@keyframes drip { 0% { transform: translateY(0) scale(.15); opacity: 1; } 45% { transform: translateY(0) scale(1); opacity: 1; }
+  55% { transform: translateY(2px) scale(1, 1.15); } 100% { transform: translateY(74px) scale(.9, 1.2); opacity: 0; } }
+.cloth:not(.sel) .drop.big { display: none; }
+.fly { position: absolute; width: 9px; height: 13px; pointer-events: none; z-index: 3; animation: fling var(--t, .8s) var(--del, 0s) cubic-bezier(.2,.6,.4,1) both; }
+@keyframes fling { 0% { transform: translate(0, 0) rotate(0) scale(.5); opacity: 1; }
+  40% { transform: translate(calc(var(--dx) * .55), var(--up)) rotate(calc(var(--rot) * .5)) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--fall)) rotate(var(--rot)) scale(.9); opacity: 0; } }
+/* skewX about the top edge: the top stays flat on the line and the hem swings */
+@keyframes shake { 0% { transform: skewX(0); } 12% { transform: skewX(9deg); } 26% { transform: skewX(-8deg); } 40% { transform: skewX(6deg); }
+  54% { transform: skewX(-4.5deg); } 68% { transform: skewX(2.5deg); } 84% { transform: skewX(-1deg); } 100% { transform: skewX(0); } }
+.cloth.shake { animation: shake .75s ease-out; }
+/* partly dry: between the dry swing and the wet shake */
+@keyframes jiggle { 0% { transform: skewX(0); } 15% { transform: skewX(6deg); } 32% { transform: skewX(-5deg); } 50% { transform: skewX(3.2deg); }
+  68% { transform: skewX(-1.8deg); } 85% { transform: skewX(.7deg); } 100% { transform: skewX(0); } }
+.cloth.jiggle { animation: jiggle .8s ease-out; }
+/* rain behind a wet day */
+.rain { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .5s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='160'%3E%3Cg stroke='white' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M30 8l-4 16M12 58l-4 16M36 96l-4 16M20 128l-4 16'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='320'%3E%3Cg stroke='white' stroke-width='1' stroke-linecap='round' opacity='.7'%3E%3Cpath d='M58 24l-5 20M20 130l-5 20M70 220l-5 20M38 286l-5 20'/%3E%3C/g%3E%3C/svg%3E");
+  animation: rainfall 2s linear infinite; }
+.scene[data-v="dont"] .rain { opacity: .38; }
+/* near streaks move four tiles, far streaks one, in the same time: the far rain falls at half speed */
+@keyframes rainfall { from { background-position: 0 0, 0 0; } to { background-position: -160px 640px, -80px 320px; } }
+.cloth .hem { margin-top: 12px; border-top: 2px dashed rgba(22,32,43,.38); }
+.cloth:focus-visible { outline: 3px solid var(--p-blue); outline-offset: 4px; }
+@keyframes sway { 0% { transform: skewX(0); } 25% { transform: skewX(4deg); } 55% { transform: skewX(-2.5deg); } 80% { transform: skewX(.8deg); } 100% { transform: skewX(0); } }
+.cloth.swing { animation: sway .9s ease-out; }
+@media (prefers-reduced-motion: reduce) { .cloth, .scene { transition: none; } .cloth.swing, .cloth.shake, .cloth.jiggle, .drop, .rain, .cloth.sel .t, .cloth.sel .w { animation: none; } .drop { transform: none; } }
+
+/* below the line */
+.lower { padding: 14px 14px 16px; }
+.loadrow { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--p-muted); }
+.lt { display: inline-flex; border: 2px solid var(--p-ink); color: var(--p-ink); }
+.lt span { padding: 4px 11px; font-weight: 700; font-size: 13px; }
+.lt .on { background: var(--p-ink); color: var(--p-page); }
+.tl { position: relative; margin-top: 16px; padding-top: 14px; }
+.tl.has { padding-top: 68px; }
+.tl .rope { position: absolute; left: -14px; right: -14px; top: 30px; height: 2px; background: var(--p-muted); }
+.tl .tm { position: absolute; top: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.tl .washing { position: absolute; top: 31px; display: flex; justify-content: space-between; align-items: flex-start; }
+.garment { position: relative; flex: none; }
+.garment svg { display: block; overflow: visible; }
+.garment path { stroke: var(--p-cloth-ink); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
+.garment .pg { position: absolute; top: -4px; width: 3.5px; height: 8px; margin-left: 1px; background: var(--p-wood); border-radius: 1px; box-shadow: inset 0 0 0 .75px rgba(0,0,0,.35); }
+.tl .peg { position: absolute; top: -8px; width: 8px; height: 19px; background: var(--p-wood); border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.28); }
+.tl .peg.l { left: 4px; } .tl .peg.r { right: 4px; }
+.hours { display: grid; grid-template-columns: repeat(8, 1fr); }
+.hours div { text-align: center; font-size: 10.5px; display: grid; justify-items: center; gap: 3px; }
+.hours svg { width: 20px; height: 20px; }
+.tips { margin-top: 18px; }
+.tips h4 { margin: 0 0 2px; font: 800 20px/1 var(--display); letter-spacing: .01em; }
+.tip { display: flex; gap: 10px; padding: 9px 0; border-top: 2px dashed var(--p-line); font-size: 14px; }
+.tip:first-of-type { border-top: 0; }
+.tip i { flex: none; width: 5px; height: 13px; margin-top: 3px; background: var(--p-wood); border-radius: 2px; }
+.foot { margin-top: 10px; padding-top: 10px; border-top: 2px dashed var(--p-line); font-size: 11.5px; color: var(--p-muted); }
+
+/* ---- the rest of the page ---- */
+.swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.sw { border: 1px solid var(--line); overflow: hidden; background: var(--card); }
+.sw .pair { display: grid; grid-template-columns: 1fr 1fr; height: 60px; }
+.sw .info { padding: 8px 12px 10px; font-size: 13px; line-height: 1.35; }
+.sw .info b { display: block; font-size: 14px; }
+.sw code { color: var(--muted); font-size: 12px; }
+.type { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 24px; }
+.type .sample { border: 1px solid var(--line); padding: 20px; background: var(--card); }
+.big { font: 800 3.6rem/.9 var(--display); text-shadow: 3px 3px 0 rgba(47,95,138,.3); margin: 6px 0 12px; }
+.change { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 24px 36px; }
+.change div { border-top: 3px solid var(--fg); padding-top: 12px; }
+.note { margin-top: 30px; padding: 16px 18px; border: 2px dashed var(--line); color: var(--muted); }
+.theme-toggle { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 16px; font: 600 13px var(--text); color: var(--muted); background: none; border: 1px solid var(--line); padding: 6px 12px; cursor: pointer; }
+</style>
+
+<button class="theme-toggle" id="theme" type="button">Page: light/dark</button>
+<div class="wrap">
+  <header>
+    <h1>Drying Day, on the line</h1>
+    <p class="lede">Hang the answer out. Each day is a cloth pegged on a washing line, and the day you pick hangs big with the verdict printed on it. The sky behind is the weather. Tap a day on any phone.</p>
+  </header>
+
+  <div class="switch" role="group" aria-label="Phone appearance">
+    <button type="button" data-mode="light" aria-pressed="true">Light</button>
+    <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+  </div>
+
+  <div class="phones" id="phones" data-mode="light"><div class="stage" id="stage"></div></div>
+
+  <section>
+    <h2>Palette</h2>
+    <p>Light on the left of each swatch, dark on the right. The sky changes with the day. Everything else is white washing, ink, wood and laundry blue.</p>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <section>
+    <h2>Type</h2>
+    <div class="type">
+      <div class="sample">
+        <h3>Big Shoulders Display</h3>
+        <div class="big">Finish indoors</div>
+        <p style="color:var(--muted)">Verdicts, day names and headings. A tall, narrow face from industrial signage, printed on the cloth with a slightly off second ink, like a stamped linen mark.</p>
+      </div>
+      <div class="sample">
+        <h3>Public Sans</h3>
+        <p style="font-size:1.1rem;margin-top:6px">Pockets out, hang heavy things by the hems, and turn them halfway.</p>
+        <p style="color:var(--muted)">Sentences, tips and times. Plain and neutral, so the printed type does the talking.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What changed</h2>
+    <div class="change">
+      <div><h3>Days are cloths on a line</h3><p>The tabs are gone. Three cloths hang from one line, and the chosen day is the large one. It swings when you pick it or tap it again.</p></div>
+      <div><h3>The verdict is printed on the cloth</h3><p>The title and the one sentence sit on white linen. A dry day's cloth is plain. A wet day's cloth is damp at the hem and drips, more when it's worse, and it shakes the water off whenever you tap it. That is the same white-on-sky image as washing on a real line, and it reads in both themes.</p></div>
+      <div><h3>The window is a row of washing</h3><p>Hang-out and bring-in times sit above the ends of a row of pegged washing: shirts, trousers, socks, towels. The row is as long as the window, so its length is the time you have. A day with no window has an empty line and no gap.</p></div>
+      <div><h3>The sky does the colour work</h3><p>Blue for a clear day, grey-blue with a cloud over the sun, dark with rain. The shapes in the sky differ as well as the colour, and the words are always printed.</p></div>
+    </div>
+    <div class="note">Not shown: first run, places and search. They use the same sky, the same printed headings and the same pegs for lists, with one filled primary action.</div>
+  </section>
+</div>
+
+<script>
+const SVG = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+const SHIRT = 'M8.5 3.5 3 6.5l1.8 3.4 2.2-1V21h10V8.9l2.2 1L21 6.5l-5.5-3c-.8 1.6-2 2.3-3.5 2.3s-2.7-.7-3.5-2.3Z';
+const ICON = {
+  will: SVG(`<path d="${SHIRT}"/><path d="M11 12.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z"/>`),
+  partly: SVG(`<path d="${SHIRT}"/><path d="M12 12c1.4 1.8 2.2 3 2.2 4.1a2.2 2.2 0 0 1-4.4 0c0-1.1.8-2.3 2.2-4.1Z"/>`),
+  dont: SVG(`<path d="${SHIRT}"/><path d="M10 11c.9 1.1 1.3 1.8 1.3 2.4a1.3 1.3 0 0 1-2.6 0c0-.6.4-1.3 1.3-2.4ZM14.2 13.6c.9 1.1 1.3 1.8 1.3 2.4a1.3 1.3 0 0 1-2.6 0c0-.6.4-1.3 1.3-2.4Z"/>`),
+  clear: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>'),
+  part: SVG('<circle cx="9" cy="9" r="3"/><path d="M9 3v1.5M3 9h1.5M4.8 4.8l1 1M13.2 4.8l-1 1"/><path d="M8.5 19.5h9a3.2 3.2 0 0 0 .2-6.4 4.5 4.5 0 0 0-8.4 1.2 2.6 2.6 0 0 0-.8 5.2Z"/>'),
+  cloud: SVG('<path d="M7 18.5h10a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.4 1.4A3.4 3.4 0 0 0 7 18.5Z"/>'),
+  rain: SVG('<path d="M7 14h10a3.7 3.7 0 0 0 .3-7.4 5.2 5.2 0 0 0-9.8 1.3A3.2 3.2 0 0 0 7 14Z"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3"/>')
+};
+const WEEK = [
+  { name: 'Today', short: 'Today', v: 'will', dry: 100, title: 'Will dry', why: "No rain expected while it's light.", win: [6.9, 55, '9:33 AM', '1:24 PM'],
+    hrs: ['clear','clear','part','part','part','clear','clear','clear'], label: 'Tips',
+    tips: ['Pockets out, hang heavy things by the hems, and turn them halfway.', 'Turn darks inside out, as strong sun fades them.'] },
+  { name: 'Tomorrow', short: 'Mon', v: 'partly', dry: 76, title: 'Finish indoors', why: 'About 76 % dry by 1:00 PM. Rain likely from 1:00 PM.', win: [6.9, 50, '9:33 AM', '1:00 PM'],
+    hrs: ['clear','clear','clear','cloud','rain','rain','rain','rain'], label: 'Tips',
+    tips: ['Pockets out, hang heavy things by the hems, and turn them halfway.', 'Bring it in by 1:00 PM and finish on an airer.'] },
+  { name: 'Tuesday', short: 'Tue', v: 'dont', dry: 0, title: 'Dry indoors', why: 'Rain likely from 9:32 AM.', win: null,
+    hrs: ['rain','rain','rain','rain','rain','rain','rain','rain'], label: 'Indoors',
+    tips: ['Use an airer, with space between items.', 'Keep windows shut. Use a dehumidifier, or a small room with the door closed.'] }
+];
+const HRS = ['9 AM','10 AM','11 AM','12 PM','1 PM','2 PM','3 PM','4 PM'];
+const CAPS = [
+  'A clear day. Blue sky, a bright sun, and the answer printed on the cloth. Tap another day.',
+  'A mixed day. The sun is half behind cloud, and the cloth says what to do about it.',
+  'A wet day. Dark sky, falling rain, a dripping cloth, and no washing on the line because there is nothing to hang out.'
+];
+
+const DROP = '<svg viewBox="0 0 10 14" aria-hidden="true"><path d="M5 1C5 1 1 6.6 1 9.2a4 4 0 0 0 8 0C9 6.6 5 1 5 1Z"/></svg>';
+// [left %, duration s, delay s, only when selected]
+const DRIPS = {
+  will: [],
+  partly: [[34, 3.2, 0, 0], [58, 3.0, 1.2, 1], [82, 3.6, 2.1, 1]],
+  dont: [[18, 2.0, 0, 0], [50, 2.3, .9, 0], [82, 2.1, 1.5, 0],
+         [32, 1.8, .4, 1], [64, 2.2, 1.2, 1], [42, 2.6, 1.9, 1], [92, 1.9, .7, 1], [8, 2.4, 1.3, 1]]
+};
+// The drying window is a row of washing, each piece pegged on the line. w, h in px; pegs at x px from the left.
+const KIT = {
+  tee: { w: 26, h: 22, pegs: [5, 17], d: 'M8.5 1 1 5l2.2 5.2L6 9.2V21h14V9.2l2.8 1L25 5 17.5 1c-1 2.2-2.6 3.2-4.5 3.2S9.5 3.2 8.5 1Z' },
+  trousers: { w: 18, h: 30, pegs: [2, 11], d: 'M1 1h16v28h-6.2L9 10.5 7.2 29H1Z' },
+  sock: { w: 11, h: 20, pegs: [3], d: 'M2 1h6.5v11.5l1.8 2.2c.9 2.6-.6 4.3-3 4.3H4c-2.2 0-2.6-1.6-2-3.2Z' },
+  towel: { w: 22, h: 22, pegs: [3, 14], d: 'M1 1h20v20H1ZM1 16.5h20' },
+  shorts: { w: 20, h: 17, pegs: [3, 12], d: 'M1 1h18v15h-7l-2-7.5L8 16H1Z' }
+};
+const FILLS = ['var(--p-cloth)', '#9CC2E3', '#E8D5B0', '#F2B8A2', 'var(--p-cloth)'];
+function hang(row) {
+  const W = row.clientWidth, names = Object.keys(KIT);
+  let seed = +row.dataset.seed * 7919, used = 0, html = '';
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  for (;;) {
+    const it = KIT[names[Math.floor(rnd() * names.length)]], gap = html ? 4 : 0;
+    if (used + gap + it.w > W) break;
+    used += gap + it.w;
+    html += `<span class="garment" style="width:${it.w}px"><svg width="${it.w}" height="${it.h}" viewBox="0 0 ${it.w} ${it.h}"><path d="${it.d}" fill="${FILLS[Math.floor(rnd() * FILLS.length)]}"/></svg>` +
+      it.pegs.map(x => `<i class="pg" style="left:${x}px"></i>`).join('') + '</span>';
+  }
+  row.innerHTML = html;
+}
+const hangAll = root => root.querySelectorAll('.washing').forEach(hang);
+const MOVE = { will: 'swing', partly: 'jiggle', dont: 'shake' };
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const ART = `<svg class="art" viewBox="0 0 340 170" aria-hidden="true">
+  <g class="a-will"><circle cx="268" cy="86" r="52" fill="var(--p-sun)" opacity=".28"/><circle cx="268" cy="86" r="36" fill="var(--p-sun)"/></g>
+  <g class="a-partly"><circle cx="270" cy="70" r="28" fill="var(--p-sun)"/>
+    <g fill="var(--p-cloud)"><circle cx="248" cy="96" r="22"/><circle cx="282" cy="92" r="19"/><circle cx="218" cy="104" r="15"/><rect x="203" y="100" width="98" height="21" rx="10.5"/></g></g>
+  <g class="a-dont"><g fill="var(--p-cloud-dark)" opacity=".55"><circle cx="90" cy="38" r="24"/><circle cx="128" cy="32" r="28"/><circle cx="170" cy="40" r="22"/><circle cx="240" cy="30" r="26"/><circle cx="286" cy="38" r="22"/><rect x="62" y="40" width="250" height="22" rx="11"/></g>
+</g>
+</svg>`;
+
+function cloth(d, i, sel) {
+  const drips = DRIPS[d.v].map(([l, dur, del, big]) => `<span class="drop${big ? ' big' : ''}" style="left:calc(${l}% - 4.5px);--dur:${dur}s;--del:${del}s">${DROP}</span>`).join('');
+  return `<button type="button" class="cloth${sel === i ? ' sel' : ''}" role="tab" aria-selected="${sel === i}" data-i="${i}" data-v="${d.v}"${d.dry < 100 ? ` style="--wet:${100 - d.dry}%"` : ''}>
+    <i class="peg l"></i><i class="peg r"></i>
+    <span class="body"><span class="d" aria-label="${d.name}"><span class="full">${d.name}</span><span class="short">${d.short}</span></span>
+    <span class="t">${d.title}</span><span class="w">${d.why}</span></span><div class="hem"></div><span class="drips">${drips}</span></button>`;
+}
+function lower(d) {
+  const w = d.win;
+  const hours = `<div class="hours">${d.hrs.map((h, k) => `<div>${HRS[k]}${ICON[h]}</div>`).join('')}</div>`;
+  const tl = w ? `<div class="tl has"><div class="rope"></div>
+      <span class="tm" style="left:${w[0]}%">${w[2]}</span><span class="tm" style="right:${100 - w[1]}%">${w[3]}</span>
+      <div class="washing" aria-hidden="true" data-seed="${WEEK.indexOf(d) + 1}" style="left:${w[0]}%;width:${w[1] - w[0]}%"></div>${hours}</div>`
+    : `<div class="tl">${hours}</div>`;
+  return `<div class="loadrow"><span>Load</span><span class="lt"><span>Light</span><span class="on">Heavy</span></span></div>
+    ${tl}
+    <div class="tips"><h4>${d.label}</h4>${d.tips.map(t => `<div class="tip"><i></i><span>${t}</span></div>`).join('')}</div>
+    <div class="foot">Updated 9:32 AM · Weather data from Open-Meteo.com (CC BY 4.0)</div>`;
+}
+function phone(sel) {
+  return `<figure style="margin:0"><div class="phone">
+    <div class="scene" data-v="${WEEK[sel].v}">${ART}<div class="rain" aria-hidden="true"></div>
+      <div class="status"><span>9:30</span><span>●●●</span></div>
+      <div class="place"><span>Washing line</span><span>Refresh</span></div>
+      <div class="rack" role="tablist" aria-label="Day">${WEEK.map((d, i) => cloth(d, i, sel)).join('')}</div>
+    </div>
+    <div class="lower">${lower(WEEK[sel])}</div></div>
+    <figcaption class="cap">${CAPS[sel]}</figcaption></figure>`;
+}
+const stage = document.getElementById('stage');
+stage.innerHTML = [0, 1, 2].map(phone).join('');
+
+// Lay the printed text out at the open cloth's final width, so lines never re-wrap while it widens.
+const fit = rack => rack.style.setProperty('--fw', (rack.clientWidth - 132 - 24 - 3) + 'px');
+const ro = new ResizeObserver(es => es.forEach(e => fit(e.target)));
+stage.querySelectorAll('.rack').forEach(r => { fit(r); ro.observe(r); });
+hangAll(stage);
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => hangAll(stage), 150); });
+
+// A wet cloth shakes off a spray of drops when you pick it.
+function spray(c, v) {
+  if (v === 'will' || reduced.matches) return;
+  // Drops sit inside the cloth, placed in %, so they leave from its edges even while it is still widening.
+  const n = v === 'dont' ? 26 : 12;
+  for (let k = 0; k < n; k++) {
+    const f = document.createElement('span');
+    f.className = 'fly'; f.innerHTML = DROP;
+    const edge = k % 2 ? 1 : -1;
+    const x = edge > 0 ? 100 - Math.random() * 6 : Math.random() * 6;
+    const y = 25 + Math.random() * 70;
+    const dx = edge * (24 + Math.random() * 56);
+    f.style.cssText = `left:calc(${x}% - 4px);top:${y}%;--dx:${dx}px;--up:${-(8 + Math.random() * 26)}px;` +
+      `--fall:${50 + Math.random() * 80}px;--rot:${edge * (30 + Math.random() * 60)}deg;--t:${.6 + Math.random() * .4}s;--del:${Math.random() * .2}s`;
+    f.addEventListener('animationend', () => f.remove());
+    c.appendChild(f);
+  }
+}
+
+stage.addEventListener('click', e => {
+  const c = e.target.closest('.cloth');
+  if (!c) return;
+  const ph = c.closest('.phone'), i = +c.dataset.i, v = WEEK[i].v;
+  if (c.classList.contains('sel')) {
+    // Tapping the open cloth gives it another shake.
+    c.classList.remove('swing', 'jiggle', 'shake'); void c.offsetWidth; c.classList.add(MOVE[v]);
+    spray(c, v); return;
+  }
+  ph.querySelector('.scene').dataset.v = WEEK[i].v;
+  ph.querySelectorAll('.cloth').forEach(x => { const on = x === c; x.classList.toggle('sel', on); x.setAttribute('aria-selected', String(on)); x.classList.remove('swing', 'jiggle', 'shake'); });
+  void c.offsetWidth; c.classList.add(MOVE[v]);
+  setTimeout(() => spray(c, v), 120);
+  ph.querySelector('.lower').innerHTML = lower(WEEK[i]);
+  hangAll(ph);
+});
+
+const SW = [
+  ['Clear sky', '#62B3EA', '#1F5FA8', 'Will dry'], ['Cloud sky', '#A9BCCB', '#435263', 'Finish indoors'],
+  ['Rain sky', '#4A5B6C', '#151C25', 'Dry indoors'], ['Cloth', '#FFFFFF', '#ECE8DF', 'Verdict, day cloths'],
+  ['Ink', '#16202B', '#E8EAED', 'Text and icons'], ['Laundry blue', '#2F5F8A', '#9CC2E3', 'Print offset, toggle'],
+  ['Peg wood', '#C99A5B', '#B9893F', 'Pegs and bullets']
+];
+document.getElementById('swatches').innerHTML = SW.map(s => `<div class="sw"><div class="pair"><div style="background:${s[1]}"></div><div style="background:${s[2]}"></div></div><div class="info"><b>${s[0]}</b>${s[3]}<br><code>${s[1]} / ${s[2]}</code></div></div>`).join('');
+
+const phones = document.getElementById('phones');
+document.querySelectorAll('.switch button').forEach(b => b.addEventListener('click', () => {
+  phones.dataset.mode = b.dataset.mode;
+  document.querySelectorAll('.switch button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+}));
+document.getElementById('theme').addEventListener('click', () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme = dark ? 'light' : 'dark';
+});
+</script>

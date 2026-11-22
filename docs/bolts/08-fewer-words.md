@@ -16,7 +16,7 @@ One small component, used twice below: a line of text with a mark after it, "▸
 
 Replaces bolt 5's load switch. The choices, the default (`HEAVY`), the stored key and value, and the behaviour (re-runs the engine, fetches nothing) are unchanged.
 
-**Where.** Straight under the place, above the days, in every state: `Showing`, `Loading`, `Failed` and `OutOfDate`. The load changes all three days' verdicts, so it goes above the tabs that show them, and it stays put when the forecast arrives.
+**Where.** Straight under the place, above the days, in every state: `Showing`, `Loading`, `Failed` and `OutOfDate`. The load changes all three days' verdicts, so it goes above the tabs that show them, and it stays put when the forecast arrives. Bolt 9 moves it straight under the sky and the line of cloths.
 
 **What.** Two halves side by side, each at least 48 dp tall:
 
@@ -39,7 +39,7 @@ The hints no longer show under each choice.
 
 ### The drying window bar
 
-Replaces bolt 7's bar under the hour columns, and the written times.
+Replaces bolt 7's bar under the hour columns, and the written times. Bolt 9 draws it as a row of washing, placed the same way.
 
 **Where.** Above the hours row, in the same sideways scroll, so it moves with the columns. Shown when the selected day has `hangOut` and `bringIn` (a `WILL_DRY` or `PARTLY_DRY` day) and an hours row. A day with a window always has a row, as the window lies in daylight; a test checks that over the reference set and the engine's tests' forecasts, and if it ever doesn't, the written times are shown as now, so the times are never lost.
 
