@@ -4,8 +4,6 @@ import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.DayAdvice
 import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.Interval
-import io.github.dryingday.engine.Reason
-import io.github.dryingday.engine.Verdict
 import io.github.dryingday.engine.daylight
 import io.github.dryingday.engine.firstWet
 import io.github.dryingday.shared.resources.Res
@@ -57,7 +55,7 @@ internal fun dayHours(
         }
 }
 
-private fun Forecast.daylightOf(date: LocalDate): Interval? = days.firstOrNull { it.date == date }?.daylight(timeZone)
+internal fun Forecast.daylightOf(date: LocalDate): Interval? = days.firstOrNull { it.date == date }?.daylight(timeZone)
 
 private fun DayAdvice.inWindow(start: Instant): Boolean {
     val from = hangOut
@@ -76,10 +74,7 @@ internal fun rainLine(
     now: Instant,
     formatTime: TimeFormat,
 ): Message? {
-    val daylight = forecast.daylightOf(date)
-    val dayOver = advice?.verdict == Verdict.DONT_BOTHER && advice.reasons == listOf(Reason.DAY_OVER)
-    val usable = advice != null && !dayOver && daylight != null && daylight.end > daylight.start
-    if (!usable) return null
+    if (neverOut(forecast, date, advice)) return null
     val wet = firstWet(forecast, date, now)
     return if (wet == null) {
         Message(Res.string.forecast_no_rain)

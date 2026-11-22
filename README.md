@@ -2,7 +2,7 @@
 
 Will my washing dry on the line today?
 
-Drying Day reads the forecast for your drying window and gives a clear verdict (**Will dry**, **Partly dry, finish indoors** or **Don't bother, dry indoors**), the best times to hang out and bring in, and tips for the conditions.
+Drying Day reads the forecast for your drying window and gives a clear verdict (**Will dry**, **Finish indoors** or **Dry indoors**), the best times to hang out and bring in, and tips for the conditions.
 
 Free and open source, no account, no tracking. Android first, built with Kotlin Multiplatform.
 
