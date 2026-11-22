@@ -11,7 +11,6 @@ import io.github.dryingday.shared.resources.day_tomorrow
 import io.github.dryingday.shared.resources.verdict_day_over
 import io.github.dryingday.shared.resources.verdict_dont_bother
 import io.github.dryingday.shared.resources.verdict_partly_dry
-import io.github.dryingday.shared.resources.verdict_short_none
 import io.github.dryingday.shared.resources.verdict_will_dry
 import io.github.dryingday.weather.SourceError
 import kotlinx.datetime.DayOfWeek
@@ -108,7 +107,6 @@ class ForecastTextTest {
         assertEquals(DayOfWeek.MONDAY.text(), dayLabel(date, 2))
         // The 17th is a Tuesday, so two days on is a Thursday.
         assertEquals(DayOfWeek.THURSDAY.text(), dayLabel(LocalDate(2025, 6, 17), 2))
-        assertEquals(Res.string.verdict_short_none, (null as DayAdvice?).shortVerdict())
     }
 
     @Test

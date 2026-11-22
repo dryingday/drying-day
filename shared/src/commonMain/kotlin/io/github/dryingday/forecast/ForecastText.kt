@@ -34,10 +34,6 @@ import io.github.dryingday.shared.resources.tip_space_out
 import io.github.dryingday.shared.resources.verdict_day_over
 import io.github.dryingday.shared.resources.verdict_dont_bother
 import io.github.dryingday.shared.resources.verdict_partly_dry
-import io.github.dryingday.shared.resources.verdict_short_dont_bother
-import io.github.dryingday.shared.resources.verdict_short_none
-import io.github.dryingday.shared.resources.verdict_short_partly_dry
-import io.github.dryingday.shared.resources.verdict_short_will_dry
 import io.github.dryingday.shared.resources.verdict_will_dry
 import io.github.dryingday.shared.resources.weekday_friday
 import io.github.dryingday.shared.resources.weekday_monday
@@ -117,15 +113,7 @@ internal fun DayAdvice.headline(): StringResource = when {
     else -> Res.string.verdict_dont_bother
 }
 
-/** What the day tabs say: the verdict in short, or a dash for a day with too little forecast. */
-internal fun DayAdvice?.shortVerdict(): StringResource = when (this?.verdict) {
-    Verdict.WILL_DRY -> Res.string.verdict_short_will_dry
-    Verdict.PARTLY_DRY -> Res.string.verdict_short_partly_dry
-    Verdict.DONT_BOTHER -> Res.string.verdict_short_dont_bother
-    null -> Res.string.verdict_short_none
-}
-
-/** The label of the tab at [index] (0 to 2) for the day [today] is: Today, Tomorrow, then the weekday. */
+/** The full name of the day at [index] (0 to 2) for the day [today] is: Today, Tomorrow, then the weekday. */
 internal fun dayLabel(today: LocalDate, index: Int): StringResource = when (index) {
     0 -> Res.string.day_today
     1 -> Res.string.day_tomorrow

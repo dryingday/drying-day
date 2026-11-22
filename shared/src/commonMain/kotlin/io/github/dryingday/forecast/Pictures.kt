@@ -2,7 +2,6 @@ package io.github.dryingday.forecast
 
 import io.github.dryingday.engine.Condition
 import io.github.dryingday.engine.Load
-import io.github.dryingday.engine.Verdict
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.condition_clear
 import io.github.dryingday.shared.resources.condition_cloudy
@@ -24,15 +23,12 @@ import io.github.dryingday.shared.resources.sky_rain
 import io.github.dryingday.shared.resources.sky_showers
 import io.github.dryingday.shared.resources.sky_snow
 import io.github.dryingday.shared.resources.sky_thunder
-import io.github.dryingday.shared.resources.verdict_dont_bother
-import io.github.dryingday.shared.resources.verdict_partly_dry
-import io.github.dryingday.shared.resources.verdict_will_dry
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 
-// The pictures for the sky and the verdicts, drawn for this app (sources in art/), and the sky's spoken names.
-// Each is an exhaustive `when`, so a new code doesn't compile without them. A verdict picture has no spoken
-// name: the written verdict beside it is what's read. See docs/bolts/07-weather-at-a-glance.md, "The pictures".
+// The pictures for the sky, drawn for this app (sources in art/), and the sky's spoken names. Each is an
+// exhaustive `when`, so a new code doesn't compile without them. See docs/bolts/07-weather-at-a-glance.md, "The
+// pictures". The verdict pictures went with the day tabs: docs/bolts/09-washing-line.md, "What goes".
 // The loads' weights are bolt 8's: docs/bolts/08-fewer-words.md, "The pictures".
 
 internal fun Condition.picture(): DrawableResource = when (this) {
@@ -57,12 +53,6 @@ internal fun Condition.spokenName(): StringResource = when (this) {
     Condition.SHOWERS -> Res.string.sky_showers
     Condition.SNOW -> Res.string.sky_snow
     Condition.THUNDER -> Res.string.sky_thunder
-}
-
-internal fun Verdict.picture(): DrawableResource = when (this) {
-    Verdict.WILL_DRY -> Res.drawable.verdict_will_dry
-    Verdict.PARTLY_DRY -> Res.drawable.verdict_partly_dry
-    Verdict.DONT_BOTHER -> Res.drawable.verdict_dont_bother
 }
 
 // The light weight and the heavy one: the same shape at two sizes. Decorative, as the toggle's half is labelled.
