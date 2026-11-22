@@ -112,7 +112,9 @@ internal fun SkyScene(
     Column(Modifier.fillMaxWidth().drawBehind { drawRect(background) }) {
         Box(
             Modifier.windowInsetsPadding(
-                WindowInsets.statusBars.union(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+                WindowInsets.statusBars.union(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
+                ),
             )
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()

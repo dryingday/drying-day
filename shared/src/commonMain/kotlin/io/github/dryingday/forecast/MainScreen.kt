@@ -15,14 +15,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,6 +35,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -123,16 +128,25 @@ fun MainScreen(
         val selected = days.selected
         skyChoice(it.forecast, it.today.plus(selected, DateTimeUnit.DAY), it.days.getOrNull(selected), state.now)
     } ?: NO_FORECAST_SKY
-    StatusBarIcons(colours.sky(sky.kind).ink, statusBarIcons)
+    // The whole screen scrolls, so the status bar's icons follow what's under them: the sky until it scrolls
+    // away beneath the bar, then the page.
+    val scroll = rememberScrollState()
+    var skyHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val barHeight = WindowInsets.statusBars.getTop(density)
+    val skyUnderBar by remember(barHeight) { derivedStateOf { scroll.value < skyHeight - barHeight } }
+    StatusBarIcons(if (skyUnderBar) colours.sky(sky.kind).ink else colours.ink, statusBarIcons)
     // Only while something on the line or in the sky moves.
     val clock = rememberFrameClock(animations && (sky.rain || cloths.any { it.motion.dripsSmall > 0 }))
     val clothLook = clothLook(colours, animations, clock)
     val indication = remember(colours) { FocusRing(colours.laundryBlue, colours.ink) }
     CompositionLocalProvider(LocalIndication provides indication) {
         Box(Modifier.fillMaxSize().background(colours.page)) {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                SkyScene(sky, colours, animations, clock, placeLabel(place), onPlaces) { ink ->
-                    ClothLine(cloths, showing?.today, days.selected, days.onSelect, ink, clothLook)
+            Column(Modifier.verticalScroll(scroll)) {
+                Box(Modifier.onSizeChanged { skyHeight = it.height }) {
+                    SkyScene(sky, colours, animations, clock, placeLabel(place), onPlaces) { ink ->
+                        ClothLine(cloths, showing?.today, days.selected, days.onSelect, ink, clothLook)
+                    }
                 }
                 Column(
                     Modifier.windowInsetsPadding(

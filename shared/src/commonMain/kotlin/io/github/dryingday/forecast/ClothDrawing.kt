@@ -142,7 +142,7 @@ internal fun DrawScope.wetPatch(share: Int) {
 
 private const val PERCENT = 100
 
-/** The open cloth's dashed hem, 8 dp above the bottom edge, inside [inset] each side. */
+/** The open cloth's dashed hem, its centre 9 dp above the bottom edge, inside [inset] each side. */
 internal fun DrawScope.hem(ink: Color, inset: Float) {
     val y = size.height - HEM_FROM_BOTTOM.toPx()
     drawLine(
