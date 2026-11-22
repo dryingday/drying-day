@@ -2,7 +2,7 @@
 
 The maintainer wasn't happy with how the app looks: it's plain foundation components in the system font, with nothing in it of washing or weather. This bolt gives the main screen one idea, the washing line, and a look the other screens share. Each day is a cloth pegged on a line, and the chosen day hangs large with its verdict printed on it. The sky behind the line is the day's weather. The drying window becomes a row of washing pegged on a second line above the hours. The engine, its advice and the forecast don't change.
 
-The design was settled with the maintainer in an interactive mock, kept next to this spec as [09-washing-line.html](09-washing-line.html). It shows three phones in light and dark. Where the mock and this spec differ, this spec wins.
+The design was settled with the maintainer in an interactive mock, kept next to this spec as [09-washing-line.html](09-washing-line.html). It shows three phones in light and dark. Where the mock and this spec differ, this spec wins. The mock is a design reference only and ships nowhere: opening it loads the two fonts from Google Fonts, which the app never does.
 
 ## In scope
 
@@ -94,19 +94,19 @@ The line is a 2 dp rule across the sky's full width in the sky's ink at 80 %. Th
 - the sentence: on a `PARTLY_DRY` day the dryness line, then the rain line; otherwise the rain line, as bolt 7 and bolt 8 have them. Today after sunset (`DAY_OVER` its only reason) and polar night have no rain line, so no sentence. A `null` day: "There isn't enough forecast for this day yet." (`forecast_day_missing`, as now) and nothing else;
 - a dashed hem 12 dp above the bottom edge.
 
-**One height.** All three cloths are the same height: the tallest of the three days' open content at the open cloth's final width, and at least 120 dp. So the line doesn't change height when the day changes, nothing below it moves, and a small cloth's wet patch is measured against the same height as the open one's. Worked out in a custom layout, again when the width or font scale changes.
+**One height.** All three cloths are the same height: the tallest of the three days' open content at the open cloth's final width, and at least 120 dp. So the line doesn't change height when the day changes, nothing below it moves, and a small cloth's wet patch is measured against the same height as the open one's. Worked out in a custom layout, again when the width, font scale, load or forecast changes. A load switch or a refresh can change the height, and what's below moves then; that's accepted, as both are the user's own action or a new forecast.
 
 **Every cloth** is drawn, not an image: the cloth colour with a faint weave (1 dp lines every 3 dp both ways, black at 3 %), a hard shadow 3 dp right and 4 dp down (black at 24 %), and two pegs, 8 by 19 dp, at its top corners, clipping it to the line.
 
 **The wet patch** is how much of the day's washing is still wet when it comes in: its height is `100 − dryness` % of the cloth's height, measured up from the bottom edge. So a will-dry cloth is plain, a 76 %-dry cloth is damp in its bottom 24 %, and a don't-bother cloth is mostly or all wet. The patch is `#1C3A5C`, from 40 % at the bottom edge to 16 % at its top, with a gently wavy top edge. The text on a fully wet cloth keeps 4.5:1 against the patch's darkest point, and PR 2's contrast test includes it.
 
-**No patch and no drips** on a day the washing was never out to get wet: a `null` day, today when `DAY_OVER` is its only reason, and a day with no usable time (polar night, by the same test bolt 7 uses to leave out the rain line). The engine gives those a `dryness` of 0, and a soaked cloth would say the wrong thing. Their cloths are plain, and choosing one gives the dry swing with no spray.
+**No patch and no drips** on a day the washing was never out to get wet: a `null` day, today when `DAY_OVER` is its only reason, and a day with no usable time (polar night, by the same test bolt 7 uses to leave out the rain line). The engine gives those a `dryness` of 0, and a soaked cloth would say the wrong thing. PR 3 makes "the washing was never out" one internal predicate on the forecast, date, advice and `now`, in place of the inline tests in `rainLine` and the screen, and uses it for the rain line, the patch, the drips, the motion and the sky. Their cloths are plain, and choosing one gives the dry swing with no spray.
 
 **The drips** hang from the bottom edge of a wet cloth and fall: on a `PARTLY_DRY` cloth, one when small and three when open; on a `DONT_BOTHER` cloth, three when small and eight when open. A will-dry cloth doesn't drip. Each is a drop 9 by 13 dp that swells at the hem, falls about 74 dp and fades, on its own loop of 1.8 to 3.6 s, so they don't fall together.
 
 **Choosing a day.** The whole cloth is the target, at least 48 dp each way. Tapping a small cloth opens it and closes the open one: the widths change over 400 ms. The open cloth's text is laid out at its final width from the start and revealed as the cloth widens, fading in over 300 ms after 180 ms, so its lines never re-wrap while it moves. Tapping the open cloth again just moves it (below). The selection rules are bolt 5's: today on launch and when `Showing.today` changes, kept across rotation.
 
-**Stacked.** The cloths hang one under another, each the full width with its own line above it, in the same order, when the font scale is 1.5 or more (where the day tabs stack now), or when the open cloth's width can't hold the longest word of any of the four verdicts at its size, measured. So a narrow phone at 1.4 stacks rather than break "indoors" mid-word. The open one shows everything above; the others their full name, wet patch and drips, at their own height. Nothing clips at 200 %, and a verdict wraps only between words.
+**Stacked.** The cloths hang one under another, each the full width with its own line above it, in the same order, when the font scale is 1.5 or more (where the day tabs stack now), or when the open cloth's width can't hold the longest word of any of the four verdicts at its size, measured. The decision is pure logic taking the font scale, the open cloth's width and the measured word's width as numbers, so it's unit-tested; the measuring is checked on the emulator. So a narrow phone at 1.4 stacks rather than break "indoors" mid-word. The open one shows everything above; the others their full name, wet patch and drips, at their own height. Nothing clips at 200 %, and a verdict wraps only between words.
 
 **Accessibility.** The line is a `selectableGroup()`. Each cloth's tap target is one node with `Role.Tab` and its selected state, labelled with the day's full name and verdict, "Tomorrow, Finish indoors" (a `null` day: the name alone), its own text merged into it. On the open cloth, the verdict (a heading) and the sentence are separate nodes, not merged into the tab, read after the three tabs. The weave, pegs, wet patch, drips, sky picture and rain are decorative, their semantics cleared. The wet patch and drips repeat what the written verdict says, so nothing is carried by them alone.
 
@@ -170,7 +170,7 @@ In string resources. The verdicts are shorter, drafted with the maintainer's voi
 | `window_note_open` | The bar runs from when the washing starts to dry … | The washing runs from when it starts to dry until it's dry, or until damp air, rain or sunset would start to undo the work. Hang it out at the start and bring it in by the end. |
 | `forecast_day_missing` | There isn't enough forecast for this day yet. | unchanged, on a `null` day's open cloth |
 
-PR 3 changes the strings and updates the existing tests that expect the old verdict and window note text to expect the new. That changes what's expected, not how much is checked, so it isn't weakening a test. The short verdicts the tabs used (`verdict_short_*`) go with the tabs, in PR 5, as the tabs use them until then.
+PR 3 changes the strings and updates the existing tests that expect the old verdict text (`ForecastTextTest`) to expect the new. That changes what's expected, not how much is checked, so it isn't weakening a test. The short verdicts the tabs used (`verdict_short_*`) go with the tabs, in PR 5, as the tabs use them until then.
 
 ### What goes
 
@@ -178,7 +178,7 @@ The day tabs, the verdict pictures beside the headline and in the tabs (`verdict
 
 ### The drawings
 
-Drawn for this app and licensed with it (GPL-3.0-or-later), as bolt 7's are: an SVG source in `art/` and a vector drawable in `shared/src/commonMain/composeResources/drawable/` for each, named `garment_tee`, `garment_trousers`, `garment_shorts`, `garment_sock`, `garment_towel`, `drop`, `sky_sun`, `sky_sun_cloud` and `sky_rain_cloud`. The garments are outlines filled at draw time from the garment colours; the drop and the sky pictures take their colours from the palette at draw time too, so one set serves light and dark. The cloths, pegs, weave, wet patch and rain are drawn in code, not as drawings. PR 4 adds them to the contact sheet (`art/pictures-sheet.png`), in light and dark.
+Drawn for this app and licensed with it (GPL-3.0-or-later): the garments (`garment_tee`, `garment_trousers`, `garment_shorts`, `garment_sock`, `garment_towel`), the `drop`, and the sky pictures (`sky_sun`, `sky_sun_cloud`, `sky_rain_cloud`). Each has an SVG source in `art/`. Each needs more than one colour (a garment's fill and its outline, the sun, its ring and the cloud), and a vector drawable can only be tinted as a whole, so the app draws them in code: their path data sits in one Kotlin file, parsed with `PathParser` from Compose's graphics library (already in the app), each layer filled or stroked with its palette colour at draw time, so one set serves light and dark. A test checks each SVG in `art/` against its path data. No new drawables. The cloths, pegs, weave, wet patch and rain are drawn in code too. PR 4 adds the drawings to the contact sheet (`art/pictures-sheet.png`), in light and dark.
 
 ### Release
 
@@ -234,8 +234,8 @@ In `androidApp/build.gradle.kts`, `versionName` 1.3.0 and `versionCode` 5, with 
 |---|---|---|
 | 0 | This spec and its mock, the lines it changes in bolts 5, 7 and 8, the new verdict wording in `docs/PLAN.md`, and bolt 9 in its table | high (a visual design) |
 | 1 | The fonts and their licences as the table names them, the type styles, the README's Licence lines, the font test | medium (the files, sources, commits and hashes this spec names) |
-| 2 | The palette and its contrast test, applied to first run, search and places; the main screen untouched | medium (UI) |
-| 3 | The logic and the text: wet share, the sky choice, cloth labels, stacking, the washing row, the motion choices, the new strings and the updated string tests | medium (UI copy) |
-| 4 | The drawings this spec names, as SVG sources in `art/` and vector drawables, and the contact sheet | medium (art for the design this spec approves; the maintainer sees it on screen in PR 5) |
+| 2 | The palette and its contrast test, with the fonts and square buttons, applied to first run, search and places; the main screen untouched | medium (UI) |
+| 3 | The logic and the text: the never-out predicate, wet share, the sky choice, cloth labels, stacking, the washing row, the motion choices, the new strings and the updated string tests | medium (UI copy) |
+| 4 | The drawings this spec names: SVG sources in `art/`, their path data and its test, and the contact sheet | medium (art for the design this spec approves; the maintainer sees it on screen in PR 5) |
 | 5 | The main screen: the palette, the sky, the line and cloths, the washing row, the motion, the restyled sections; removing the tabs, `verdict_short_*`, the verdict pictures and their test, and the bar; the emulator run | high (asks the maintainer, from the recordings: "Does the line read at a glance, and is the motion right?") |
 | 6 | 1.3.0: version, changelog, retaken screenshots. After it's merged: the tag, then `scripts/release.py 1.3.0` | high (version bump, store listing) |
