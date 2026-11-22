@@ -24,3 +24,7 @@ details and the rules for changes.
 ## Licence
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
+
+The app bundles two fonts: Big Shoulders Display by Patric King (Xotype) and Public Sans by the
+U.S. Web Design System team. Both are under the SIL Open Font License 1.1. The licence texts are in
+`shared/src/commonMain/composeResources/files/licenses/`.
