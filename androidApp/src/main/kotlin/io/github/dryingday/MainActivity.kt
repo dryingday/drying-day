@@ -3,13 +3,16 @@ package io.github.dryingday
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.os.Bundle
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.russhwolf.settings.SharedPreferencesSettings
@@ -38,7 +41,10 @@ class MainActivity : ComponentActivity() {
     private var appVisible by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // No title bar: the sky runs to the top edge, behind the status bar.
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         // Private to the app, and left out of backups by the manifest.
         val placeStore = PlaceStore(SharedPreferencesSettings(getSharedPreferences("places", MODE_PRIVATE)))
         val forecasts = SharedPreferencesSettings(getSharedPreferences("forecasts", MODE_PRIVATE))
@@ -59,8 +65,14 @@ class MainActivity : ComponentActivity() {
                 formatTime = ::formatTime,
                 formatHour = ::formatHour,
                 visible = appVisible,
+                statusBarIcons = ::setStatusBarIcons,
             ) { enabled, onBack -> BackHandler(enabled, onBack) }
         }
+    }
+
+    // Dark icons on a light sky or page, light icons on a dark one.
+    private fun setStatusBarIcons(dark: Boolean) {
+        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = dark
     }
 
     // In the device's 12- or 24-hour setting, in the forecast's zone and not the device's.

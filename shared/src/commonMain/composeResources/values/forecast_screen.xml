@@ -4,10 +4,6 @@
     <string name="verdict_partly_dry">Finish indoors</string>
     <string name="verdict_dont_bother">Dry indoors</string>
     <string name="verdict_day_over">Too late today</string>
-    <string name="verdict_short_will_dry">Will dry</string>
-    <string name="verdict_short_partly_dry">Partly</string>
-    <string name="verdict_short_dont_bother">Don't bother</string>
-    <string name="verdict_short_none">–</string>
     <string name="day_today">Today</string>
     <string name="day_tomorrow">Tomorrow</string>
     <string name="day_short_monday">Mon</string>

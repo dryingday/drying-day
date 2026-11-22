@@ -32,13 +32,13 @@ fun publicSansFamily(): FontFamily = FontFamily(
     Font(Res.font.public_sans_bold, FontWeight.Bold),
 )
 
-/** The open cloth's verdict: 48 sp ExtraBold, line height 1.02. */
+/** The open cloth's verdict: 40 sp ExtraBold, line height 1.02. */
 @Composable
 fun verdictStyle(): TextStyle = TextStyle(
     fontFamily = bigShouldersFamily(),
     fontWeight = FontWeight.ExtraBold,
-    fontSize = 48.sp,
-    lineHeight = (48 * 1.02f).sp,
+    fontSize = 40.sp,
+    lineHeight = (40 * 1.02f).sp,
 )
 
 /** The day names on the cloths: 15 sp Bold. */

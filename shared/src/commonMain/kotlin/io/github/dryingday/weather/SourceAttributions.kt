@@ -9,9 +9,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import io.github.dryingday.labelStyle
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.attribution_places
 import io.github.dryingday.shared.resources.attribution_weather
@@ -22,6 +23,7 @@ private val linkStyles = TextLinkStyles(style = SpanStyle(textDecoration = TextD
 /**
  * The credits a source's licence asks for, with links to the source and the licence. Keep it next to the data.
  * A tap goes to the browser through [LinkAnnotation.Url], which does nothing if the device has no browser.
+ * In Public Sans, 13 sp, on every screen.
  */
 @Composable
 fun SourceAttributions(
@@ -38,7 +40,7 @@ fun SourceAttributions(
                 }
             BasicText(
                 attributionText(stringResource(sentence, attribution.name, attribution.licence), attribution),
-                style = TextStyle(color = color),
+                style = labelStyle().copy(color = color, fontWeight = FontWeight.Normal),
             )
         }
     }

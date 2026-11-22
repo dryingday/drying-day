@@ -32,25 +32,37 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.dryingday.Palette
+import io.github.dryingday.bodyStyle
+import io.github.dryingday.labelStyle
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-// The pictures and the hours row of the main screen. See docs/bolts/07-weather-at-a-glance.md, "The screen".
+// The pictures and the hours row of the main screen. See docs/bolts/07-weather-at-a-glance.md, "The screen", and
+// docs/bolts/09-washing-line.md, "The row of washing".
 
 internal val SMALL_PICTURE = 24.dp
-private val DRYING_BAR = 6.dp
 private val HOUR_COLUMN_MIN_WIDTH = 48.dp
 private val TIME_GAP = 8.dp
-private val TIME_TO_BAR = 4.dp
-private val BAR_TO_COLUMNS = 8.dp
+private val TIME_TO_LINE = 6.dp
+private val WASHING_LINE = 2.dp
+
+/** The garments hang from just inside the line's top edge. */
+private val GARMENT_DROP = 1.dp
+
+/** The tallest garment, the trousers: the space above the hours grows to fit them. */
+private val GARMENT_ROOM = GarmentKind.entries.maxOf { it.height }.dp
+private val WASHING_TO_COLUMNS = 8.dp
 
 @Composable
 @Suppress("SpreadOperator") // A handful of strings, resolved once each.
@@ -68,9 +80,9 @@ internal fun Picture(picture: DrawableResource, size: Dp, tint: Color) {
 }
 
 /**
- * The drying window bar and the hours row, in one sideways scroll. The columns share one width, the widest
- * column's, so a time maps to a place on the row; the bar and its times sit above them. The row opens with the
- * bar's start in view. See docs/bolts/08-fewer-words.md, "The drying window bar".
+ * The row of washing and the hours row, in one sideways scroll. The columns share one width, the widest column's,
+ * so a time maps to a place on the row; the washing and its times sit above them, placed where bolt 8's bar was.
+ * The row opens with the washing's start in view. See docs/bolts/09-washing-line.md, "The row of washing".
  */
 @Composable
 @Suppress("LongParameterList") // Each is passed in by name from the screen.
@@ -80,7 +92,8 @@ internal fun HoursRow(
     zone: TimeZone,
     formatTime: TimeFormat,
     spokenTimes: String,
-    body: TextStyle,
+    seed: LocalDate,
+    palette: Palette,
 ) {
     val scroll = rememberScrollState()
     val density = LocalDensity.current
@@ -94,7 +107,8 @@ internal fun HoursRow(
             scroll.scrollTo(opening * columnPx)
         }
     }
-    val small = body.copy(fontSize = 13.sp, textAlign = TextAlign.Center)
+    val body = bodyStyle().copy(color = palette.ink)
+    val small = labelStyle().copy(color = palette.ink, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
     Box(Modifier.fillMaxWidth().horizontalScroll(scroll)) {
         SubcomposeLayout { constraints ->
             val loose = Constraints()
@@ -105,47 +119,56 @@ internal fun HoursRow(
             if (width != columnPx) columnPx = width
             val widthDp = with(density) { width.toDp() }
             val rowWidth = width * columns.size
-            val span = barSpan(columns, window, widthDp.value, with(density) { rowWidth.toDp() }.value)
-            val bar =
-                measureBar(
-                    BarRequest(span, window, zone, formatTime, spokenTimes, small, body.color),
+            val rowWidthDp = with(density) { rowWidth.toDp() }.value
+            val span = barSpan(columns, window, widthDp.value, rowWidthDp)
+            val washing =
+                measureWashing(
+                    WashingRequest(span, window, zone, formatTime, spokenTimes, small, palette, seed, rowWidthDp),
                     density,
                     rowWidth,
                 )
-            // Subcomposed after the bar, so a screen reader reads the bar and its times before the columns.
+            // Subcomposed after the washing, so a screen reader reads it and its times before the columns.
             val cells = subcompose("columns") { columns.forEach { HourColumnView(it, widthDp, body) } }
                 .map { it.measure(Constraints(minWidth = width, maxWidth = width)) }
-            val columnsTop = bar.height
+            val columnsTop = washing.height
             layout(rowWidth, columnsTop + (cells.maxOfOrNull { it.height } ?: 0)) {
-                bar.place(this)
+                washing.place(this)
                 cells.forEachIndexed { i, cell -> cell.placeRelative(i * width, columnsTop) }
             }
         }
     }
 }
 
-@Suppress("LongParameterList") // Everything the bar is drawn from, in one place.
-private class BarRequest(
+@Suppress("LongParameterList") // Everything the washing is drawn from, in one place.
+private class WashingRequest(
     val span: BarSpan?,
     val window: Window?,
     val zone: TimeZone,
     val formatTime: TimeFormat,
     val spokenTimes: String,
     val timeStyle: TextStyle,
-    val color: Color,
+    val palette: Palette,
+    val seed: LocalDate,
+    val rowWidthDp: Float,
 )
 
-private class MeasuredBar(val height: Int, val place: Placeable.PlacementScope.() -> Unit)
+private class MeasuredWashing(val height: Int, val place: Placeable.PlacementScope.() -> Unit)
 
-private val NO_BAR = MeasuredBar(0) {}
+private val NO_WASHING = MeasuredWashing(0) {}
 
-// The bar, and its times above it: the hang-out time over the bar's start and the bring-in time over its end, or,
-// when the two don't fit side by side over the bar with a gap, one label centred over the bar and kept in the row.
-// The bar and its times are one node, reading the sentence; the times are decorative.
-private fun SubcomposeMeasureScope.measureBar(request: BarRequest, density: Density, rowWidth: Int): MeasuredBar {
+// The washing, and its times above it: the hang-out time over its start and the bring-in time over its end, or,
+// when the two don't fit side by side over it with a gap, one label centred over it and kept in the row. Under
+// the times, a line the row's full width; the garments hang from it between bolt 8's bar ends. The washing and
+// its times are one node, reading the sentence; the times and the line are decorative.
+@Suppress("LongMethod") // The times, the line and the washing, measured and placed together.
+private fun SubcomposeMeasureScope.measureWashing(
+    request: WashingRequest,
+    density: Density,
+    rowWidth: Int,
+): MeasuredWashing {
     val span = request.span
     val window = request.window
-    if (span == null || window == null) return NO_BAR
+    if (span == null || window == null) return NO_WASHING
     with(density) {
         val loose = Constraints()
         val start = span.start.dp.roundToPx()
@@ -162,8 +185,7 @@ private fun SubcomposeMeasureScope.measureBar(request: BarRequest, density: Dens
             subcompose("label") {
                 BasicText(
                     barLabel(window, request.zone, request.formatTime).resolve(),
-                    Modifier.clearAndSetSemantics {
-                    },
+                    Modifier.clearAndSetSemantics {},
                     style = request.timeStyle,
                 )
             }.first().measure(loose)
@@ -171,18 +193,29 @@ private fun SubcomposeMeasureScope.measureBar(request: BarRequest, density: Dens
             null
         }
         val textHeight = label?.height ?: maxOf(hang.height, bring.height)
-        val barTop = textHeight + TIME_TO_BAR.roundToPx()
-        val bar = subcompose("bar") {
-            Box(Modifier.background(request.color).clearAndSetSemantics { contentDescription = request.spokenTimes })
-        }.first().measure(Constraints.fixed(end - start, DRYING_BAR.roundToPx()))
-        return MeasuredBar(barTop + bar.height + BAR_TO_COLUMNS.roundToPx()) {
+        val lineTop = textHeight + TIME_TO_LINE.roundToPx()
+        val line = subcompose("line") {
+            Box(Modifier.background(request.palette.muted).clearAndSetSemantics {})
+        }.first().measure(Constraints.fixed(rowWidth, WASHING_LINE.roundToPx()))
+        val garments = washingRow(span.start, span.end, request.rowWidthDp, request.seed)
+        val washing = subcompose("washing") {
+            Washing(
+                garments,
+                span.start,
+                request.palette,
+                Modifier.clearAndSetSemantics { contentDescription = request.spokenTimes },
+            )
+        }.first().measure(Constraints.fixed(maxOf(end - start, 1), GARMENT_ROOM.roundToPx()))
+        val hangFrom = lineTop + GARMENT_DROP.roundToPx()
+        return MeasuredWashing(hangFrom + GARMENT_ROOM.roundToPx() + WASHING_TO_COLUMNS.roundToPx()) {
             if (label != null) {
                 label.placeRelative(((start + end - label.width) / 2).coerceIn(0, maxOf(0, rowWidth - label.width)), 0)
             } else {
                 hang.placeRelative(start, 0)
                 bring.placeRelative(end - bring.width, 0)
             }
-            bar.placeRelative(start, barTop)
+            line.placeRelative(0, lineTop)
+            washing.placeRelative(start, hangFrom)
         }
     }
 }
