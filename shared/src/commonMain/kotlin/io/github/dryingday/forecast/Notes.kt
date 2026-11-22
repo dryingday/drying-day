@@ -1,5 +1,6 @@
 package io.github.dryingday.forecast
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import io.github.dryingday.Palette
 import io.github.dryingday.engine.Load
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.load_heavy
@@ -100,69 +102,66 @@ internal fun LoadNote(open: Boolean, onToggle: () -> Unit, body: TextStyle) {
 }
 
 /**
- * Two halves side by side, light to heavy from left to right, the weights on the outer ends. The chosen half has a
- * border and bold text, so it isn't carried by colour alone. At large font sizes the halves stack, light first,
- * each with its weight at the start.
+ * Two halves side by side, light to heavy from left to right, the weights on the outer ends, inside one square 2 dp
+ * ink border. The chosen half is filled with ink, its text in the page colour and bold, so it isn't carried by
+ * colour alone. At large font sizes the halves stack, light first, each with its weight at the start.
  */
 @Composable
-internal fun LoadToggle(selected: Load, onSelect: (Load) -> Unit, body: TextStyle) {
+internal fun LoadToggle(selected: Load, onSelect: (Load) -> Unit, body: TextStyle, palette: Palette) {
     val stacked = LocalDensity.current.fontScale >= STACK_FROM_FONT_SCALE
     val half = @Composable { load: Load, modifier: Modifier ->
-        LoadHalf(load, load == selected, stacked, body, modifier) { onSelect(load) }
+        LoadHalf(load, load == selected, stacked, LoadLook(body, palette), modifier) { onSelect(load) }
     }
+    val frame = Modifier.fillMaxWidth().border(TOGGLE_BORDER, palette.ink).selectableGroup()
     if (stacked) {
-        Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(frame) {
             half(Load.LIGHT, Modifier.fillMaxWidth())
             half(Load.HEAVY, Modifier.fillMaxWidth())
         }
     } else {
-        Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(frame) {
             half(Load.LIGHT, Modifier.weight(1f))
             half(Load.HEAVY, Modifier.weight(1f))
         }
     }
 }
 
+private val TOGGLE_BORDER = 2.dp
+
+private class LoadLook(val body: TextStyle, val palette: Palette)
+
 @Composable
-@Suppress("LongParameterList") // Each is passed in by name from the screen.
+@Suppress("LongParameterList") // Each is passed in by name from the toggle.
 private fun LoadHalf(
     load: Load,
     selected: Boolean,
     stacked: Boolean,
-    body: TextStyle,
+    look: LoadLook,
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
     val spoken = stringResource(if (load == Load.LIGHT) Res.string.load_light else Res.string.load_heavy)
     val name = stringResource(if (load == Load.LIGHT) Res.string.load_toggle_light else Res.string.load_toggle_heavy)
     val weightFirst = load == Load.LIGHT || stacked
-    val outline = if (selected) Modifier.border(2.dp, body.color) else Modifier
+    val text = if (selected) look.palette.page else look.palette.ink
+    val fill = if (selected) Modifier.background(look.palette.ink) else Modifier
     Row(
-        modifier.heightIn(min = MIN_TARGET).then(outline)
+        modifier.heightIn(min = MIN_TARGET).then(fill)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
             .semantics { contentDescription = spoken }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(
-            8.dp,
-            if (load == Load.LIGHT ||
-                stacked
-            ) {
-                Alignment.Start
-            } else {
-                Alignment.End
-            },
-        ),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, if (weightFirst) Alignment.Start else Alignment.End),
     ) {
         val label = @Composable {
             BasicText(
                 name,
                 Modifier.clearAndSetSemantics {},
-                style = body.copy(fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal),
+                style = look.body.copy(color = text, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal),
             )
         }
-        if (weightFirst) Picture(load.picture(), SMALL_PICTURE, body.color)
+        if (weightFirst) Picture(load.picture(), SMALL_PICTURE, text)
         label()
-        if (!weightFirst) Picture(load.picture(), SMALL_PICTURE, body.color)
+        if (!weightFirst) Picture(load.picture(), SMALL_PICTURE, text)
     }
 }
