@@ -145,7 +145,7 @@ What each verdict gets (shake, spray count, drips) is pure logic in PR 3, from t
   | `WILL_DRY` | 4° | 3 | 0.9 s | none |
   | `PARTLY_DRY` | 6° | 5 | 0.8 s | 12 |
   | `DONT_BOTHER` | 9° | 6 | 0.75 s | 26 |
-  | No patch (`null`, day over, polar night) | 4° | 3 | 0.9 s | none |
+  | No patch (`null`, day over, polar night), the same as `WILL_DRY` | 4° | 3 | 0.9 s | none |
 
 - **The spray.** On a wet cloth's shake, 120 ms in, drops leave from both side edges of the cloth, placed along its height, arc outward and up, then fall 50 to 130 dp and fade, over 0.6 to 1 s each.
 - **The rain**, on a `DONT_BOTHER` day whose `firstWet` isn't `null`: thin white streaks at a slope of 1 across to 4 down, falling along that slope, in two layers. The near streaks fall at about 320 dp/s, the far ones at half that, the whole at 38 % opacity, behind the place and the cloths. It fades in and out over 500 ms when the day changes.
@@ -178,7 +178,7 @@ The day tabs, the verdict pictures beside the headline and in the tabs (`verdict
 
 ### The drawings
 
-Drawn for this app and licensed with it (GPL-3.0-or-later): the garments (`garment_tee`, `garment_trousers`, `garment_shorts`, `garment_sock`, `garment_towel`), the `drop`, and the sky pictures (`sky_sun`, `sky_sun_cloud`, `sky_rain_cloud`). Each has an SVG source in `art/`. Each needs more than one colour (a garment's fill and its outline, the sun, its ring and the cloud), and a vector drawable can only be tinted as a whole, so the app draws them in code: their path data sits in one Kotlin file, parsed with `PathParser` from Compose's graphics library (already in the app), each layer filled or stroked with its palette colour at draw time, so one set serves light and dark. A test checks each SVG in `art/` against its path data. No new drawables. The cloths, pegs, weave, wet patch and rain are drawn in code too. PR 4 adds the drawings to the contact sheet (`art/pictures-sheet.png`), in light and dark.
+Drawn for this app and licensed with it (GPL-3.0-or-later): the garments (`garment_tee`, `garment_trousers`, `garment_shorts`, `garment_sock`, `garment_towel`), the `drop`, and the sky pictures (`sky_sun`, `sky_sun_cloud`, `sky_rain_cloud`). Each has an SVG source in `art/`. Each needs more than one colour (a garment's fill and its outline, the sun, its ring and the cloud), and a vector drawable can only be tinted as a whole, so the app draws them in code: their path data sits in one Kotlin file, parsed with `PathParser` from Compose's graphics library (already in the app), each layer filled or stroked with its palette colour at draw time, so one set serves light and dark. A JVM test (`androidHostTest`, which can read `art/`) checks each SVG against its path data. No new drawables. The cloths, pegs, weave, wet patch and rain are drawn in code too. PR 4 adds the drawings to the contact sheet (`art/pictures-sheet.png`), in light and dark.
 
 ### Release
 
@@ -234,7 +234,7 @@ In `androidApp/build.gradle.kts`, `versionName` 1.3.0 and `versionCode` 5, with 
 |---|---|---|
 | 0 | This spec and its mock, the lines it changes in bolts 5, 7 and 8, the new verdict wording in `docs/PLAN.md`, and bolt 9 in its table | high (a visual design) |
 | 1 | The fonts and their licences as the table names them, the type styles, the README's Licence lines, the font test | medium (the files, sources, commits and hashes this spec names) |
-| 2 | The palette and its contrast test, with the fonts and square buttons, applied to first run, search and places; the main screen untouched | medium (UI) |
+| 2 | The palette and its contrast test, with the fonts and square buttons, applied to first run, search and places; the main screen untouched. The sky colours are tokens in this palette; the `when` that picks one is PR 3 | medium (UI) |
 | 3 | The logic and the text: the never-out predicate, wet share, the sky choice, cloth labels, stacking, the washing row, the motion choices, the new strings and the updated string tests | medium (UI copy) |
 | 4 | The drawings this spec names: SVG sources in `art/`, their path data and its test, and the contact sheet | medium (art for the design this spec approves; the maintainer sees it on screen in PR 5) |
 | 5 | The main screen: the palette, the sky, the line and cloths, the washing row, the motion, the restyled sections; removing the tabs, `verdict_short_*`, the verdict pictures and their test, and the bar; the emulator run | high (asks the maintainer, from the recordings: "Does the line read at a glance, and is the motion right?") |
