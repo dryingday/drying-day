@@ -31,7 +31,7 @@ The commits are the ones Google Fonts builds each family from (`ofl/bigshoulders
 - The licence texts ship in the APK with the fonts, as the OFL asks. `README.md`'s Licence section names the two fonts, their licence and those files. `LICENSE` is untouched. The fonts stay under the OFL; the app stays GPL-3.0-or-later. The OFL allows bundling with any software, and F-Droid accepts OFL fonts.
 - PR 1 checks each file's SHA-256 against this table.
 
-Sizes, in sp so they follow the font scale: the open cloth's verdict 40 (48 until the maintainer's review of PR 5 found the cloths too tall; at 40 "Finish indoors" fits on one line on a phone), Big Shoulders ExtraBold, line height 1.02 (tighter and a "y" touches the line below); the day names on the cloths 15, Bold; section headings 22, Bold. Body text 15 Public Sans Regular, labels and buttons 13 to 14 SemiBold or Bold. The verdict has a second print 2 dp right and 2 dp down in the laundry blue at 30 %, like a stamped linen mark. It's decorative and drawn behind the text.
+Sizes, in sp so they follow the font scale: the open cloth's verdict 40 (48 until the maintainer's review of PR 5 found the cloths too tall; at 40 "Finish indoors" fits on one line on a phone), Big Shoulders ExtraBold, line height 1.02 (tighter and a "y" touches the line below); the day names on the cloths 15, Bold; section headings 22, Bold. Body text 15 Public Sans Regular, labels and buttons 13 to 14 SemiBold or Bold. The verdict has a second print 2 dp right and 2 dp down in the second print colour, like a stamped linen mark. It's decorative and drawn behind the text.
 
 ### Colour
 
@@ -43,13 +43,16 @@ One palette for every screen, in one place in the code, replacing the colours ea
 | Ink | `#16202B` | `#E8EAED` | Text on the page |
 | Muted | `#4A5666` | `#A3ABB6` | Secondary text, the second line |
 | Rule | `#C3CDD7` | `#33383F` | Dividers |
-| Laundry blue | `#2F5F8A` | `#9CC2E3` | The verdict's second print, focus rings |
+| Laundry blue | `#2F5F8A` | `#9CC2E3` | Focus rings |
+| Second print | `#2F5F8A` at 30 % | `#2F5F8A` at 30 % | The verdict's second print. The cloth is light in both modes, so the print is the light mode's blue in both |
 | Cloth | `#FFFFFF` | `#ECE8DF` | The cloths, in both modes |
-| Cloth ink | `#16202B` | `#16202B` | Text on a cloth, the garments' outlines |
+| Cloth ink | `#16202B` | `#16202B` | Text on a cloth |
+| Garment outline | `#16202B` | `#7D8794` | The garments' outlines: in dark mode a mid grey that shows against both the fills and the dark page |
 | Peg wood | `#C99A5B` | `#B9893F` | Pegs and the tips' bullets |
 | Sun | `#FFD84D` | `#F4C84A` | The sun in the sky |
 | Cloud | `#EEF4F9` | `#6D7C8C` | The cloud over the sun |
-| Dark cloud | `#2F3C4A` | `#0C1117` | The cloud on a don't-bother day, at 55 % |
+| Dark cloud | `#2F3C4A` | `#56677A` | The cloud on a don't-bother day, at 55 % (dark mode lighter than its sky, so it shows) |
+| Sun ring | `#FFFFFF` at 30 % | `#FFFFFF` at 18 % | The soft ring round the sun: white, as yellow over the blue sky reads green |
 | Drop | `#DDF0FC` | `#CFE8F8` | Drips and spray, outlined in the drop edge |
 | Drop edge | `#2F5F8A` | `#0E1A28` | |
 | Garments | `#FFFFFF`, `#9CC2E3`, `#E8D5B0`, `#F2B8A2` | the same | The row of washing |
@@ -126,7 +129,7 @@ A 2 dp line, in the muted colour, runs the row's full width. Between the bar's s
 | Sock | 11 × 20 | 3 |
 | Tea towel | 22 × 22 | 3, 14 |
 
-Pegs here are 3.5 by 8 dp, in scale with the clothes. Each garment is outlined 1.3 dp in the cloth ink and filled with one of the four garment colours.
+Pegs here are 3.5 by 8 dp, in scale with the clothes. Each garment is outlined 1.3 dp in the garment outline colour and filled with one of the four garment colours.
 
 **Which garments**, as pure logic: a function from the span's width in dp and a seed (the day's date) to a list of garments and their x positions. It picks garments and colours with a fixed pseudo-random sequence from the seed, adding them while they fit with at least 4 dp between them. Two or more are spread so the first starts at the span's start and the last ends at its end. So a day always hangs the same washing, the row fills its window, and nothing is cut off. When only one fits, it's centred on the span. A span narrower than the narrowest garment (the sock), including a span of zero when the times meet, hangs one sock centred on the span. Either way a lone garment is kept inside the row, so a short window still shows. The row is worked out again when its width changes (font scale, rotation).
 
@@ -241,4 +244,5 @@ In `androidApp/build.gradle.kts`, `versionName` 1.3.0 and `versionCode` 5, with 
 | 3 | The logic and the text: the never-out predicate, wet share, the sky choice, cloth labels, stacking, the washing row, the motion choices, the new strings and the updated string tests | medium (UI copy) |
 | 4 | The drawings this spec names: SVG sources in `art/`, their path data and its test, and the contact sheet | medium (art for the design this spec approves; the maintainer sees it on screen in PR 5) |
 | 5 | The main screen: the palette, the sky, the line and cloths, the washing row, the motion, the restyled sections; removing the tabs, `verdict_short_*`, the verdict pictures and their test, and the bar; the emulator run | high (asks the maintainer, from the recordings: "Does the line read at a glance, and is the motion right?") |
+| 5b | The colours from the review of PR 5: second print, garment outline, dark cloud and sun ring as the Colour table now gives them; the laundry-blue focus ring on every screen; the verdict pictures out of the contact sheet | medium (the values this spec names) |
 | 6 | 1.3.0: version, changelog, retaken screenshots. After it's merged: the tag, then `scripts/release.py 1.3.0` | high (version bump, store listing) |
