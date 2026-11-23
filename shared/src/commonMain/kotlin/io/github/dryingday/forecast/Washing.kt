@@ -57,7 +57,7 @@ private fun DrawScope.garment(garment: Garment, left: Float, palette: Palette) {
             drawPath(drawing.layer("fill").path, GarmentColors[garment.colour % GarmentColors.size])
             drawPath(
                 drawing.layer("line").path,
-                palette.clothInk,
+                palette.garmentOutline,
                 style = Stroke(OUTLINE_WIDTH, cap = StrokeCap.Round, join = StrokeJoin.Round),
             )
         }

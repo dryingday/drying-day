@@ -1,6 +1,8 @@
 package io.github.dryingday
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -85,42 +87,57 @@ fun App(
         }
     }
 
-    // The main screen sets them by its sky; the others by the page.
-    if (screen != Screen.Main || places.current == null) StatusBarIcons(palette().ink, statusBarIcons)
-    if (screen == Screen.Search) {
-        backHandler(true, closeSearch)
-        val scope = rememberCoroutineScope()
-        val language = twoLetterLanguage(Locale.current.language)
-        val state = remember(placeStore, searchSource, language) {
-            PlaceSearchState(searchSource, placeStore, language, scope) {
-                places.refresh()
-                closeSearch()
-            }
+    val colours = palette()
+    val indication = remember(colours) { FocusRing(colours.laundryBlue, colours.ink) }
+    CompositionLocalProvider(LocalIndication provides indication) {
+        // The main screen sets them by its sky; the others by the page.
+        if (screen != Screen.Main || places.current == null) StatusBarIcons(colours.ink, statusBarIcons)
+        if (screen == Screen.Search) {
+            backHandler(true, closeSearch)
+            SearchRoute(placeStore, searchSource, places, closeSearch)
+        } else if (places.current == null) {
+            FirstRunScreen(adding, onSearch = {
+                searchFromPlaces = false
+                screen = Screen.Search
+            })
+        } else if (screen == Screen.Places) {
+            backHandler(true) { screen = Screen.Main }
+            PlacesScreen(places, adding, searchSource.attributions, onSearch = {
+                searchFromPlaces = true
+                screen = Screen.Search
+            }) { screen = Screen.Main }
+        } else {
+            MainScreen(
+                place = checkNotNull(current),
+                state = forecast,
+                days = DayPicker(selectedDay) { selectedDay = it },
+                attributions = forecastSource.attributions,
+                formatTime = formatTime,
+                formatHour = formatHour,
+                onPlaces = { screen = Screen.Places },
+                statusBarIcons = statusBarIcons,
+            )
         }
-        PlaceSearchScreen(state, searchSource.attributions, closeSearch)
-    } else if (places.current == null) {
-        FirstRunScreen(adding, onSearch = {
-            searchFromPlaces = false
-            screen = Screen.Search
-        })
-    } else if (screen == Screen.Places) {
-        backHandler(true) { screen = Screen.Main }
-        PlacesScreen(places, adding, searchSource.attributions, onSearch = {
-            searchFromPlaces = true
-            screen = Screen.Search
-        }) { screen = Screen.Main }
-    } else {
-        MainScreen(
-            place = checkNotNull(current),
-            state = forecast,
-            days = DayPicker(selectedDay) { selectedDay = it },
-            attributions = forecastSource.attributions,
-            formatTime = formatTime,
-            formatHour = formatHour,
-            onPlaces = { screen = Screen.Places },
-            statusBarIcons = statusBarIcons,
-        )
     }
+}
+
+/** The place search, with its state made for the language the device is in. */
+@Composable
+private fun SearchRoute(
+    placeStore: PlaceStore,
+    searchSource: PlaceSearchSource,
+    places: PlacesState,
+    closeSearch: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val language = twoLetterLanguage(Locale.current.language)
+    val state = remember(placeStore, searchSource, language) {
+        PlaceSearchState(searchSource, placeStore, language, scope) {
+            places.refresh()
+            closeSearch()
+        }
+    }
+    PlaceSearchScreen(state, searchSource.attributions, closeSearch)
 }
 
 /** The forecast state, held above the screens so it survives going to the places screen and back. */
