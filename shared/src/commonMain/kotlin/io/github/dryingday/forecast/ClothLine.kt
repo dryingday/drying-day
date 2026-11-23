@@ -67,7 +67,6 @@ private val DRIP_ROOM = 16.dp
 private val EMPTY_LINE_ROOM = 24.dp
 
 private val PRINT_OFFSET = 2.dp
-private const val PRINT_ALPHA = 0.3f
 private const val OPEN_MS = 400
 
 /** The mock's ease for the widths, cubic-bezier(.3, .7, .2, 1). */
@@ -292,7 +291,7 @@ internal fun clothLook(palette: Palette, animations: Boolean, clock: State<Long>
         name = dayNameStyle().copy(color = palette.clothInk, lineHeight = 1.em, lineHeightStyle = tight),
         verdict = verdictStyle().copy(
             color = palette.clothInk,
-            shadow = Shadow(palette.laundryBlue.copy(alpha = PRINT_ALPHA), Offset(print, print), 0f),
+            shadow = Shadow(palette.secondPrint, Offset(print, print), 0f),
         ),
         body = bodyStyle().copy(color = palette.clothInk),
         animations = animations,

@@ -49,7 +49,6 @@ import io.github.dryingday.bodyStyle
 private const val SKY_FADE_MS = 400
 private const val RAIN_FADE_MS = 500
 private const val RAIN_ALPHA = 0.38f
-private const val RING_ALPHA = 0.28f
 private const val RAIN_CLOUD_ALPHA = 0.55f
 
 /** The space of sky between the place's row and the line, where the picture shows above the cloths. */
@@ -153,7 +152,7 @@ private fun DrawScope.skyPicture(picture: SkyPicture, palette: Palette) {
         scale(unit, unit, Offset.Zero) {
             for (layer in drawing.layers) {
                 val (colour, alpha) = when (layer.role) {
-                    "ring" -> palette.sun to RING_ALPHA
+                    "ring" -> palette.sunRing to 1f
 
                     "sun" -> palette.sun to 1f
 

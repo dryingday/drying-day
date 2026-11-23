@@ -18,10 +18,13 @@ class Palette(
     val muted: Color,
     val rule: Color,
     val laundryBlue: Color,
+    val secondPrint: Color,
     val cloth: Color,
     val clothInk: Color,
+    val garmentOutline: Color,
     val pegWood: Color,
     val sun: Color,
+    val sunRing: Color,
     val cloud: Color,
     val darkCloud: Color,
     val drop: Color,
@@ -37,10 +40,13 @@ class Palette(
             muted = Color(0xFF4A5666),
             rule = Color(0xFFC3CDD7),
             laundryBlue = Color(0xFF2F5F8A),
+            secondPrint = SecondPrint,
             cloth = Color(0xFFFFFFFF),
             clothInk = Color(0xFF16202B),
+            garmentOutline = Color(0xFF16202B),
             pegWood = Color(0xFFC99A5B),
             sun = Color(0xFFFFD84D),
+            sunRing = Color.White.copy(alpha = 0.30f),
             cloud = Color(0xFFEEF4F9),
             darkCloud = Color(0xFF2F3C4A),
             drop = Color(0xFFDDF0FC),
@@ -56,12 +62,15 @@ class Palette(
             muted = Color(0xFFA3ABB6),
             rule = Color(0xFF33383F),
             laundryBlue = Color(0xFF9CC2E3),
+            secondPrint = SecondPrint,
             cloth = Color(0xFFECE8DF),
             clothInk = Color(0xFF16202B),
+            garmentOutline = Color(0xFF7D8794),
             pegWood = Color(0xFFB9893F),
             sun = Color(0xFFF4C84A),
+            sunRing = Color.White.copy(alpha = 0.18f),
             cloud = Color(0xFF6D7C8C),
-            darkCloud = Color(0xFF0C1117),
+            darkCloud = Color(0xFF56677A),
             drop = Color(0xFFCFE8F8),
             dropEdge = Color(0xFF0E1A28),
             willDrySky = Sky(Color(0xFF1F5FA8), Color(0xFFF4F7FA)),
@@ -70,6 +79,9 @@ class Palette(
         )
     }
 }
+
+/** The verdict's second print: the light mode's laundry blue at 30 % in both modes, as the cloth is light in both. */
+private val SecondPrint = Color(0xFF2F5F8A).copy(alpha = 0.30f)
 
 /** The wet patch on a cloth, in both modes. */
 val WetPatchColor = Color(0xFF1C3A5C)
