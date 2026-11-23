@@ -1,6 +1,5 @@
 package io.github.dryingday.forecast
 
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -42,7 +40,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import io.github.dryingday.FocusRing
 import io.github.dryingday.InkButton
 import io.github.dryingday.Palette
 import io.github.dryingday.StatusBarIcons
@@ -139,46 +136,43 @@ fun MainScreen(
     // Only while something on the line or in the sky moves.
     val clock = rememberFrameClock(animations && (sky.rain || cloths.any { it.motion.dripsSmall > 0 }))
     val clothLook = clothLook(colours, animations, clock)
-    val indication = remember(colours) { FocusRing(colours.laundryBlue, colours.ink) }
-    CompositionLocalProvider(LocalIndication provides indication) {
-        Box(Modifier.fillMaxSize().background(colours.page)) {
-            Column(Modifier.verticalScroll(scroll)) {
-                Box(Modifier.onSizeChanged { skyHeight = it.height }) {
-                    SkyScene(sky, colours, animations, clock, placeLabel(place), onPlaces) { ink ->
-                        ClothLine(cloths, showing?.today, days.selected, days.onSelect, ink, clothLook)
-                    }
-                }
-                Column(
-                    Modifier.windowInsetsPadding(
-                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
-                    ).padding(SIDE),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    LoadToggle(state.load, state::chooseLoad, look.body, colours)
-                    LoadNote(notes.load, { notes.load = !notes.load }, look.body)
-                    when (status) {
-                        is ForecastStatus.Showing -> Showing(status, state, days, notes, formatTime, formatHour, look)
-
-                        is ForecastStatus.Loading -> Message(Res.string.forecast_loading, look.body)
-
-                        is ForecastStatus.Failed -> {
-                            Message(status.error.textWithoutForecast(), look.body)
-                            InkButton(stringResource(Res.string.forecast_try_again), colours, onClick = state::refresh)
-                        }
-
-                        is ForecastStatus.OutOfDate -> OutOfDate(status, state, look)
-                    }
-                    SourceAttributions(attributions, color = colours.muted)
+    Box(Modifier.fillMaxSize().background(colours.page)) {
+        Column(Modifier.verticalScroll(scroll)) {
+            Box(Modifier.onSizeChanged { skyHeight = it.height }) {
+                SkyScene(sky, colours, animations, clock, placeLabel(place), onPlaces) { ink ->
+                    ClothLine(cloths, showing?.today, days.selected, days.onSelect, ink, clothLook)
                 }
             }
-            state.refreshNotice?.let {
-                RefreshNoticeBar(
-                    it,
-                    colours,
-                    state::dismissRefreshNotice,
-                    Modifier.safeDrawingPadding().align(Alignment.BottomCenter),
-                )
+            Column(
+                Modifier.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
+                ).padding(SIDE),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                LoadToggle(state.load, state::chooseLoad, look.body, colours)
+                LoadNote(notes.load, { notes.load = !notes.load }, look.body)
+                when (status) {
+                    is ForecastStatus.Showing -> Showing(status, state, days, notes, formatTime, formatHour, look)
+
+                    is ForecastStatus.Loading -> Message(Res.string.forecast_loading, look.body)
+
+                    is ForecastStatus.Failed -> {
+                        Message(status.error.textWithoutForecast(), look.body)
+                        InkButton(stringResource(Res.string.forecast_try_again), colours, onClick = state::refresh)
+                    }
+
+                    is ForecastStatus.OutOfDate -> OutOfDate(status, state, look)
+                }
+                SourceAttributions(attributions, color = colours.muted)
             }
+        }
+        state.refreshNotice?.let {
+            RefreshNoticeBar(
+                it,
+                colours,
+                state::dismissRefreshNotice,
+                Modifier.safeDrawingPadding().align(Alignment.BottomCenter),
+            )
         }
     }
 }

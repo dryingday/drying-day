@@ -91,7 +91,7 @@ fun App(
     val indication = remember(colours) { FocusRing(colours.laundryBlue, colours.ink) }
     CompositionLocalProvider(LocalIndication provides indication) {
         // The main screen sets them by its sky; the others by the page.
-        if (screen != Screen.Main || places.current == null) StatusBarIcons(palette().ink, statusBarIcons)
+        if (screen != Screen.Main || places.current == null) StatusBarIcons(colours.ink, statusBarIcons)
         if (screen == Screen.Search) {
             backHandler(true, closeSearch)
             SearchRoute(placeStore, searchSource, places, closeSearch)
