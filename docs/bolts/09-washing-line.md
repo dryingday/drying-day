@@ -43,11 +43,11 @@ One palette for every screen, in one place in the code, replacing the colours ea
 | Ink | `#16202B` | `#E8EAED` | Text on the page |
 | Muted | `#4A5666` | `#A3ABB6` | Secondary text, the second line |
 | Rule | `#C3CDD7` | `#33383F` | Dividers |
-| Laundry blue | `#2F5F8A` | `#9CC2E3` | Focus rings |
+| Laundry blue | `#2F5F8A` | `#9CC2E3` | Focus rings, on every screen |
 | Second print | `#2F5F8A` at 30 % | `#2F5F8A` at 30 % | The verdict's second print. The cloth is light in both modes, so the print is the light mode's blue in both |
 | Cloth | `#FFFFFF` | `#ECE8DF` | The cloths, in both modes |
 | Cloth ink | `#16202B` | `#16202B` | Text on a cloth |
-| Garment outline | `#16202B` | `#7D8794` | The garments' outlines: in dark mode a mid grey that shows against both the fills and the dark page |
+| Garment outline | `#16202B` | `#7D8794` | The garments' outlines: in dark mode a mid grey that shows against the dark page and most fills |
 | Peg wood | `#C99A5B` | `#B9893F` | Pegs and the tips' bullets |
 | Sun | `#FFD84D` | `#F4C84A` | The sun in the sky |
 | Cloud | `#EEF4F9` | `#6D7C8C` | The cloud over the sun |
