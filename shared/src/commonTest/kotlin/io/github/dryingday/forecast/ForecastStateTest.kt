@@ -1,6 +1,7 @@
 package io.github.dryingday.forecast
 
 import com.russhwolf.settings.MapSettings
+import io.github.dryingday.engine.Equipment
 import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.Load
 import io.github.dryingday.engine.Reason
@@ -509,6 +510,32 @@ class ForecastStateTest {
 
         assertEquals(advise(theForecast, Load.LIGHT, h.clock.now()), h.showing.days)
         assertNotEquals(emptyList(), heavy)
+        assertEquals(1, h.source.calls.size)
+    }
+
+    @Test
+    fun theKitIsNotSaidUntilChosenAndThenRemembered() = runTest {
+        val settings = MapSettings()
+        val first = Harness(this, settings)
+        assertNull(first.state.kit)
+
+        first.state.chooseKit(setOf(Equipment.DEHUMIDIFIER, Equipment.AIRER))
+
+        assertEquals("AIRER,DEHUMIDIFIER", settings.getStringOrNull("equipment"))
+        assertEquals(setOf(Equipment.AIRER, Equipment.DEHUMIDIFIER), Harness(this, settings).state.kit)
+        first.state.chooseKit(emptySet())
+        assertEquals(emptySet(), Harness(this, settings).state.kit)
+    }
+
+    @Test
+    fun changingTheKitRerunsTheEngineAndFetchesNothing() = runTest {
+        val h = Harness(this)
+        h.open()
+        val kit = setOf(Equipment.TUMBLE_DRYER)
+
+        h.state.chooseKit(kit)
+
+        assertEquals(advise(theForecast, h.state.load, h.clock.now(), kit), h.showing.days)
         assertEquals(1, h.source.calls.size)
     }
 

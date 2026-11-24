@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.russhwolf.settings.Settings
+import io.github.dryingday.engine.Equipment
 import io.github.dryingday.engine.Load
 import io.github.dryingday.engine.advise
 import io.github.dryingday.weather.Coordinates
@@ -44,8 +45,9 @@ private const val MILLIS_PER_MINUTE = 60_000L
  * on screen ([setOnScreen]) or the user asks ([refresh]), and only for the current place ([setPlace]).
  *
  * @param scope runs the fetch and the minute tick; the caller owns it.
- * @param settings holds the load under `load`.
+ * @param settings holds the load under `load` and the kit under `equipment`.
  */
+@Suppress("TooManyFunctions") // One state holder: the load and the kit each add a setter beside place and fetch.
 class ForecastState(
     private val source: ForecastSource,
     private val cache: ForecastCache,
@@ -57,6 +59,10 @@ class ForecastState(
         private set
 
     var load: Load by mutableStateOf(readLoad(settings))
+        private set
+
+    /** What the person dries with: null until they say. Only the indoor plan follows it. */
+    var kit: Set<Equipment>? by mutableStateOf(readKit(settings))
         private set
 
     /**
@@ -87,6 +93,13 @@ class ForecastState(
     fun chooseLoad(value: Load) {
         load = value
         settings.putString(LOAD_KEY, value.name)
+        recompute()
+    }
+
+    /** Changing the kit re-runs the engine and fetches nothing. */
+    fun chooseKit(value: Set<Equipment>) {
+        kit = value
+        writeKit(settings, value)
         recompute()
     }
 
@@ -210,7 +223,7 @@ class ForecastState(
                     fetchedAt = entry.fetchedAt,
                     timeZone = forecast.timeZone,
                     today = now.toLocalDateTime(forecast.timeZone).date,
-                    days = advise(forecast, load, now),
+                    days = advise(forecast, load, now, kit),
                     forecast = forecast,
                     refreshing = refreshing,
                     lastError = lastError,

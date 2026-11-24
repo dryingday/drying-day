@@ -30,4 +30,12 @@
     <string name="places_select">Use this place</string>
     <string name="places_current">Current</string>
     <string name="places_remove">Remove</string>
+    <string name="kit_title">What you dry with</string>
+    <string name="kit_intro">Tick what you have at home and the indoor plan will use it. This stays on your phone.</string>
+    <string name="kit_airer">Clothes airer</string>
+    <string name="kit_heated_airer">Heated airer</string>
+    <string name="kit_dehumidifier">Dehumidifier</string>
+    <string name="kit_tumble_dryer">Tumble dryer</string>
+    <string name="kit_link_unsaid">Say what you dry with</string>
+    <string name="kit_link_said">Change what you dry with</string>
 </resources>
