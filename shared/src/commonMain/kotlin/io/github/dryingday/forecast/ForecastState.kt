@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.russhwolf.settings.Settings
+import io.github.dryingday.engine.Equipment
 import io.github.dryingday.engine.Load
 import io.github.dryingday.engine.advise
 import io.github.dryingday.weather.Coordinates
@@ -44,7 +45,7 @@ private const val MILLIS_PER_MINUTE = 60_000L
  * on screen ([setOnScreen]) or the user asks ([refresh]), and only for the current place ([setPlace]).
  *
  * @param scope runs the fetch and the minute tick; the caller owns it.
- * @param settings holds the load under `load`.
+ * @param settings holds the load under `load` and the kit under `equipment`.
  */
 class ForecastState(
     private val source: ForecastSource,
@@ -58,6 +59,20 @@ class ForecastState(
 
     var load: Load by mutableStateOf(readLoad(settings))
         private set
+
+    private var storedKit: Set<Equipment>? by mutableStateOf(readKit(settings))
+
+    /**
+     * What the person dries with: null until they say. Only the indoor plan follows it. Setting it stores it and
+     * re-runs the engine, fetching nothing; setting null forgets it.
+     */
+    var kit: Set<Equipment>?
+        get() = storedKit
+        set(value) {
+            storedKit = value
+            writeKit(settings, value)
+            recompute()
+        }
 
     /**
      * Set when a fetch the user asked for ([refresh]) fails while there is a forecast to keep showing, so the
@@ -210,7 +225,7 @@ class ForecastState(
                     fetchedAt = entry.fetchedAt,
                     timeZone = forecast.timeZone,
                     today = now.toLocalDateTime(forecast.timeZone).date,
-                    days = advise(forecast, load, now),
+                    days = advise(forecast, load, now, kit),
                     forecast = forecast,
                     refreshing = refreshing,
                     lastError = lastError,

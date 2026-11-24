@@ -1,6 +1,7 @@
 package io.github.dryingday.forecast
 
 import io.github.dryingday.engine.DayAdvice
+import io.github.dryingday.engine.Equipment
 import io.github.dryingday.engine.IndoorStep
 import io.github.dryingday.engine.Reason
 import io.github.dryingday.engine.Tip
@@ -8,6 +9,8 @@ import io.github.dryingday.engine.Verdict
 import io.github.dryingday.shared.resources.Res
 import io.github.dryingday.shared.resources.day_today
 import io.github.dryingday.shared.resources.day_tomorrow
+import io.github.dryingday.shared.resources.kit_link_said
+import io.github.dryingday.shared.resources.kit_link_unsaid
 import io.github.dryingday.shared.resources.verdict_day_over
 import io.github.dryingday.shared.resources.verdict_dont_bother
 import io.github.dryingday.shared.resources.verdict_partly_dry
@@ -57,10 +60,18 @@ class ForecastTextTest {
         assertAllDistinct(Reason.entries) { it.text().key }
         assertAllDistinct(Tip.entries) { it.text().key }
         assertAllDistinct(IndoorStep.entries) { it.text().key }
+        assertAllDistinct(Equipment.entries) { it.text().key }
         assertAllDistinct(SourceError.entries) { it.textWithoutForecast().key }
         assertAllDistinct(SourceError.entries) { it.textUnderForecast().key }
         assertAllDistinct(DayOfWeek.entries) { it.text().key }
         assertTrue(SourceError.entries.all { it.textWithoutForecast().key != it.textUnderForecast().key })
+    }
+
+    @Test
+    fun theIndoorsLinkAsksUntilTheKitIsSaidAndThenOffersAChange() {
+        assertEquals(Res.string.kit_link_unsaid, kitLinkText(null))
+        assertEquals(Res.string.kit_link_said, kitLinkText(emptySet()))
+        assertEquals(Res.string.kit_link_said, kitLinkText(setOf(Equipment.AIRER)))
     }
 
     @Test
