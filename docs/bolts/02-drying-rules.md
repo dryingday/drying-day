@@ -130,6 +130,8 @@ Indoor plan, for `PARTLY_DRY` (after bring-in) and `DONT_BOTHER`:
 
 The indoor time is from bring-in to sunset for `PARTLY_DRY`, and the day's usable time for `DONT_BOTHER`. It starts no earlier than `now` and lasts at least six hours, so a bring-in at sunset or a question after dark still looks at the hours ahead. The mean is weighted by time. If any of that time is missing from the forecast, neither `OPEN_WINDOW` nor `DEHUMIDIFIER_OR_CLOSED_ROOM` is given.
 
+Bolt 10 ([10-equipment.md](10-equipment.md)) makes the plan follow the kit someone says they have. Until they say, the plan is the table above.
+
 ### Reference set
 
 - `scripts/fetch-reference-forecasts.py`: standard-library Python, HTTPS with a timeout. Fetches past forecasts from Open-Meteo's historical-forecast API with `timeformat=unixtime`, covering the case's day, the two days after it and a margin day either side (its hours are stamped in UTC whatever the zone), and writes:
