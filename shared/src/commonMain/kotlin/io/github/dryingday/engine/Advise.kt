@@ -13,28 +13,38 @@ import kotlin.time.Instant
  * Drying advice for today, tomorrow and the day after, as local dates in the forecast's zone, for [load]
  * asked at [now]. A day is null when its forecast is incomplete: no daylight data, or an hour of its
  * daylight from [now] onwards missing. Rules 3 to 6 and the tips and indoor plan of
- * docs/bolts/02-drying-rules.md.
+ * docs/bolts/02-drying-rules.md. The indoor plan follows [kit], what is dried with (null: not said, which gives
+ * bolt 2's plan); nothing else does (docs/bolts/10-equipment.md).
  */
-fun advise(forecast: Forecast, load: Load, now: Instant): List<DayAdvice?> = adviseDays(forecast, load, now, true)
+fun advise(forecast: Forecast, load: Load, now: Instant, kit: Set<Equipment>? = null): List<DayAdvice?> =
+    adviseDays(forecast, load, now, true, kit)
 
 /** Each day's reasons as rule 6's table gives them, before rule 7 adds one to an empty list. For tests. */
 internal fun tableReasons(forecast: Forecast, load: Load, now: Instant): List<List<Reason>?> =
-    adviseDays(forecast, load, now, false).map { it?.reasons }
+    adviseDays(forecast, load, now, false, null).map { it?.reasons }
 
-private fun adviseDays(forecast: Forecast, load: Load, now: Instant, weakestFactor: Boolean): List<DayAdvice?> {
+private fun adviseDays(
+    forecast: Forecast,
+    load: Load,
+    now: Instant,
+    weakestFactor: Boolean,
+    kit: Set<Equipment>?,
+): List<DayAdvice?> {
     val today = now.toLocalDateTime(forecast.timeZone).date
-    return (0 until DAYS).map { adviseDay(forecast, load, now, today.plus(it, DateTimeUnit.DAY), weakestFactor) }
+    return (0 until DAYS).map { adviseDay(forecast, load, now, today.plus(it, DateTimeUnit.DAY), weakestFactor, kit) }
 }
 
+@Suppress("LongParameterList")
 private fun adviseDay(
     forecast: Forecast,
     load: Load,
     now: Instant,
     date: LocalDate,
     weakestFactor: Boolean,
+    kit: Set<Equipment>?,
 ): DayAdvice? {
     val day = usableDay(forecast, now, date) ?: return null
-    return dayAdvice(forecast, load, now, date, day.daylight, day.usable, day.hours, weakestFactor)
+    return dayAdvice(forecast, load, now, date, day.daylight, day.usable, day.hours, weakestFactor, kit)
 }
 
 /** A day's daylight, its usable part (rule 1) and the forecast hours that overlap that part. */
@@ -63,6 +73,7 @@ private fun dayAdvice(
     usable: Interval,
     hours: List<HourlyWeather>,
     weakestFactor: Boolean,
+    kit: Set<Equipment>?,
 ): DayAdvice {
     val windows = if (usable.length > Duration.ZERO) windows(hours, daylight, now, load.needPoints) else emptyList()
     val (best, dryness, verdict) = outcome(windows, load.needPoints)
@@ -86,7 +97,7 @@ private fun dayAdvice(
             emptyList()
         } else {
             // After bring-in for a partly dry load; the usable time when it isn't worth hanging out.
-            indoorPlan(forecast.hours, onTheLine?.let { Interval(it.bringIn, daylight.end) } ?: usable, now, load)
+            indoorPlan(forecast.hours, onTheLine?.let { Interval(it.bringIn, daylight.end) } ?: usable, now, load, kit)
         },
     )
 }

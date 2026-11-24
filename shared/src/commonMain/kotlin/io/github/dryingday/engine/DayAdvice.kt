@@ -20,8 +20,22 @@ enum class Reason { DAY_OVER, RAIN, FOG, COLD, DAMP_AIR, STILL_AIR, SHORT_DAYLIG
 /** Hanging tips, in priority order. */
 enum class Tip { PEG_WELL, SHOWERS_POSSIBLE, HEAVY_ITEMS, SPACE_OUT, DARKS_INSIDE_OUT }
 
-/** Steps for finishing or doing the load indoors. */
-enum class IndoorStep { AIRER_SPACED, OPEN_WINDOW, DEHUMIDIFIER_OR_CLOSED_ROOM, NOT_ON_RADIATOR, TURN_HEAVY_ITEMS }
+/**
+ * Steps for finishing or doing the load indoors, in the order they're shown. Which of them a plan has depends
+ * on the kit: docs/bolts/10-equipment.md.
+ */
+enum class IndoorStep {
+    HEATED_AIRER_SPACED,
+    AIRER_SPACED,
+    HANGERS_SPACED,
+    OPEN_WINDOW,
+    DEHUMIDIFIER_OR_CLOSED_ROOM,
+    DEHUMIDIFIER_CLOSED_ROOM,
+    WARM_ROOM_AIRED,
+    NOT_ON_RADIATOR,
+    TURN_HEAVY_ITEMS,
+    TUMBLE_TO_FINISH,
+}
 
 /**
  * The engine's advice for one local [date]. Codes only: the UI turns them into text.
