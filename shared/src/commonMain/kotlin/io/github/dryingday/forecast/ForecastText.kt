@@ -15,10 +15,15 @@ import io.github.dryingday.shared.resources.forecast_stale_error_bad_response
 import io.github.dryingday.shared.resources.forecast_stale_error_service
 import io.github.dryingday.shared.resources.forecast_stale_error_unreachable
 import io.github.dryingday.shared.resources.indoor_airer_spaced
+import io.github.dryingday.shared.resources.indoor_dehumidifier_closed_room
 import io.github.dryingday.shared.resources.indoor_dehumidifier_or_closed_room
+import io.github.dryingday.shared.resources.indoor_hangers_spaced
+import io.github.dryingday.shared.resources.indoor_heated_airer_spaced
 import io.github.dryingday.shared.resources.indoor_not_on_radiator
 import io.github.dryingday.shared.resources.indoor_open_window
+import io.github.dryingday.shared.resources.indoor_tumble_to_finish
 import io.github.dryingday.shared.resources.indoor_turn_heavy_items
+import io.github.dryingday.shared.resources.indoor_warm_room_aired
 import io.github.dryingday.shared.resources.reason_cold
 import io.github.dryingday.shared.resources.reason_damp_air
 import io.github.dryingday.shared.resources.reason_day_over
@@ -71,11 +76,16 @@ internal fun Tip.text(): StringResource = when (this) {
 }
 
 internal fun IndoorStep.text(): StringResource = when (this) {
+    IndoorStep.HEATED_AIRER_SPACED -> Res.string.indoor_heated_airer_spaced
     IndoorStep.AIRER_SPACED -> Res.string.indoor_airer_spaced
+    IndoorStep.HANGERS_SPACED -> Res.string.indoor_hangers_spaced
     IndoorStep.OPEN_WINDOW -> Res.string.indoor_open_window
     IndoorStep.DEHUMIDIFIER_OR_CLOSED_ROOM -> Res.string.indoor_dehumidifier_or_closed_room
+    IndoorStep.DEHUMIDIFIER_CLOSED_ROOM -> Res.string.indoor_dehumidifier_closed_room
+    IndoorStep.WARM_ROOM_AIRED -> Res.string.indoor_warm_room_aired
     IndoorStep.NOT_ON_RADIATOR -> Res.string.indoor_not_on_radiator
     IndoorStep.TURN_HEAVY_ITEMS -> Res.string.indoor_turn_heavy_items
+    IndoorStep.TUMBLE_TO_FINISH -> Res.string.indoor_tumble_to_finish
 }
 
 /** The message when there is no forecast to show. */

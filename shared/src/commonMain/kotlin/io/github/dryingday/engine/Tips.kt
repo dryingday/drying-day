@@ -36,20 +36,43 @@ internal fun tips(hours: List<HourlyWeather>, window: Window, load: Load): List<
  * Steps for drying indoors after bring-in for a partly dry load, or over the day's usable time when it isn't
  * worth hanging out ([indoorTime]). Whether to let outdoor air in depends on its mean humidity, weighted by
  * time, from the indoor time's start (never before [now]) for at least six hours. With any of that time
- * missing from the forecast, neither air step is given: never a guess.
+ * missing from the forecast, none of the humidity steps is given: never a guess. [kit] is what's dried with,
+ * or null when not said (docs/bolts/10-equipment.md).
  */
-internal fun indoorPlan(hours: List<HourlyWeather>, indoorTime: Interval, now: Instant, load: Load): List<IndoorStep> {
+internal fun indoorPlan(
+    hours: List<HourlyWeather>,
+    indoorTime: Interval,
+    now: Instant,
+    load: Load,
+    kit: Set<Equipment>? = null,
+): List<IndoorStep> {
     val start = maxOf(indoorTime.start, now)
     val span = Interval(start, maxOf(indoorTime.end, start + INDOOR_TIME_AT_LEAST))
     val outdoorAirIsDry = hours.meanHumidityIn(span)?.let { it < OPEN_WINDOW_BELOW_RH_PERCENT }
-    return IndoorStep.entries.filter {
-        when (it) {
-            IndoorStep.AIRER_SPACED, IndoorStep.NOT_ON_RADIATOR -> true
-            IndoorStep.OPEN_WINDOW -> outdoorAirIsDry == true
-            IndoorStep.DEHUMIDIFIER_OR_CLOSED_ROOM -> outdoorAirIsDry == false
-            IndoorStep.TURN_HEAVY_ITEMS -> load == Load.HEAVY
-        }
-    }
+    return listOfNotNull(
+        airerStep(kit),
+        humidityStep(kit, outdoorAirIsDry),
+        IndoorStep.NOT_ON_RADIATOR,
+        IndoorStep.TURN_HEAVY_ITEMS.takeIf { load == Load.HEAVY },
+        IndoorStep.TUMBLE_TO_FINISH.takeIf { kit != null && Equipment.TUMBLE_DRYER in kit },
+    )
+}
+
+/** What to dry on: the heated airer wins over a plain one, and a kit with neither airer gets hangers. */
+private fun airerStep(kit: Set<Equipment>?): IndoorStep = when {
+    kit == null -> IndoorStep.AIRER_SPACED
+    Equipment.HEATED_AIRER in kit -> IndoorStep.HEATED_AIRER_SPACED
+    Equipment.AIRER in kit -> IndoorStep.AIRER_SPACED
+    else -> IndoorStep.HANGERS_SPACED
+}
+
+/** The air step: none when the outdoor humidity is unknown, and no dehumidifier mention on a dry day. */
+private fun humidityStep(kit: Set<Equipment>?, outdoorAirIsDry: Boolean?): IndoorStep? = when {
+    outdoorAirIsDry == null -> null
+    outdoorAirIsDry -> IndoorStep.OPEN_WINDOW
+    kit == null -> IndoorStep.DEHUMIDIFIER_OR_CLOSED_ROOM
+    Equipment.DEHUMIDIFIER in kit -> IndoorStep.DEHUMIDIFIER_CLOSED_ROOM
+    else -> IndoorStep.WARM_ROOM_AIRED
 }
 
 /** Mean relative humidity over [span], weighted by time; null unless the hours cover all of it. */

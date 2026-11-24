@@ -12,11 +12,16 @@
     <string name="tip_heavy_items">Pockets out, hang heavy things by the hems, and turn them halfway.</string>
     <string name="tip_space_out">Leave space between items, as there's little wind.</string>
     <string name="tip_darks_inside_out">Turn darks inside out, as strong sun fades them.</string>
+    <string name="indoor_heated_airer_spaced">Use the heated airer, with space between items.</string>
     <string name="indoor_airer_spaced">Use an airer, with space between items.</string>
+    <string name="indoor_hangers_spaced">Hang things on hangers from a rail or a door frame, with space between them.</string>
     <string name="indoor_open_window">Open a window, as the air outside is dry enough to help.</string>
     <string name="indoor_dehumidifier_or_closed_room">Keep windows shut. Use a dehumidifier, or a small room with the door closed.</string>
+    <string name="indoor_dehumidifier_closed_room">Keep windows shut. Run the dehumidifier in a small room with the door closed.</string>
+    <string name="indoor_warm_room_aired">Dry it in the warmest room you have, and open the window wide for a few minutes now and then to let the damp out.</string>
     <string name="indoor_not_on_radiator">Not on a radiator. Near one is fine.</string>
     <string name="indoor_turn_heavy_items">Turn heavy items now and then.</string>
+    <string name="indoor_tumble_to_finish">If it's still damp tonight, finish it in the tumble dryer.</string>
     <string name="forecast_error_unreachable">Couldn't reach the weather service. Check your connection and try again.</string>
     <string name="forecast_error_service">The weather service had a problem. Try again in a moment.</string>
     <string name="forecast_error_bad_response">The weather service sent something this app can't read. Try again later.</string>
