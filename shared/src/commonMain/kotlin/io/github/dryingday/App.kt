@@ -20,6 +20,7 @@ import io.github.dryingday.forecast.ForecastState
 import io.github.dryingday.forecast.ForecastStatus
 import io.github.dryingday.forecast.MainScreen
 import io.github.dryingday.forecast.TimeFormat
+import io.github.dryingday.kit.KitScreen
 import io.github.dryingday.location.DeviceLocation
 import io.github.dryingday.places.PlaceStore
 import io.github.dryingday.places.PlacesScreen
@@ -32,7 +33,7 @@ import io.github.dryingday.weather.ForecastSource
 import io.github.dryingday.weather.PlaceSearchSource
 import kotlin.time.Clock
 
-private enum class Screen { Main, Places, Search }
+private enum class Screen { Main, Places, Search, Kit }
 
 /**
  * First run while there is no current place, otherwise the main screen, with the places screen and the search
@@ -106,6 +107,9 @@ fun App(
                 searchFromPlaces = true
                 screen = Screen.Search
             }) { screen = Screen.Main }
+        } else if (screen == Screen.Kit) {
+            backHandler(true) { screen = Screen.Main }
+            KitScreen(forecast.kit, onKit = { forecast.kit = it }) { screen = Screen.Main }
         } else {
             MainScreen(
                 place = checkNotNull(current),
@@ -115,6 +119,7 @@ fun App(
                 formatTime = formatTime,
                 formatHour = formatHour,
                 onPlaces = { screen = Screen.Places },
+                onKit = { screen = Screen.Kit },
                 statusBarIcons = statusBarIcons,
             )
         }
