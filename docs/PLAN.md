@@ -56,6 +56,7 @@ A spec names each protected change the bolt needs precisely enough to be checked
 | 7 | Weather at a glance | A picture for each verdict, the selected day's hours (sky, drying window), when rain is due; `v1.1.0` |
 | 8 | Fewer words, more pictures | The load as a toggle at the top, the drying window as a bar with its times, explanations in notes that open; `v1.2.0` |
 | 9 | The washing line | Days as cloths on a line under a sky that shows the weather, the wet share as a damp patch, the drying window as a row of washing, two bundled fonts and one palette; `v1.3.0` |
+| 10 | What you dry with | Say which of an airer, a heated airer, a dehumidifier and a tumble dryer you have, and the indoor plan uses it; `v1.4.0` |
 
 Bolts 2 and 3 can run in parallel once 1 is merged.
 
@@ -63,7 +64,6 @@ Bolts 2 and 3 can run in parallel once 1 is merged.
 
 - The place's name in place of "Approximate location" for a device fix.
 - Pictures of how to hang clothes (what "by the hems" means).
-- A settings page for the equipment owned (airer, dehumidifier), shaping the indoor plan.
 - Switching between saved places the way Breezy Weather does, in place of the places screen.
 - More weather sources and a source picker.
 - Morning "drying day" notification; home-screen widget.
