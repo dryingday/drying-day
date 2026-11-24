@@ -15,7 +15,14 @@ internal fun readKit(settings: Settings): Set<Equipment>? {
     return Equipment.entries.filterTo(mutableSetOf()) { it.name in codes }
 }
 
-/** Stores [kit] as its codes, comma-separated in the enum's order. The empty set is the empty string. */
-internal fun writeKit(settings: Settings, kit: Set<Equipment>) {
-    settings.putString(KIT_KEY, Equipment.entries.filter { it in kit }.joinToString(",") { it.name })
+/**
+ * Stores [kit] as its codes, comma-separated in the enum's order. The empty set is the empty string; null removes
+ * the key, so the kit is not said again.
+ */
+internal fun writeKit(settings: Settings, kit: Set<Equipment>?) {
+    if (kit == null) {
+        settings.remove(KIT_KEY)
+    } else {
+        settings.putString(KIT_KEY, Equipment.entries.filter { it in kit }.joinToString(",") { it.name })
+    }
 }

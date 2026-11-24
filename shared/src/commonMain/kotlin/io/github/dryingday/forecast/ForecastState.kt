@@ -47,7 +47,6 @@ private const val MILLIS_PER_MINUTE = 60_000L
  * @param scope runs the fetch and the minute tick; the caller owns it.
  * @param settings holds the load under `load` and the kit under `equipment`.
  */
-@Suppress("TooManyFunctions") // One state holder: the load and the kit each add a setter beside place and fetch.
 class ForecastState(
     private val source: ForecastSource,
     private val cache: ForecastCache,
@@ -61,9 +60,19 @@ class ForecastState(
     var load: Load by mutableStateOf(readLoad(settings))
         private set
 
-    /** What the person dries with: null until they say. Only the indoor plan follows it. */
-    var kit: Set<Equipment>? by mutableStateOf(readKit(settings))
-        private set
+    private var storedKit: Set<Equipment>? by mutableStateOf(readKit(settings))
+
+    /**
+     * What the person dries with: null until they say. Only the indoor plan follows it. Setting it stores it and
+     * re-runs the engine, fetching nothing; setting null forgets it.
+     */
+    var kit: Set<Equipment>?
+        get() = storedKit
+        set(value) {
+            storedKit = value
+            writeKit(settings, value)
+            recompute()
+        }
 
     /**
      * Set when a fetch the user asked for ([refresh]) fails while there is a forecast to keep showing, so the
@@ -93,13 +102,6 @@ class ForecastState(
     fun chooseLoad(value: Load) {
         load = value
         settings.putString(LOAD_KEY, value.name)
-        recompute()
-    }
-
-    /** Changing the kit re-runs the engine and fetches nothing. */
-    fun chooseKit(value: Set<Equipment>) {
-        kit = value
-        writeKit(settings, value)
         recompute()
     }
 

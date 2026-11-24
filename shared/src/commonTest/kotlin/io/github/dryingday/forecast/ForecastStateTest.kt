@@ -519,11 +519,11 @@ class ForecastStateTest {
         val first = Harness(this, settings)
         assertNull(first.state.kit)
 
-        first.state.chooseKit(setOf(Equipment.DEHUMIDIFIER, Equipment.AIRER))
+        first.state.kit = setOf(Equipment.DEHUMIDIFIER, Equipment.AIRER)
 
         assertEquals("AIRER,DEHUMIDIFIER", settings.getStringOrNull("equipment"))
         assertEquals(setOf(Equipment.AIRER, Equipment.DEHUMIDIFIER), Harness(this, settings).state.kit)
-        first.state.chooseKit(emptySet())
+        first.state.kit = emptySet()
         assertEquals(emptySet(), Harness(this, settings).state.kit)
     }
 
@@ -533,7 +533,7 @@ class ForecastStateTest {
         h.open()
         val kit = setOf(Equipment.TUMBLE_DRYER)
 
-        h.state.chooseKit(kit)
+        h.state.kit = kit
 
         assertEquals(advise(theForecast, h.state.load, h.clock.now(), kit), h.showing.days)
         assertEquals(1, h.source.calls.size)

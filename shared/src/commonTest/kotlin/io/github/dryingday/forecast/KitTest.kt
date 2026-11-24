@@ -69,4 +69,11 @@ class KitTest {
     fun duplicatesCountOnce() {
         assertEquals(setOf(Equipment.AIRER, Equipment.DEHUMIDIFIER), read("DEHUMIDIFIER,AIRER,AIRER,DEHUMIDIFIER"))
     }
+
+    @Test
+    fun writingNullForgetsTheKit() {
+        val settings = MapSettings("equipment" to "AIRER")
+        writeKit(settings, null)
+        assertNull(readKit(settings))
+    }
 }
