@@ -45,6 +45,7 @@ import io.github.dryingday.Palette
 import io.github.dryingday.StatusBarIcons
 import io.github.dryingday.bodyStyle
 import io.github.dryingday.engine.DayAdvice
+import io.github.dryingday.engine.Equipment
 import io.github.dryingday.engine.Forecast
 import io.github.dryingday.engine.Reason
 import io.github.dryingday.engine.Verdict
@@ -64,6 +65,7 @@ import io.github.dryingday.shared.resources.forecast_times_local
 import io.github.dryingday.shared.resources.forecast_tips
 import io.github.dryingday.shared.resources.forecast_try_again
 import io.github.dryingday.shared.resources.forecast_updating
+import io.github.dryingday.shared.resources.kit_title
 import io.github.dryingday.shared.resources.window_note
 import io.github.dryingday.shared.resources.window_note_open
 import io.github.dryingday.weather.Attribution
@@ -95,7 +97,13 @@ private class NoteStates {
 class DayPicker(val selected: Int, val onSelect: (Int) -> Unit)
 
 /** The screen's colours and body text, worked out once. */
-private class ScreenLook(val palette: Palette, val body: TextStyle, val heading: TextStyle)
+private class ScreenLook(
+    val palette: Palette,
+    val body: TextStyle,
+    val heading: TextStyle,
+    val kit: Set<Equipment>?,
+    val onKit: () -> Unit,
+)
 
 /**
  * The main screen: the sky with the place and the washing line, the load toggle under it, then the selected day's
@@ -112,11 +120,18 @@ fun MainScreen(
     formatTime: TimeFormat,
     formatHour: TimeFormat,
     onPlaces: () -> Unit,
+    onKit: () -> Unit,
     statusBarIcons: (darkIcons: Boolean) -> Unit = {},
 ) {
     val colours = palette()
     val animations = animationsEnabled()
-    val look = ScreenLook(colours, bodyStyle().copy(color = colours.ink), headingStyle().copy(color = colours.ink))
+    val look = ScreenLook(
+        colours,
+        bodyStyle().copy(color = colours.ink),
+        headingStyle().copy(color = colours.ink),
+        state.kit,
+        onKit,
+    )
     val notes = remember { NoteStates() }
     val status = state.status
     val showing = status as? ForecastStatus.Showing
@@ -163,6 +178,7 @@ fun MainScreen(
 
                     is ForecastStatus.OutOfDate -> OutOfDate(status, state, look)
                 }
+                KitLink(Res.string.kit_title, look.body, onKit)
                 SourceAttributions(attributions, color = colours.muted)
             }
         }
@@ -279,14 +295,21 @@ private fun Day(
             } else {
                 Res.string.forecast_indoors
             }
-            Section(title, day.indoorPlan.map { it.text() }, look)
+            Section(title, day.indoorPlan.map { it.text() }, look) {
+                KitLink(kitLinkText(look.kit), look.body, look.onKit)
+            }
         }
     }
 }
 
 /** A heading in Big Shoulders, then each line led by a small peg, the lines divided by a dashed rule like stitching. */
 @Composable
-private fun Section(title: StringResource, lines: List<StringResource>, look: ScreenLook) {
+private fun Section(
+    title: StringResource,
+    lines: List<StringResource>,
+    look: ScreenLook,
+    last: @Composable () -> Unit = {},
+) {
     if (lines.isEmpty()) return
     Column {
         BasicText(stringResource(title), Modifier.semantics { heading() }, style = look.heading)
@@ -301,6 +324,7 @@ private fun Section(title: StringResource, lines: List<StringResource>, look: Sc
                 BasicText(stringResource(line), Modifier.weight(1f), style = look.body)
             }
         }
+        last()
     }
 }
 
